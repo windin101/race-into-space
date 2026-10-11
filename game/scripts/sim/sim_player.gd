@@ -27,6 +27,8 @@ var rd_mods_turn := 0
 var rd_mods_year := 0
 var turn_flags: Dictionary = {} ## event-card flags for this turn, e.g. "half_price": true
 var save_cards := 0
+var bad_card_flags := 0         ## which filler newscast lines have been used (bits 1-14)
+var last_news: Dictionary = {}   ## the newscast shown this turn
 
 var astronauts: Array = []      ## SimAstronaut
 var recruit_group := 0          ## next roster group to offer (0-4)

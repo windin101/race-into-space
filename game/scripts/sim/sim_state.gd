@@ -21,6 +21,9 @@ var players: Array[SimPlayer] = []
 ## One entry per prestige row: who was first/second and when. -1 = nobody yet.
 var prestige_rows: Array = []
 
+## Pre-dealt newscast event codes, 100 slots; see SimEvents.
+var event_deck: Array[int] = []
+
 var ended := false
 var winner := -1                ## player index, or -1 for no winner
 var end_reason := ""

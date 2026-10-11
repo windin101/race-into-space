@@ -33,6 +33,7 @@ var program_slot := -1            ## which capsule/minishuttle program, -1 unass
 var crew_index := -1              ## which crew within that program, -1 none
 var crew_position := -1           ## seat 0 commander, 1, 2, 3
 var seasons_in_program := 0
+var previous_program_slot := -1   ## slot before the last move this season (SimPersonnel)
 var seasons_active := 0           ## seasons since finishing basic training
 var moved_this_season := false
 

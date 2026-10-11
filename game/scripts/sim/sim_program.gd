@@ -18,6 +18,11 @@ var units := 0                  ## units in inventory (cap 6)
 var delay := 0                  ## seasons during which the program cannot be bought (event cards)
 var researched_this_season := false
 var mission_safety := 0         ## transient: safety after mission penalties, set at launch
+var damage := 0                 ## event-card safety penalty applied to the next mission (negative)
+var damage_cost := 0            ## MB to clear the damage before flying
+var unit_cost_extra := 0        ## permanent unit-cost increase from event cards
+var rd_cost_extra := 0          ## permanent per-team R&D cost increase from event cards
+var max_safety_extra := 0       ## event-card increase to the flight ceiling
 var flights := 0
 var successes := 0
 var failures := 0
@@ -42,15 +47,15 @@ func program_cost() -> int:
 
 
 func unit_cost() -> int:
-	return spec["unit_cost"]
+	return spec["unit_cost"] + unit_cost_extra
 
 
 func rd_cost() -> int:
-	return spec["rd_cost_per_team"]
+	return spec["rd_cost_per_team"] + rd_cost_extra
 
 
 func max_safety() -> int:
-	return spec["max_safety"]
+	return mini(99, spec["max_safety"] + max_safety_extra)
 
 
 func base_safety() -> int:
