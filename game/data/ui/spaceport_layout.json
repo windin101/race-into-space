@@ -1,0 +1,18 @@
+{
+  "_notes": "Building hotspots on the placeholder spaceport, in fractions of the 1920x1080 design canvas (x, y, w, h). The painted spaceport in Phase 7 replaces the flat blocks but keeps these ids.",
+  "buildings": [
+    {"id": "administration", "title": "Administration", "x": 0.06, "y": 0.62, "w": 0.16, "h": 0.14, "help": "I003"},
+    {"id": "research", "title": "Research & Development", "x": 0.26, "y": 0.55, "w": 0.15, "h": 0.12, "help": "I007"},
+    {"id": "astronaut_complex", "title": "Astronaut Complex", "x": 0.06, "y": 0.80, "w": 0.18, "h": 0.12, "help": "I020"},
+    {"id": "training", "title": "Training Centre", "x": 0.27, "y": 0.80, "w": 0.14, "h": 0.11, "help": "I021"},
+    {"id": "vab", "title": "Vehicle Assembly", "x": 0.45, "y": 0.60, "w": 0.13, "h": 0.22, "help": "I012"},
+    {"id": "mission_control", "title": "Mission Control", "x": 0.45, "y": 0.86, "w": 0.16, "h": 0.09, "help": "I010"},
+    {"id": "pad_1", "title": "Launch Pad 1", "x": 0.66, "y": 0.40, "w": 0.08, "h": 0.12, "help": "I013"},
+    {"id": "pad_2", "title": "Launch Pad 2", "x": 0.76, "y": 0.52, "w": 0.08, "h": 0.12, "help": "I013"},
+    {"id": "pad_3", "title": "Launch Pad 3", "x": 0.86, "y": 0.64, "w": 0.08, "h": 0.12, "help": "I013"},
+    {"id": "museum", "title": "Space Museum", "x": 0.64, "y": 0.82, "w": 0.15, "h": 0.11, "help": "I030"},
+    {"id": "intelligence", "title": "Intelligence", "x": 0.82, "y": 0.84, "w": 0.12, "h": 0.09, "help": "I040"},
+    {"id": "programs", "title": "Program Offices", "x": 0.26, "y": 0.69, "w": 0.15, "h": 0.08, "help": "I008"}
+  ],
+  "flag": {"x": 0.90, "y": 0.10, "w": 0.07, "h": 0.14}
+}

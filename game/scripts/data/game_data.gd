@@ -17,6 +17,7 @@ var constants: Dictionary       ## constants.json -> code-derived rules (may be 
 var tech_transfer: Dictionary   ## tech_transfer.json -> starting safety from related programs (optional)
 var event_effects: Dictionary   ## event_effects.json -> newscast card effects (optional)
 var review: Dictionary          ## review.json -> annual review rule (optional)
+var ui_layout: Dictionary = {}  ## ui/*.json -> screen layouts keyed by basename
 var text: Dictionary = {}       ## text/*.json keyed by basename
 
 var loaded := false
@@ -40,6 +41,7 @@ func load_all() -> void:
 	tech_transfer = _load_json("tech_transfer.json", true)
 	event_effects = _load_json("event_effects.json", true)
 	review = _load_json("review.json", true)
+	ui_layout["spaceport"] = _load_json("ui/spaceport_layout.json", true)
 	for table in ["events", "news", "reviews", "endgame", "help"]:
 		text[table] = _load_json("text/%s.json" % table)
 	loaded = load_errors.is_empty()

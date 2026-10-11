@@ -1,8 +1,9 @@
 extends Control
-## Entry scene. Placeholder until the title screen exists.
+## Entry scene: hands over to the screen manager with the title screen.
+
+const TITLE := "res://scenes/ui/title_screen.tscn"
 
 
 func _ready() -> void:
-	var win := get_window()
-	print("Race Into Space: viewport %s, window %s, scale %.2f" % [
-		win.content_scale_size, win.size, win.content_scale_factor])
+	get_tree().root.theme = UiTheme.get_theme("usa")
+	Screens.push(load(TITLE))
