@@ -14,8 +14,8 @@ func after() -> void:
 	data.queue_free()
 
 
-func _new_state(seed := 1, options := {}) -> SimState:
-	return SimState.new(data, seed, options)
+func _new_state(p_seed := 1, options := {}) -> SimState:
+	return SimState.new(data, p_seed, options)
 
 
 func test_rng_is_reproducible() -> void:
@@ -40,7 +40,7 @@ func test_new_game_defaults() -> void:
 		assert_int(p.budget).is_equal(60)
 		assert_int(p.cash).is_equal(60)
 		assert_int(p.pad_count()).is_equal(1)
-		assert_int(p.owned_programs().size()).is_equal(0)
+		assert_int(p.owned_programs().size()).is_equal(1)   # photo recon is pre-owned
 	assert_str(s.player(0).director_name).is_equal("WEBB")
 	assert_str(s.player(1).director_name).is_equal("KOROLYOV")
 
@@ -229,3 +229,57 @@ func test_success_and_death_adjust_safety() -> void:
 	merc.safety = 80
 	SimHardware.punish_death(p, merc)       # medium: back to base
 	assert_int(merc.safety).is_equal(merc.base_safety())
+
+
+func test_tech_transfer_titan_from_atlas() -> void:
+	var s := _new_state()
+	var p := s.player(0)
+	p.cash = 5000
+	var atlas := p.program("rocket", 0)
+	SimHardware.buy_program(s, p, atlas)
+	atlas.safety = 80
+	var titan := p.program("rocket", 1)
+	SimHardware.buy_program(s, p, titan)
+	# (80 - 10) / 4.3 = 16.3, capped at 15, on a base of 10.
+	assert_int(titan.safety).is_equal(25)
+
+
+func test_tech_transfer_nova_raise_quirk_and_fixed_override() -> void:
+	var s := _new_state()
+	var p := s.player(0)
+	p.cash = 5000
+	var titan := p.program("rocket", 1)
+	SimHardware.buy_program(s, p, titan)
+	titan.safety = 30
+	var nova := p.program("rocket", 3)
+	SimHardware.buy_program(s, p, nova)
+	# Upstream quirk: any Titan contribution above 5 becomes exactly 20.
+	assert_int(nova.safety).is_equal(25)
+	var atlas := p.program("rocket", 0)
+	SimHardware.buy_program(s, p, atlas)
+	atlas.safety = 80
+	var saturn := p.program("rocket", 2)
+	SimHardware.buy_program(s, p, saturn)
+	saturn.safety = 80
+	var s2 := _new_state()
+	var p2 := s2.player(0)
+	p2.cash = 5000
+	SimHardware.buy_program(s2, p2, p2.program("rocket", 0))
+	p2.program("rocket", 0).safety = 80
+	SimHardware.buy_program(s2, p2, p2.program("rocket", 2))
+	p2.program("rocket", 2).safety = 80
+	var titan2 := p2.program("rocket", 1)
+	SimHardware.buy_program(s2, p2, titan2)
+	assert_int(titan2.safety).is_equal(65)
+
+
+func test_tech_transfer_none_for_minishuttle_and_unowned_donors() -> void:
+	var s := _new_state()
+	var p := s.player(0)
+	p.cash = 5000
+	var xms := p.program("manned", 3)
+	SimHardware.buy_program(s, p, xms)
+	assert_int(xms.safety).is_equal(xms.base_safety())
+	var titan := p.program("rocket", 1)
+	SimHardware.buy_program(s, p, titan)
+	assert_int(titan.safety).is_equal(titan.base_safety())

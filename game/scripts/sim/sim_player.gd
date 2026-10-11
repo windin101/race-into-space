@@ -58,6 +58,11 @@ static func create(p_index: int, data, model: String) -> SimPlayer:
 		for slot in specs.size():
 			slots.append(null if specs[slot] == null else SimProgram.from_spec(group, slot, specs[slot]))
 		p.programs[group] = slots
+	# Photo reconnaissance is never bought: upstream ships it already owned at its base safety.
+	var photo: SimProgram = p.programs["misc"][5]
+	if photo != null:
+		photo.owned = true
+		photo.safety = photo.base_safety()
 	return p
 
 

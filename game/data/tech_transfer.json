@@ -1,0 +1,938 @@
+{
+ "_source": "src/game/rdplex.cpp:1461-2103 BuyUnit (tech-transfer block 1518-2100)",
+ "_semantics": "Runs only on the FIRST purchase of a program (unit.Num == -1 and Cash >= InitCost; lines 1503-1516 - later unit buys return early). A single float accumulator tt starts at 0.0 (line 1518) and is NEVER reset between donor clauses within a target's case. Donor clauses are evaluated strictly in the source order listed under 'sources'. Two clause styles exist, recorded per source as 'mode': 'override' = `if (n > T) tt = (n-T)/D;` which REPLACES tt unconditionally (so a later donor can lower tt set by an earlier one - last matching donor wins, NOT max and NOT sum); 'max' = `if (n > T && (n-T)/D > tt) tt = (n-T)/D;` which replaces only when larger. Some clauses carry an extra 'condition' (`n > n1`, donor must exceed the first-slot program's current Safety). Caps are applied to tt at the exact point they appear ('cap' on a source = the `if (tt > cap) tt = cap;` executed immediately after that clause), so a cap also clips tt carried over from earlier donors, and a later, larger cap cannot re-raise an already-clipped value; 'cap': null means no cap statement follows that clause. The Nova/UR-700 case contains a literal `if (tt > 5.0f) tt = 20.0f;` which RAISES tt to 20 rather than capping (transcribed verbatim under 'expression'). Final assignment is `Safety = <literal base> + tt` where the base is a LITERAL IN CODE (not read from Equipment.Base), though every literal equals the program's data Base in urast.json for both nations; Safety is int16_t so the float is truncated toward zero (no rounding). Intermediate `Safety = 10 + tt` stores in the Atlas case (lines 1613, 1623) are dead stores overwritten at line 1641. 'fixed' overrides are evaluated AFTER the formula assignment and replace Safety unconditionally when their condition holds (an AND of two OR-groups, each `n >= 75`). Then `unit_ptr->Base = unit_ptr->Safety` (line 2100, int8_t), and VerifySafety (game_main.cpp:935) later clamps Safety >= Base, so the transferred value becomes a permanent floor. There is NO ownership test on donors: the code reads each donor's current Safety regardless of its Num. Because unowned programs load with Safety == Base (urast.json: probes 40, Atlas/Titan/Boosters 10, Saturn/Nova 5, capsules 5, LMs 10, Kicker-A/B 10, Kicker-C 5) and every clause threshold equals (or exceeds) the donor's base, an unowned donor contributes 0 - 'owned' effectively means 'Safety has been raised above its data Base'. The half-price sale (TurnOnly == 3) affects cost only. Misc donors are ROCKET slots 0 and 1, not Misc programs. Upstream array indices equal our slot numbers for all four groups.",
+ "_divisor_note": "Divisors are float literals (e.g. 3.5f) and the numerator is cast to float, except the Titan/Proton guard `(n3 - 5) / 4.6 > tt` which is int/double. Where a guard divisor differs from the assignment divisor, both are given.",
+ "rules": [
+  {
+   "target": {
+    "group": "probe",
+    "slot": 0,
+    "name": "EXPLORER/SPUTNIK"
+   },
+   "base": 40,
+   "combine": "last_override_then_cap",
+   "sources": [
+    {
+     "group": "probe",
+     "slot": 1,
+     "threshold": 40,
+     "divisor": 3.5,
+     "cap": null,
+     "mode": "override",
+     "line": 1529
+    },
+    {
+     "group": "probe",
+     "slot": 2,
+     "threshold": 40,
+     "divisor": 3.5,
+     "cap": 10,
+     "mode": "override",
+     "condition": "donor Safety > probe slot 0 Safety (n1 = the target's own pre-purchase Safety, 40 at base, so redundant with > 40)",
+     "line": 1534,
+     "cap_line": 1539,
+     "condition_ref": {
+      "group": "probe",
+      "slot": 0
+     }
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 40 + tt",
+   "source": "src/game/rdplex.cpp:1528-1545"
+  },
+  {
+   "target": {
+    "group": "probe",
+    "slot": 1,
+    "name": "RANGER/COSMOS"
+   },
+   "base": 40,
+   "combine": "last_override_then_cap",
+   "sources": [
+    {
+     "group": "probe",
+     "slot": 0,
+     "threshold": 40,
+     "divisor": 7.0,
+     "cap": 5,
+     "mode": "override",
+     "line": 1548,
+     "cap_line": 1552
+    },
+    {
+     "group": "probe",
+     "slot": 2,
+     "threshold": 40,
+     "divisor": 3.5,
+     "cap": 10,
+     "mode": "override",
+     "condition": "donor Safety > probe slot 0 Safety",
+     "line": 1557,
+     "cap_line": 1561,
+     "condition_ref": {
+      "group": "probe",
+      "slot": 0
+     }
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 40 + tt",
+   "source": "src/game/rdplex.cpp:1547-1568"
+  },
+  {
+   "target": {
+    "group": "probe",
+    "slot": 2,
+    "name": "SURVEYOR/LUNA"
+   },
+   "base": 40,
+   "combine": "last_override_then_cap",
+   "sources": [
+    {
+     "group": "probe",
+     "slot": 0,
+     "threshold": 40,
+     "divisor": 7.0,
+     "cap": 5,
+     "mode": "override",
+     "line": 1571,
+     "cap_line": 1575
+    },
+    {
+     "group": "probe",
+     "slot": 1,
+     "threshold": 40,
+     "divisor": 3.5,
+     "cap": 10,
+     "mode": "override",
+     "condition": "donor Safety > probe slot 0 Safety",
+     "line": 1580,
+     "cap_line": 1584,
+     "condition_ref": {
+      "group": "probe",
+      "slot": 0
+     }
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 40 + tt",
+   "source": "src/game/rdplex.cpp:1570-1591"
+  },
+  {
+   "target": {
+    "group": "rocket",
+    "slot": 0,
+    "name": "ATLAS/R-7"
+   },
+   "base": 10,
+   "combine": "last_override_then_cap",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 2.6,
+     "cap": 25,
+     "mode": "override",
+     "line": 1605,
+     "cap_line": 1609
+    },
+    {
+     "group": "rocket",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 2.8,
+     "cap": 25,
+     "mode": "override",
+     "line": 1615,
+     "cap_line": 1619
+    },
+    {
+     "group": "rocket",
+     "slot": 3,
+     "threshold": 5,
+     "divisor": 2.8,
+     "cap": 25,
+     "mode": "override",
+     "line": 1625,
+     "cap_line": 1629
+    },
+    {
+     "group": "rocket",
+     "slot": 4,
+     "threshold": 10,
+     "divisor": 2.6,
+     "cap": 25,
+     "mode": "override",
+     "line": 1633,
+     "cap_line": 1637
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt (lines 1613 and 1623 are dead intermediate stores; 1641 is the effective one)",
+   "source": "src/game/rdplex.cpp:1604-1645"
+  },
+  {
+   "target": {
+    "group": "rocket",
+    "slot": 1,
+    "name": "TITAN/PROTON"
+   },
+   "base": 10,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 4.3,
+     "cap": 15,
+     "mode": "override",
+     "line": 1648,
+     "cap_line": 1652
+    },
+    {
+     "group": "rocket",
+     "slot": 4,
+     "threshold": 10,
+     "divisor": 4.3,
+     "cap": 15,
+     "mode": "override",
+     "condition": "donor Safety > rocket slot 0 Safety",
+     "line": 1656,
+     "cap_line": 1660,
+     "condition_ref": {
+      "group": "rocket",
+      "slot": 0
+     }
+    },
+    {
+     "group": "rocket",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 30,
+     "mode": "max",
+     "guard_divisor": 4.6,
+     "expression": "if (n3 > 5 && (n3 - 5) / 4.6 > tt) tt = (n3 - 5) / 2.3f;  // guard compares at /4.6 (double), assigns at /2.3",
+     "line": 1666,
+     "cap_line": 1672
+    },
+    {
+     "group": "rocket",
+     "slot": 3,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 30,
+     "mode": "max",
+     "guard_divisor": 4.6,
+     "expression": "if (n4 > 5 && (float)(n4 - 5) / 4.6f > tt) tt = (float)(n4 - 5) / 2.3f;  // guard compares at /4.6, assigns at /2.3",
+     "line": 1676,
+     "cap_line": 1682
+    }
+   ],
+   "fixed": [
+    {
+     "value": 65,
+     "when": "(rocket0 >= 75 OR rocket4 >= 75) AND (rocket2 >= 75 OR rocket3 >= 75)",
+     "when_any_of_group_a": [
+      {
+       "group": "rocket",
+       "slot": 0,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 4,
+       "min_safety": 75
+      }
+     ],
+     "when_any_of_group_b": [
+      {
+       "group": "rocket",
+       "slot": 2,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 3,
+       "min_safety": 75
+      }
+     ],
+     "line": 1691
+    }
+   ],
+   "assignment": "Safety = 10 + tt",
+   "source": "src/game/rdplex.cpp:1647-1695"
+  },
+  {
+   "target": {
+    "group": "rocket",
+    "slot": 2,
+    "name": "SATURN/N1"
+   },
+   "base": 5,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 6.5,
+     "cap": 10,
+     "mode": "override",
+     "line": 1698,
+     "cap_line": 1702
+    },
+    {
+     "group": "rocket",
+     "slot": 4,
+     "threshold": 10,
+     "divisor": 6.5,
+     "cap": 10,
+     "mode": "override",
+     "condition": "donor Safety > rocket slot 0 Safety",
+     "line": 1706,
+     "cap_line": 1710,
+     "condition_ref": {
+      "group": "rocket",
+      "slot": 0
+     }
+    },
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 2.16,
+     "cap": 30,
+     "mode": "override",
+     "line": 1716,
+     "cap_line": 1720
+    },
+    {
+     "group": "rocket",
+     "slot": 3,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 30,
+     "mode": "max",
+     "guard_divisor": 3.5,
+     "expression": "if (n4 > 5 && (float)(n4 - 5) / 3.5f > tt) tt = (float)(n4 - 5) / 2.3f;  // guard compares at /3.5, assigns at /2.3",
+     "line": 1724,
+     "cap_line": 1730
+    }
+   ],
+   "fixed": [
+    {
+     "value": 60,
+     "when": "(rocket0 >= 75 OR rocket4 >= 75) AND (rocket1 >= 75 OR rocket3 >= 75)",
+     "when_any_of_group_a": [
+      {
+       "group": "rocket",
+       "slot": 0,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 4,
+       "min_safety": 75
+      }
+     ],
+     "when_any_of_group_b": [
+      {
+       "group": "rocket",
+       "slot": 1,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 3,
+       "min_safety": 75
+      }
+     ],
+     "line": 1738
+    }
+   ],
+   "assignment": "Safety = 5 + tt",
+   "source": "src/game/rdplex.cpp:1697-1742"
+  },
+  {
+   "target": {
+    "group": "rocket",
+    "slot": 3,
+    "name": "NOVA/UR-700"
+   },
+   "base": 5,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 13.0,
+     "cap": 5,
+     "mode": "override",
+     "line": 1745,
+     "cap_line": 1749
+    },
+    {
+     "group": "rocket",
+     "slot": 4,
+     "threshold": 10,
+     "divisor": 13.0,
+     "cap": 5,
+     "mode": "override",
+     "condition": "donor Safety > rocket slot 0 Safety",
+     "line": 1753,
+     "cap_line": 1757,
+     "condition_ref": {
+      "group": "rocket",
+      "slot": 0
+     }
+    },
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": null,
+     "mode": "override",
+     "expression": "if (n2 > 10) tt = (float)(n2 - 5) / 3.25f;  if (tt > 5.0f) tt = 20.0f;  // threshold 10 but subtracts 5; the follow-up is NOT a cap - it RAISES any tt above 5 to exactly 20",
+     "subtract": 5,
+     "post_clause": "if (tt > 5.0f) tt = 20.0f",
+     "line": 1763,
+     "post_clause_line": 1767,
+     "post_raise": {
+      "above": 5,
+      "to": 20
+     }
+    },
+    {
+     "group": "rocket",
+     "slot": 2,
+     "threshold": 10,
+     "divisor": 3.5,
+     "cap": null,
+     "mode": "max",
+     "expression": "if (n3 > 10 && (float)(n3 - 5) / 3.5f > tt) tt = (float)(n3 - 5) / 3.5f;  if (tt > 5.0f) tt = 20.0f;  // threshold 10 but subtracts 5; follow-up again raises tt > 5 to 20",
+     "subtract": 5,
+     "post_clause": "if (tt > 5.0f) tt = 20.0f",
+     "line": 1771,
+     "post_clause_line": 1777,
+     "post_raise": {
+      "above": 5,
+      "to": 20
+     }
+    }
+   ],
+   "fixed": [
+    {
+     "value": 35,
+     "when": "(rocket0 >= 75 OR rocket4 >= 75) AND (rocket1 >= 75 OR rocket2 >= 75)",
+     "when_any_of_group_a": [
+      {
+       "group": "rocket",
+       "slot": 0,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 4,
+       "min_safety": 75
+      }
+     ],
+     "when_any_of_group_b": [
+      {
+       "group": "rocket",
+       "slot": 1,
+       "min_safety": 75
+      },
+      {
+       "group": "rocket",
+       "slot": 2,
+       "min_safety": 75
+      }
+     ],
+     "line": 1785
+    }
+   ],
+   "assignment": "Safety = 5 + tt",
+   "effective_outcome_note": "Because of the raise-to-20 clauses, any Titan/Proton Safety >= 22 ((22-5)/3.25 = 5.23 > 5) or Saturn/N1 Safety >= 23 that beats the current tt yields tt = 20 -> Safety 25; tt can exceed 20 only via Saturn/N1 Safety > 75 ((n3-5)/3.5 > 20), and the fixed 35 then usually applies anyway. With both Titan and Saturn at base, the only transfer is the Atlas/Boosters path capped at 5.",
+   "source": "src/game/rdplex.cpp:1744-1789"
+  },
+  {
+   "target": {
+    "group": "rocket",
+    "slot": 4,
+    "name": "BOOSTERS"
+   },
+   "base": 10,
+   "combine": "max",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": null,
+     "mode": "override",
+     "line": 1792
+    },
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": null,
+     "mode": "max",
+     "line": 1796
+    },
+    {
+     "group": "rocket",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 3.5,
+     "cap": null,
+     "mode": "max",
+     "line": 1802
+    },
+    {
+     "group": "rocket",
+     "slot": 3,
+     "threshold": 5,
+     "divisor": 3.5,
+     "cap": 20,
+     "mode": "max",
+     "line": 1808,
+     "cap_line": 1814
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt (single cap of 20 applied once after all four donors)",
+   "source": "src/game/rdplex.cpp:1791-1821"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 0,
+    "name": "MERCURY/VOSTOK"
+   },
+   "base": 5,
+   "combine": "max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 1,
+     "threshold": 5,
+     "divisor": 2.0,
+     "cap": null,
+     "mode": "override",
+     "line": 1837
+    },
+    {
+     "group": "manned",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 2.0,
+     "cap": null,
+     "mode": "max",
+     "line": 1841
+    },
+    {
+     "group": "manned",
+     "slot": 4,
+     "threshold": 5,
+     "divisor": 2.0,
+     "cap": 35,
+     "mode": "max",
+     "line": 1847,
+     "cap_line": 1853
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 5 + tt (single cap of 35 after all donors)",
+   "source": "src/game/rdplex.cpp:1836-1860"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 1,
+    "name": "GEMINI/VOSKHOD"
+   },
+   "base": 5,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 0,
+     "threshold": 1,
+     "divisor": 4.66,
+     "cap": 15,
+     "mode": "override",
+     "subtract": 5,
+     "expression": "if (n1 > 1) tt = (float)(n1 - 5) / 4.66f;  // threshold is 1 but subtracts 5; at the data base of 5 this yields 0, and VerifySafety keeps Safety >= Base so it cannot go negative in practice",
+     "line": 1863,
+     "cap_line": 1867
+    },
+    {
+     "group": "manned",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 2.0,
+     "cap": null,
+     "mode": "max",
+     "line": 1873
+    },
+    {
+     "group": "manned",
+     "slot": 4,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 35,
+     "mode": "max",
+     "line": 1879,
+     "cap_line": 1885
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 5 + tt",
+   "source": "src/game/rdplex.cpp:1862-1892"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 2,
+    "name": "APOLLO/SOYUZ"
+   },
+   "base": 5,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 0,
+     "threshold": 5,
+     "divisor": 4.66,
+     "cap": 15,
+     "mode": "override",
+     "line": 1895,
+     "cap_line": 1899
+    },
+    {
+     "group": "manned",
+     "slot": 4,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 35,
+     "mode": "max",
+     "line": 1903,
+     "cap_line": 1909
+    },
+    {
+     "group": "manned",
+     "slot": 1,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 35,
+     "mode": "max",
+     "line": 1915,
+     "cap_line": 1921
+    }
+   ],
+   "fixed": [
+    {
+     "value": 40,
+     "when": "(manned0 >= 75 OR manned4 >= 75) AND (manned1 >= 75 OR manned3 >= 75)",
+     "when_any_of_group_a": [
+      {
+       "group": "manned",
+       "slot": 0,
+       "min_safety": 75
+      },
+      {
+       "group": "manned",
+       "slot": 4,
+       "min_safety": 75
+      }
+     ],
+     "when_any_of_group_b": [
+      {
+       "group": "manned",
+       "slot": 1,
+       "min_safety": 75
+      },
+      {
+       "group": "manned",
+       "slot": 3,
+       "min_safety": 75
+      }
+     ],
+     "note": "group B includes the minishuttle (slot 3) even though the minishuttle is not a formula donor",
+     "line": 1929
+    }
+   ],
+   "assignment": "Safety = 5 + tt",
+   "source": "src/game/rdplex.cpp:1894-1933"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 4,
+    "name": "JUPITER/LK-700"
+   },
+   "base": 5,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 0,
+     "threshold": 5,
+     "divisor": 14.0,
+     "cap": 5,
+     "mode": "override",
+     "line": 1939,
+     "cap_line": 1943
+    },
+    {
+     "group": "manned",
+     "slot": 1,
+     "threshold": 5,
+     "divisor": 7.0,
+     "cap": 10,
+     "mode": "max",
+     "line": 1949,
+     "cap_line": 1955
+    },
+    {
+     "group": "manned",
+     "slot": 2,
+     "threshold": 5,
+     "divisor": 3.5,
+     "cap": 20,
+     "mode": "max",
+     "line": 1961,
+     "cap_line": 1967
+    }
+   ],
+   "fixed": [
+    {
+     "value": 35,
+     "when": "(manned0 >= 75 OR manned1 >= 75 OR manned2 >= 75) AND (manned5 >= 75 OR manned6 >= 75)",
+     "when_any_of_group_a": [
+      {
+       "group": "manned",
+       "slot": 0,
+       "min_safety": 75
+      },
+      {
+       "group": "manned",
+       "slot": 1,
+       "min_safety": 75
+      },
+      {
+       "group": "manned",
+       "slot": 2,
+       "min_safety": 75
+      }
+     ],
+     "when_any_of_group_b": [
+      {
+       "group": "manned",
+       "slot": 5,
+       "min_safety": 75
+      },
+      {
+       "group": "manned",
+       "slot": 6,
+       "min_safety": 75
+      }
+     ],
+     "note": "group B is the two LMs, which are not formula donors for this target",
+     "line": 1975
+    }
+   ],
+   "assignment": "Safety = 5 + tt",
+   "source": "src/game/rdplex.cpp:1938-1979"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 5,
+    "name": "EAGLE/LKM (two-man LM)"
+   },
+   "base": 10,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 6,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": 20,
+     "mode": "override",
+     "line": 1982,
+     "cap_line": 1986
+    },
+    {
+     "group": "manned",
+     "slot": 4,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 30,
+     "mode": "max",
+     "line": 1992,
+     "cap_line": 1998
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt",
+   "source": "src/game/rdplex.cpp:1981-2006"
+  },
+  {
+   "target": {
+    "group": "manned",
+    "slot": 6,
+    "name": "CRICKET/LK (one-man LM)"
+   },
+   "base": 10,
+   "combine": "mixed_override_then_max",
+   "sources": [
+    {
+     "group": "manned",
+     "slot": 5,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": 30,
+     "mode": "override",
+     "line": 2009,
+     "cap_line": 2013
+    },
+    {
+     "group": "manned",
+     "slot": 4,
+     "threshold": 5,
+     "divisor": 2.3,
+     "cap": 30,
+     "mode": "max",
+     "line": 2019,
+     "cap_line": 2025
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt",
+   "source": "src/game/rdplex.cpp:2008-2033"
+  },
+  {
+   "target": {
+    "group": "misc",
+    "slot": 0,
+    "name": "KICKER-A"
+   },
+   "base": 10,
+   "combine": "single",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 2.16,
+     "cap": 30,
+     "mode": "override",
+     "line": 2044,
+     "cap_line": 2048
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt",
+   "source": "src/game/rdplex.cpp:2043-2056"
+  },
+  {
+   "target": {
+    "group": "misc",
+    "slot": 1,
+    "name": "KICKER-B"
+   },
+   "base": 10,
+   "combine": "single",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 2.6,
+     "cap": 25,
+     "mode": "override",
+     "line": 2059,
+     "cap_line": 2063
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 10 + tt",
+   "source": "src/game/rdplex.cpp:2058-2071"
+  },
+  {
+   "target": {
+    "group": "misc",
+    "slot": 2,
+    "name": "KICKER-C"
+   },
+   "base": 5,
+   "combine": "max",
+   "sources": [
+    {
+     "group": "rocket",
+     "slot": 0,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": null,
+     "mode": "override",
+     "line": 2074
+    },
+    {
+     "group": "rocket",
+     "slot": 1,
+     "threshold": 10,
+     "divisor": 3.25,
+     "cap": 20,
+     "mode": "max",
+     "line": 2078,
+     "cap_line": 2084
+    }
+   ],
+   "fixed": [],
+   "assignment": "Safety = 5 + tt (single cap of 20 after both donors)",
+   "source": "src/game/rdplex.cpp:2073-2092"
+  }
+ ],
+ "no_transfer": [
+  {
+   "group": "manned",
+   "slot": 3,
+   "name": "XMS-2/LAPOT (minishuttle)",
+   "reason": "explicit empty case, comment 'Minishuttles (don't get tech transfer)'",
+   "source": "src/game/rdplex.cpp:1935-1936"
+  },
+  {
+   "group": "misc",
+   "slot": 3,
+   "name": "EVA SUITS",
+   "reason": "falls to `default: break;` - Safety unchanged (data Base 30), then Base = Safety",
+   "source": "src/game/rdplex.cpp:2094-2095"
+  },
+  {
+   "group": "misc",
+   "slot": 4,
+   "name": "DOCKING",
+   "reason": "falls to `default: break;` - Safety unchanged (data Base 40), then Base = Safety",
+   "source": "src/game/rdplex.cpp:2094-2095"
+  },
+  {
+   "group": "misc",
+   "slot": 5,
+   "name": "PHOTO RECON",
+   "reason": "not purchasable through BuyUnit at all: assert(unit <= MISC_HW_DOCKING_MODULE) at line 1483, and urast.json ships it with Num = 0 (already owned)",
+   "source": "src/game/rdplex.cpp:1483"
+  }
+ ],
+ "_structured_fields": "condition_ref {group,slot}: clause applies only if donor Safety > that program's Safety. post_raise {above,to}: after the clause, if tt > above then tt = to (upstream quirk). subtract: value subtracted instead of threshold. guard_divisor: divisor used in a 'max' clause's comparison when it differs from the assigned divisor."
+}

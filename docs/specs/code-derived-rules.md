@@ -257,3 +257,56 @@ plus `AILunar`, `AIPrim`, `AISec`. Difficulty cash bonus 25 MB; AI die 1-98.
   +15 otherwise, not +35/+30.
 - The AI algorithm (`aimast.cpp`, `aimis.cpp`, `aipur.cpp`) and the Random hardware generator
   (`randomize.cpp`) were not transcribed beyond their named parameters.
+
+## 15. Event cards (`news_suq.cpp:87-777`, `news_sup.cpp:45-429`, `start.cpp:55-118`, `news.cpp:121-136,806-831`)
+
+Full transcription: `game/data/event_effects.json` (one object per `events.json` text index).
+
+- **Index mapping.** `Data->Events[]` holds a card *code* 0-113; the newscast shows
+  `events.json` text `code + 2` (`news.cpp:166`). Texts 0 and 1 are the intro/outro lines.
+- **Deck.** `InitializeEvents` deals one shared sequence of 100 slots at game start, no reshuffle.
+  Slots 0-1 are code 0 (opening card, both players, Spring 1957). Slots 2-99 are filled in six
+  periods of 2, 8, 8, 12, 16, 52 cards from five pools (codes 1-3, 4-43, 44-62, 63-79, 80-99) by
+  cumulative percentages per period: {100,100,100,100,100}, {0,100,...}, {0,62,100,...},
+  {0,50,70,100,100}, {0,35,55,75,100}, {0,25,50,75,100}; an empty pool is re-rolled. Cards are
+  removed from the pool when dealt, so every code appears at most once per game, for one side only.
+- **Draw.** Each player reads slot `2 * (2 * (Year - 57) + Season) + player` at the start of their
+  turn (`game_main.cpp:643`), USA even, USSR odd (swapped by `MAIL_INVERTED`). The AI side draws the
+  same way without a broadcast. The game ends at slot 83; slots 84-99 are dealt but unread.
+- **Gates.** No difficulty gating. Year gates in `REvent`: code > 44 needs 1961, > 63 needs 1963,
+  > 80 needs 1966; an early draw is a bad card. The budget drift of section 4 runs first, always.
+- **Bad cards.** A card whose precondition fails (nothing owned, nothing scheduled, nobody alive,
+  year gate) returns 1. `ResolveEvent` then picks a filler slot 1-14 not yet set in
+  `BadCardEventFlag[15]` (cleared after 30 misses), overwrites the slot with code `99 + slot`, and
+  the broadcast shows filler text 102-115. The flag only prevents repeated filler; it never changes
+  what is drawn. Nothing lets a player force, skip or redraw a card.
+- **Timing.** News runs before crew checks, the damage-repair prompt and the turn proper
+  (`game_main.cpp:608-618`), so R&D modifiers, the half-price sale, scrubs and delays hit the turn
+  being played. `RD_Mods_For_Turn` and `TurnOnly` are zeroed at season end (`start.cpp:728-735`).
+- **Effect families** (counts over codes 0-99): none 23 (plus 14 filler, 1 unreachable);
+  R&D die +1 this season 9, -1 or -2 "for a year" 4 (one season in practice: only positive year
+  mods carry over), RDCost +1 permanent 2; budget +15/+5/+20/+2d10/-5 and -20%/-30%/-25% capped
+  at 20/30/25 MB; cash +1d10, +3d6, -10%; safety +4d6/+6d6 or -25/-20/-15 points on the most
+  advanced program of a group 9; "pay N MB or -X% on the next mission" 8 (the only player
+  choice, via `Damage`/`DCost`); save card 4; half-price sale 2; rocket or capsule purchase
+  delay 2 seasons; two-man/three-man capsule UnitCost +2/+3; pad repair cost 15 (pad 1) or 10
+  (random idle pad); mission scrub, delay, or primary-crew swap; astronaut death 2, injury 2,
+  retirement 2, three free recruits, female astronauts allowed; tech steal/leak against the rival.
+- **"Most advanced"** always means the highest equipment index passing the test, in the order
+  probes < rockets < capsules < misc, so the all-programs cards (40, 42/43, 79) hit EVA suits or a
+  kicker before a capsule. Capsule safety cards (22, 26, 34, 84, 94) include the LMs; damage and
+  save-card capsule groups do not. The "LEM" save card (93) covers the four-man capsule too.
+- **Side differences.** Same effect per code for both sides; only the retirement cards (49, 89:
+  USSR retires at once, USA after two season-ends) and the bonus astronauts' names/stats differ.
+
+**Not found / quirks**
+
+- Code 4 (next launch must be manned, +10 MB): only statement is commented out; no effect.
+- Code 58 (50% pad explosion): sets `TurnOnly = 5`, consumer at `mc2.cpp:488` is commented out.
+- Code 82 (extra Duration E required): sets `FuturePlans = 5`, which nothing reads.
+- Code 35 (one launch only): pad bits are `i*2` not `1<<i`, so it only ever scrubs pad 3 when
+  pads 2 and 3 are both scheduled; otherwise a bad card.
+- Codes 3, 41, 61, 62 "for a year": `RD_Mods_For_Year` negative values are never applied.
+- Code 20 shows the amount removed where the text says "down to i%".
+- Code 114 (text 116) is unreachable. `TurnOnly` values 1, 2, 4, 6 and `FuturePlans` 1-4 in the
+  `data.h` comments are never set by any card.

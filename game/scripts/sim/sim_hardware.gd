@@ -53,8 +53,11 @@ static func buy_unit(p: SimPlayer, prog: SimProgram) -> bool:
 	return true
 
 
-## Starting safety for a newly bought program. Uses game/data/tech_transfer.json when
-## present; otherwise the program's base safety.
+## Starting safety for a newly bought program: technology transfer from related programs.
+## Follows game/data/tech_transfer.json, which transcribes upstream BuyUnit clause by
+## clause: one accumulator, clauses in order, "override" replaces it and "max" replaces
+## only when larger, caps clip at the point they appear, then fixed overrides apply.
+## Without the table the program's base safety is used.
 static func starting_safety(state: SimState, p: SimPlayer, prog: SimProgram) -> int:
 	var base := prog.base_safety()
 	var table: Dictionary = state.data.tech_transfer
@@ -64,36 +67,51 @@ static func starting_safety(state: SimState, p: SimPlayer, prog: SimProgram) -> 
 		if rule["target"]["group"] != prog.group or rule["target"]["slot"] != prog.slot:
 			continue
 		base = rule.get("base", base)
-		for fixed in rule.get("fixed", []):
-			var all_met := true
-			for cond in fixed["when_all"]:
-				var donor: SimProgram = p.program(cond["group"], cond["slot"])
-				if donor == null or not donor.owned or donor.safety < cond["min_safety"]:
-					all_met = false
-					break
-			if all_met:
-				return mini(fixed["value"], prog.max_safety())
-		var combine: String = rule.get("combine", "sum")
-		var bonus := 0
-		var best := 0
+		var tt := 0.0
 		for src in rule.get("sources", []):
-			var donor: SimProgram = p.program(src["group"], src["slot"])
-			if donor == null or not donor.owned:
-				continue
-			if src.has("condition_min_safety") and donor.safety < src["condition_min_safety"]:
-				continue
-			var contrib := int(floor(maxf(0.0, (donor.safety - src["threshold"]) / float(src["divisor"]))))
-			contrib = mini(contrib, src["cap"])
-			if combine == "max":
-				best = maxi(best, contrib)
-			elif combine == "first":
-				if contrib > 0:
-					best = contrib
-					break
-			else:
-				bonus += contrib
-		return mini(base + (best if combine != "sum" else bonus), prog.max_safety())
+			var n := _donor_safety(p, src["group"], src["slot"])
+			var threshold: int = src["threshold"]
+			var applies := n > threshold
+			if applies and src.has("condition_ref"):
+				var ref: Dictionary = src["condition_ref"]
+				applies = n > _donor_safety(p, ref["group"], ref["slot"])
+			if applies:
+				var sub: int = src.get("subtract", threshold)
+				var val := float(n - sub) / float(src["divisor"])
+				if src.get("mode", "override") == "max":
+					var guard := val
+					if src.has("guard_divisor"):
+						guard = float(n - sub) / float(src["guard_divisor"])
+					if guard > tt:
+						tt = val
+				else:
+					tt = val
+			if src.get("cap") != null and tt > float(src["cap"]):
+				tt = float(src["cap"])
+			if src.has("post_raise") and tt > float(src["post_raise"]["above"]):
+				tt = float(src["post_raise"]["to"])
+		var safety := base + int(tt)
+		for fixed in rule.get("fixed", []):
+			if _any_at_least(p, fixed.get("when_any_of_group_a", [])) and _any_at_least(p, fixed.get("when_any_of_group_b", [])):
+				safety = fixed["value"]
+		return clampi(safety, base, prog.max_safety())
 	return base
+
+
+## Upstream reads a donor's safety whether or not it is owned; an unowned program sits at
+## its base, which never exceeds a threshold.
+static func _donor_safety(p: SimPlayer, group: String, slot: int) -> int:
+	var donor: SimProgram = p.program(group, slot)
+	if donor == null:
+		return 0
+	return donor.safety if donor.owned else donor.base_safety()
+
+
+static func _any_at_least(p: SimPlayer, conds: Array) -> bool:
+	for cond in conds:
+		if _donor_safety(p, cond["group"], cond["slot"]) >= cond["min_safety"]:
+			return true
+	return false
 
 
 ## How many teams a player may assign this season: hard difficulty always allows five,

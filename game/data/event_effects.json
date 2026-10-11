@@ -1,0 +1,2119 @@
+{
+  "_source": {
+    "project": "raceintospace/raceintospace (GPL-2.0-or-later)",
+    "files": [
+      "src/game/news_suq.cpp:87-777 (REvent)",
+      "src/game/news_sup.cpp:45-429 (Steal, NMod, DamMod, RDMods, SaveMods, NewNauts)",
+      "src/game/news.cpp:121-136 (GoNews), 155-168 (OpenNews), 321-421 (DispNews), 528-548 (News), 790-831 (AIEvent, ResolveEvent)",
+      "src/game/start.cpp:55-118 (InitializeEvents), 361-366 & 481-491 (injury/retirement countdown), 592-594 (card-death mood), 728-735 (season reset), 909-911 (Delay countdown)",
+      "src/game/game_main.cpp:455-456, 506, 608-618, 643-646 (slot counter)",
+      "src/game/state_utils.cpp:75-172, 242-265 (ClearMissionCrew, DelayMission, ScrubMission)",
+      "src/game/astros.cpp:61-101 (CheckFlightCrews)",
+      "src/game/ast4.cpp:356-480 (damage repair prompt); src/game/mc2.cpp:819,867 (damage applied/cleared)",
+      "src/game/rdplex.cpp:899, 1057, 1380, 1492 (RD mod, half price, Delay consumers); src/game/mis_m.cpp:317-339 (SaveCard consumer)",
+      "src/game/data.h:42-55, 610-615, 617-700 (flag docs, pad status, equipment layout)"
+    ],
+    "text_file": "game/data/text/events.json (117 texts per side, same order as upstream data/gamedata/event.json)",
+    "transcribed": "2026-10-11 by hand; verified against the card texts (index = code + 2)."
+  },
+  "equipment_index_layout": {
+    "0-6": "Probe[]: 0 orbital, 1 interplanetary, 2 lunar, 3-6 unused",
+    "7-13": "Rocket[]: 7 one-stage, 8 two-stage, 9 three-stage, 10 mega, 11 boosters, 12-13 unused",
+    "14-20": "Manned[]: 14 one-man, 15 two-man, 16 three-man, 17 minishuttle, 18 four-man, 19 two-man LM, 20 one-man LM",
+    "21-27": "Misc[]: 21-23 kickers A/B/C, 24 EVA suits, 25 docking module, 26 photo recon, 27 unused",
+    "note": "news_sup.cpp walks Probe[i] for i up to 27, relying on the four arrays being contiguous in BuzzData. 'Most advanced' everywhere means the highest index that passes the candidate test."
+  },
+  "groups": {
+    "nmod_probe": "probes 0-2 (orbital, interplanetary, lunar); 'most advanced' = highest index owned",
+    "nmod_rocket": "rockets 0-3 (one-stage, two-stage, three-stage, mega); boosters excluded; highest index owned",
+    "nmod_manned": "Manned 0-6 (one/two/three-man, minishuttle, four-man, two-man LM, one-man LM); highest index owned",
+    "nmod_any": "all of: probes 0-2, rockets 0-3, Manned 0-6, Misc 0-3 (kickers A/B/C, EVA suits); highest index owned, so Misc beats Manned beats rockets beats probes",
+    "dam_probe": "probes 0-2 with Safety > Base; highest index",
+    "dam_rocket": "rockets 0-3 with Safety > Base; highest index",
+    "dam_manned": "Manned 0-4 (capsules incl. minishuttle and four-man; LMs excluded) with Safety > Base; highest index",
+    "dam_any": "probes 0-2, rockets 0-3, Manned 0-4, Misc 0-3 with Safety > Base; highest index (Misc first)",
+    "save_all": "Manned 0-6, else rockets 0-3, else probes 0-2 (owned); highest index",
+    "save_rocket": "rockets 0-3 owned; highest index",
+    "save_capsule": "Manned 0-3 (one/two/three-man, minishuttle) owned; highest index (four-man excluded)",
+    "save_lem": "Manned 4-6 (four-man capsule, two-man LM, one-man LM) owned; highest index",
+    "rdcost_any": "probes 0-2, rockets 0-3, Manned 0-6, Misc 0-3 with Safety > Base; highest index"
+  },
+  "deck": {
+    "summary": "One shared, pre-dealt sequence of 100 event codes (Data->Events[0..99]) is built at game start; there is no reshuffle and no per-turn draw. Each player consumes one slot per season: slot = 2 * (2 * (Year - 57) + Season) + player (player 0 = USA, 1 = USSR; swapped under MAIL_INVERTED). So the USA always reads even slots and the USSR odd slots, and a given code can appear only once in the whole game, for one side only.",
+    "text_index_mapping": "Events[] holds a code 0..113; the newscast shows events.json text[code + 2] (OpenNews uses event[bud + 2]). events.json index 0 and 1 are the intro/outro lines. This file's 'index' is the events.json index; 'event_code' = index - 2.",
+    "build": {
+      "source": "src/game/start.cpp:55-118 (InitializeEvents, called from game_main.cpp:455)",
+      "slots_0_1": "fixed to code 0 (opening card) for both players' first turn, Spring 1957",
+      "pools": {
+        "0": "codes 1-3 (3 cards)",
+        "1": "codes 4-43 (40 cards)",
+        "2": "codes 44-62 (19 cards)",
+        "3": "codes 63-79 (17 cards)",
+        "4": "codes 80-99 (20 cards)"
+      },
+      "periods": [
+        {
+          "period": 0,
+          "slots": "2-3",
+          "turns": "Fall 1957",
+          "cards": 2,
+          "pool_cdf_pct": [
+            100,
+            100,
+            100,
+            100,
+            100
+          ]
+        },
+        {
+          "period": 1,
+          "slots": "4-11",
+          "turns": "Spring 1958 - Fall 1959",
+          "cards": 8,
+          "pool_cdf_pct": [
+            0,
+            100,
+            100,
+            100,
+            100
+          ]
+        },
+        {
+          "period": 2,
+          "slots": "12-19",
+          "turns": "Spring 1960 - Fall 1961",
+          "cards": 8,
+          "pool_cdf_pct": [
+            0,
+            62,
+            100,
+            100,
+            100
+          ]
+        },
+        {
+          "period": 3,
+          "slots": "20-31",
+          "turns": "Spring 1962 - Fall 1964",
+          "cards": 12,
+          "pool_cdf_pct": [
+            0,
+            50,
+            70,
+            100,
+            100
+          ]
+        },
+        {
+          "period": 4,
+          "slots": "32-47",
+          "turns": "Spring 1965 - Fall 1968",
+          "cards": 16,
+          "pool_cdf_pct": [
+            0,
+            35,
+            55,
+            75,
+            100
+          ]
+        },
+        {
+          "period": 5,
+          "slots": "48-99",
+          "turns": "Spring 1969 onward",
+          "cards": 52,
+          "pool_cdf_pct": [
+            0,
+            25,
+            50,
+            75,
+            100
+          ]
+        }
+      ],
+      "pool_choice": "For each slot roll r = rand(0..99) and take the first pool whose cumulative percentage is > r; if that pool is empty, roll again. Then remove a uniformly random card from that pool into the slot (draw without replacement).",
+      "unused": "Pool 0 keeps one card forever (3 cards, 2 drawn, 0% afterwards). The game ends after Fall 1977 = slot 83, so slots 84-99 are dealt but never read.",
+      "difficulty_gating": "None. Neither the deal nor REvent looks at the difficulty level.",
+      "ai": "The AI side consumes its slot the same way (AIEvent -> ResolveEvent -> REvent, news.cpp:790-802); it just does not show the broadcast."
+    },
+    "draw_each_turn": {
+      "source": "src/game/news.cpp:121-136,528-548,806-831; src/game/news_suq.cpp:87-131",
+      "order": "News(plr) runs at the start of each player's turn, before crew/safety checks, damage-repair prompts and the turn itself (game_main.cpp:608-618), so this season's R&D mods, half-price sale, scrubs and delays apply to the turn being played.",
+      "steps": [
+        "REvent: Budget floored at 40, then the ntable budget drift (spec section 4) is applied unconditionally.",
+        "Year gates: the card is a 'bad card' (no effect) if Year <= 60 and code > 44, Year <= 62 and code > 63, or Year <= 65 and code > 80. These bite in 1962 (pool 3 opens) and 1965 (pool 4 opens).",
+        "The switch on the code applies the effect. A card whose precondition fails (nothing owned, nothing scheduled, nobody alive, etc.) returns 1 = bad card.",
+        "ResolveEvent: on a bad card pick a filler slot 1..14 at random that is not yet set in BadCardEventFlag[0..13] (after 30 failed tries the flag array is cleared); set the flag; GoNews then overwrites Events[slot] with 99 + slot so the newscast shows filler text[101 + slot] (events.json index 102-115) and the save file remembers it.",
+        "The broadcast is built: intro, card text with placeholders resolved, astronaut news, the seasonal 'also in the news' item, outro."
+      ],
+      "bad_card_flag": "BadCardEventFlag[15] is only used to avoid repeating filler texts; it never changes which deck card is drawn.",
+      "forcing_or_skipping": "No code path lets a player force, skip or redraw a card. The replay-after-autosave logic (eCount vs turn) just re-displays the stored text.",
+      "placeholders": "a/d/f/i/j = evflag as a number; b = FIRST/SECOND/THIRD from evflag (pad index); h = PRIMARY/SECONDARY/THIRD; c/e = Name (program or astronaut); g = president/premier by year; m = player name (news.cpp:321-421)."
+    },
+    "one_shot": "Every deck card is one-shot by construction (dealt without replacement into a single shared sequence). Flags a card sets are never reset by the deck: SaveCard is consumed by the next saved failure; Damage/DCost by repair or the next mission; Delay counts down; RD_Mods_For_Turn and TurnOnly are zeroed each season; UnitCost/RDCost/MaxSafety changes are permanent.",
+    "usa_vs_ussr": "The same code has the same effect for both sides (the texts differ). The only side-dependent lines are the retirement cards (49, 89: USSR retires immediately, USA announces with RetirementDelay 2) and the fixed names/stats of the three bonus astronauts (57)."
+  },
+  "cards": [
+    {
+      "index": 0,
+      "event_code": null,
+      "pool": "not a card",
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Newscast intro (0) / outro (1) line; OpenNews prepends text[0] and appends text[1] around every card. Never an Events[] value.",
+      "source": "src/game/news.cpp:159-168,314-315"
+    },
+    {
+      "index": 1,
+      "event_code": null,
+      "pool": "not a card",
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Newscast intro (0) / outro (1) line; OpenNews prepends text[0] and appends text[1] around every card. Never an Events[] value.",
+      "source": "src/game/news.cpp:159-168,314-315"
+    },
+    {
+      "index": 2,
+      "event_code": 0,
+      "pool": "opening",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Opening card: Events[0] and Events[1] are both 0, so both players get this on the first turn (Spring 1957). 'm' in the text is the player's name. No effect.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "PRESIDENT EISENHOWER ANNOUNCED THE NAME OF THE DIRECTOR OF A"
+    },
+    {
+      "index": 3,
+      "event_code": 1,
+      "pool": 0,
+      "min_year": 57,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "PRESIDENT EISENHOWER ANNOUNCED THERE WILL BE A FREEZE ON THE"
+    },
+    {
+      "index": 4,
+      "event_code": 2,
+      "pool": 0,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "OPERATION PAPERCLIP HAS BROUGHT IN A TOP GERMAN ROCKET SCIEN"
+    },
+    {
+      "index": 5,
+      "event_code": 3,
+      "pool": 0,
+      "min_year": 57,
+      "effect": "rd_mod_year",
+      "params": {
+        "amount": -1,
+        "seasons_intended": 2,
+        "seasons_actual": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RD_Mods_For_Turn -= 1 and RD_Mods_For_Year = -1. Teams roll 1d5 this season. The year value is never applied next season (start.cpp:728-733 carries only positive values and leaves the negative one unread), so it is effectively one season, matching the card text 'one season'.",
+      "source": "src/game/news_suq.cpp:209-212",
+      "usa_text_excerpt": "DUE TO MISMANAGEMENT AND CORRUPTION BY SOME CONTRACTORS, RES"
+    },
+    {
+      "index": 6,
+      "event_code": 4,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "unimplemented",
+      "params": {
+        "text_promises": "next launch must be manned, +10 MB budget"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "The only statement (Plans = 1) is commented out; no budget change, nothing enforced.",
+      "source": "src/game/news_suq.cpp:255-258",
+      "usa_text_excerpt": "IN GOVERNMENT NEWS TODAY, THE PRESIDENT HAS INSISTED THAT TH"
+    },
+    {
+      "index": 7,
+      "event_code": 5,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "tech_steal",
+      "params": {
+        "selection": "random",
+        "amount": "rival.Safety - own.Safety"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates: programs owned by both sides where the rival's Safety is higher (probes 0-2, rockets 0-3 and boosters, Manned 0-6, Misc 0-3). One is picked at random (up to 100 random probes; on failure, bad card); our Safety rises to equal the rival's. 'd' shows the gain, 'e' the program name. Bad card if no candidates.",
+      "source": "src/game/news_suq.cpp:234-238; src/game/news_sup.cpp:45-123",
+      "usa_text_excerpt": "SOURCES IN WASHINGTON TODAY HAVE DISCLOSED INFORMATION THAT "
+    },
+    {
+      "index": 8,
+      "event_code": 6,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "tech_leak",
+      "params": {
+        "selection": "random",
+        "amount": "rival.Safety - own.Safety",
+        "floor": "Base"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates: programs owned by both where the rival is higher and own Safety minus the gap would still be >= Base. One at random; own Safety -= gap. 'd' shows the loss. Bad card if none.",
+      "source": "src/game/news_suq.cpp:240-244; src/game/news_sup.cpp:45-123",
+      "usa_text_excerpt": "INTELLIGENCE SOURCES TODAY HAVE REVEALED THAT THE KGB HAS CL"
+    },
+    {
+      "index": 9,
+      "event_code": 7,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "tech_leak",
+      "params": {
+        "selection": "random",
+        "amount": "rival.Safety - own.Safety",
+        "floor": "Base"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates: programs owned by both where the rival is higher and own Safety minus the gap would still be >= Base. One at random; own Safety -= gap. 'd' shows the loss. Bad card if none.",
+      "source": "src/game/news_suq.cpp:240-244; src/game/news_sup.cpp:45-123",
+      "usa_text_excerpt": "INTELLIGENCE SOURCES TODAY HAVE REVEALED THAT THE KGB HAS CL"
+    },
+    {
+      "index": 10,
+      "event_code": 8,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "female_astronauts",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Sets FemaleAstronautsAllowed = 1 (ast1.cpp:626-657: mixed roster, and at least one woman required at AstroLevel 0-2).",
+      "source": "src/game/news_suq.cpp:249-251",
+      "usa_text_excerpt": "THE PRESIDENT AND CONGRESS HAVE AUTHORIZED THE USE OF FEMALE"
+    },
+    {
+      "index": 11,
+      "event_code": 9,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "budget_delta",
+      "params": {
+        "amount": 15
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget += 15. (Code 76's text also orders a civilian on a multi-manned capsule; that is not enforced.)",
+      "source": "src/game/news_suq.cpp:162-164",
+      "usa_text_excerpt": "PRESIDENT g GAVE A STIRRING SPEECH TODAY AND A PUBLIC REQUES"
+    },
+    {
+      "index": 12,
+      "event_code": 10,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "mission_scrub",
+      "params": {
+        "pad": "random among pads with a scheduled mission"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "One scheduled mission is scrubbed; the spaceport shows storm clouds this turn (xMODE_CLOUDS). 'h' shows PRIMARY/SECONDARY/THIRD. Bad card if nothing is scheduled.",
+      "source": "src/game/news_suq.cpp:260-277",
+      "usa_text_excerpt": "A STORM FRONT BLOCKS THE LAUNCH WINDOW FOR THE h LAUNCH FACI"
+    },
+    {
+      "index": 13,
+      "event_code": 11,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "save_card",
+      "params": {
+        "group": "save_all"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "'e' shows the program name. Bad card if nothing owned.",
+      "source": "src/game/news_suq.cpp:332-336; src/game/news_sup.cpp:291-382",
+      "usa_text_excerpt": "SPACE ENGINEERS HAVE ANNOUNCED TODAY THAT A POTENTIAL FAILUR"
+    },
+    {
+      "index": 14,
+      "event_code": 12,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS ANNOUNCED THAT THIS YEAR, THERE HAS BE"
+    },
+    {
+      "index": 15,
+      "event_code": 13,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "A NOBEL LAUREATE HAS DECIDED TO COME OUT OF RETIREMENT TO AI"
+    },
+    {
+      "index": 16,
+      "event_code": 14,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "THE SPACE PROGRAM ANNOUNCED TODAY THAT IT HAS MANAGED TO REC"
+    },
+    {
+      "index": 17,
+      "event_code": 15,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "A TOP SCIENTIST HAS EMIGRATED FROM AN ALLIED COUNTRY TO WORK"
+    },
+    {
+      "index": 18,
+      "event_code": 16,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "LAST WEEK A GRADUATE STUDENT AT THE UNIVERSITY OF FLORIDA ST"
+    },
+    {
+      "index": 19,
+      "event_code": 17,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "A FORMER GERMAN ROCKET SCIENTIST HAS ESCAPED FROM THE IRON C"
+    },
+    {
+      "index": 20,
+      "event_code": 18,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": 1,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Every R&D team this season rolls 1d7 instead of 1d6.",
+      "source": "src/game/news_suq.cpp:204-207",
+      "usa_text_excerpt": "A KEY SCIENTIST HAS ESCAPED FROM THE SOVIET UNION. INFORMATI"
+    },
+    {
+      "index": 21,
+      "event_code": 19,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_turn",
+      "params": {
+        "amount": -2,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Teams roll 1d4 this season.",
+      "source": "src/game/news_suq.cpp:214-216",
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS LOST SEVERAL KEY RESEARCH SCIENTISTS I"
+    },
+    {
+      "index": 22,
+      "event_code": 20,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_halved",
+      "params": {
+        "group": "rockets 0-3 with Safety > 50, highest index",
+        "amount": "-floor(Safety/2)"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Boosters are not considered. 'e' shows the name, 'i' shows the amount removed although the text says 'down to i%' (equal only when Safety was even).",
+      "source": "src/game/news_suq.cpp:358-378",
+      "usa_text_excerpt": "SPACE SUFFERED A SEVERE SETBACK WHEN THE e PROGRAM HAD A MAJ"
+    },
+    {
+      "index": 23,
+      "event_code": 21,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_max_safety_up",
+      "params": {
+        "group": "probes 0-2",
+        "amount": 5,
+        "max_safety_cap": 99
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Applies to all three probe programs whether owned or not. Never a bad card.",
+      "source": "src/game/news_suq.cpp:382-397",
+      "usa_text_excerpt": "A BREAKTHROUGH IN COMPUTER AUTOMATION HAS LED TO INCREASED R"
+    },
+    {
+      "index": 24,
+      "event_code": 22,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_manned",
+        "dice": "4d6",
+        "min": 4,
+        "max": 24
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates are owned programs whose Safety + roll would not exceed MaxSafety; highest index wins (LMs count). 'i' shows the roll. Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:399-407; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "THERE HAS BEEN A SCIENTIFIC BREAKTHROUGH IN THE e PROGRAM. T"
+    },
+    {
+      "index": 25,
+      "event_code": 23,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_rocket",
+        "dice": "6d6",
+        "min": 6,
+        "max": 36
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Same candidate rule (Safety + roll <= MaxSafety). Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:409-417; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "THERE HAS BEEN A SCIENTIFIC BREAKTHROUGH IN THE e PROGRAM. T"
+    },
+    {
+      "index": 26,
+      "event_code": 24,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_probe",
+        "dice": "4d6",
+        "min": 4,
+        "max": 24
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Same candidate rule. Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:419-427; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "THERE HAS BEEN A MAJOR BREAKTHROUGH IN THE e PROGRAM. ITS SA"
+    },
+    {
+      "index": 27,
+      "event_code": 25,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_rocket",
+        "cost": 15,
+        "safety_penalty": -20
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no rocket has Safety > Base.",
+      "source": "src/game/news_suq.cpp:473-477; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 15; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -20; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS SUFFERED A SEVERE SETBACK IN ITS e ROC"
+    },
+    {
+      "index": 28,
+      "event_code": 26,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_manned",
+        "amount": -25
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates must have Safety > 25 (result must stay positive); highest index. Absolute points, not percent. Bad card if none.",
+      "source": "src/game/news_suq.cpp:429-435; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "LAST WEEK, THE SPACE AGENCY DOWNGRADED THE e PROGRAM SAFETY "
+    },
+    {
+      "index": 29,
+      "event_code": 27,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_probe",
+        "amount": -15
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates must have Safety > 15. Bad card if none.",
+      "source": "src/game/news_suq.cpp:437-443; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "DUE TO A TEST FAILURE, ENGINEERS HAVE DOWNGRADED THE SAFETY "
+    },
+    {
+      "index": 30,
+      "event_code": 28,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "half_price_sale",
+      "params": {
+        "pct": 50,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "TurnOnly = 3 (rdplex.cpp:1057, 1492). Cleared at end of season.",
+      "source": "src/game/news_suq.cpp:461-463",
+      "usa_text_excerpt": "THERE HAS BEEN AN IMPORTANT ADVANCE IN ENGINEERING FOR THE S"
+    },
+    {
+      "index": 31,
+      "event_code": 29,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_delay",
+      "params": {
+        "group": "rockets 0-4 (incl. boosters)",
+        "seasons": 2
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "No rocket purchases this season or next; Delay counts down one per end-of-season (start.cpp:909-911).",
+      "source": "src/game/news_suq.cpp:465-469",
+      "usa_text_excerpt": "THE PRIME CONTRACTOR FOR THE ROCKET PROGRAM WILL NOT BE ABLE"
+    },
+    {
+      "index": 32,
+      "event_code": 30,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "cash_delta",
+      "params": {
+        "dice": "1d10",
+        "min": 1,
+        "max": 10
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Cash += 1d10; 'j' in the text shows the roll.",
+      "source": "src/game/news_suq.cpp:141-144",
+      "usa_text_excerpt": "A MAJOR CORPORATION HAS DECIDED TO CREDIT THE SPACE AGENCY j"
+    },
+    {
+      "index": 33,
+      "event_code": 31,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "cash_delta",
+      "params": {
+        "dice": "3d6",
+        "min": 3,
+        "max": 18
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Cash += 3d6; 'j' shows the roll.",
+      "source": "src/game/news_suq.cpp:146-149",
+      "usa_text_excerpt": "A MAJOR CORPORATION HAS DECIDED TO CREDIT THE SPACE AGENCY j"
+    },
+    {
+      "index": 34,
+      "event_code": 32,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "cash_delta",
+      "params": {
+        "dice": "1d10",
+        "min": 1,
+        "max": 10
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Cash += 1d10; 'j' in the text shows the roll.",
+      "source": "src/game/news_suq.cpp:141-144",
+      "usa_text_excerpt": "A MAJOR CORPORATION HAS DECIDED TO CREDIT THE SPACE AGENCY j"
+    },
+    {
+      "index": 35,
+      "event_code": 33,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "cash_pct",
+      "params": {
+        "pct": 10,
+        "min_cash": 10,
+        "rounding": "floor"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Cash -= floor(Cash/10). Bad card (no effect, filler text) if Cash < 10. 'f' shows the loss.",
+      "source": "src/game/news_suq.cpp:151-158",
+      "usa_text_excerpt": "DUE TO A BUDGET DEFICIT, GOVERNMENT ACCOUNTING DECLARES A LO"
+    },
+    {
+      "index": 36,
+      "event_code": 34,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_manned",
+        "amount": -20
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates must have Safety > 20. Bad card if none.",
+      "source": "src/game/news_suq.cpp:445-451; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "DUE TO A TEST FAILURE, THE SPACE PROGRAM HAS SUFFERED A 20% "
+    },
+    {
+      "index": 37,
+      "event_code": 35,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "mission_scrub",
+      "params": {
+        "pad": 2,
+        "condition": "pads 1 and 2 (0-based) both have missions and neither pad 0 nor pad 1 holds a joint mission"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Intended: only one launch this season. Actual: the pad bit sum uses i*2 (0,2,4) instead of 1<<i, so only the sum 6 (pads 1 and 2 scheduled, with or without pad 0) does anything, scrubbing the pad-2 mission; every other combination is a bad card. Any joint mission on pad 0 or 1 also makes it a bad card.",
+      "source": "src/game/news_suq.cpp:279-320",
+      "usa_text_excerpt": "A MAJOR EXPLOSION DESTROYED ALL ROCKET FUEL RESERVES FOR THE"
+    },
+    {
+      "index": 38,
+      "event_code": 36,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pad_damage",
+      "params": {
+        "pad": 0,
+        "repair_cost": 15
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Pad 1 (index 0) is set to repair cost 15 MB, only if no mission is scheduled on it this season; otherwise bad card.",
+      "source": "src/game/news_suq.cpp:322-328",
+      "usa_text_excerpt": "SEVERE STORMS HAVE DAMAGED THE SPACE PROGRAM'S PRIMARY LAUNC"
+    },
+    {
+      "index": 39,
+      "event_code": 37,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_probe",
+        "cost": 10,
+        "safety_penalty": -10
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no probe has Safety > Base.",
+      "source": "src/game/news_suq.cpp:479-483; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 10; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -10; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS MADE A DESIGN ERROR ON THE e SATELLITE"
+    },
+    {
+      "index": 40,
+      "event_code": 38,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_rocket",
+        "cost": 10,
+        "safety_penalty": -5
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no rocket has Safety > Base.",
+      "source": "src/game/news_suq.cpp:485-489; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 10; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -5; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM WILL HAVE TO REDESIGN THE e ROCKET PROGRAM"
+    },
+    {
+      "index": 41,
+      "event_code": 39,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_rocket",
+        "cost": 10,
+        "safety_penalty": -5
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no rocket has Safety > Base.",
+      "source": "src/game/news_suq.cpp:485-489; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 10; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -5; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS A MECHANICAL ERROR WITH THE e ROCKET P"
+    },
+    {
+      "index": 42,
+      "event_code": 40,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_any",
+        "cost": 10,
+        "safety_penalty": -10
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Highest index with Safety > Base (Misc first). Bad card if none.",
+      "source": "src/game/news_suq.cpp:491-495; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 10; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -10; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS A MECHANICAL ERROR WITH THE e PROGRAM."
+    },
+    {
+      "index": 43,
+      "event_code": 41,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_mod_year",
+      "params": {
+        "amount": -2,
+        "seasons_intended": 2,
+        "seasons_actual": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RD_Mods_For_Turn -= 2 and RD_Mods_For_Year -= 2; same carry-over bug as codes 3/61/62, so one season only (the text itself says 'one season').",
+      "source": "src/game/news_suq.cpp:218-221",
+      "usa_text_excerpt": "BUREAUCRATIC MISMANAGEMENT AT THE SPACE PROGRAM HAS CAUSED A"
+    },
+    {
+      "index": 44,
+      "event_code": 42,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_cost_up",
+      "params": {
+        "amount": 1,
+        "group": "rdcost_any"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RDCost (MB per team) +1 permanently on the most advanced program that has been researched above Base. Bad card if no program qualifies.",
+      "source": "src/game/news_suq.cpp:223-229; src/game/news_sup.cpp:244-288",
+      "usa_text_excerpt": "A CONTRACTOR FOR THE SPACE PROGRAM HAS GROSSLY UNDERESTIMATE"
+    },
+    {
+      "index": 45,
+      "event_code": 43,
+      "pool": 1,
+      "min_year": 57,
+      "effect": "rd_cost_up",
+      "params": {
+        "amount": 1,
+        "group": "rdcost_any"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RDCost (MB per team) +1 permanently on the most advanced program that has been researched above Base. Bad card if no program qualifies.",
+      "source": "src/game/news_suq.cpp:223-229; src/game/news_sup.cpp:244-288",
+      "usa_text_excerpt": "A CONTRACTOR FOR THE SPACE PROGRAM HAS GROSSLY UNDERESTIMATE"
+    },
+    {
+      "index": 46,
+      "event_code": 44,
+      "pool": 2,
+      "min_year": 57,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "SPACE PROGRAM OFFICIALS PLAYED HOST TO VIPS TODAY. A GROUP O"
+    },
+    {
+      "index": 47,
+      "event_code": 45,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "budget_delta",
+      "params": {
+        "dice": "2d10",
+        "min": 2,
+        "max": 20
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget += 2d10; 'a' shows the roll.",
+      "source": "src/game/news_suq.cpp:166-169",
+      "usa_text_excerpt": "SPACE ADMINISTRATORS HAVE LOBBIED SUCCESSFULLY FOR AN INCREA"
+    },
+    {
+      "index": 48,
+      "event_code": 46,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "budget_delta",
+      "params": {
+        "amount": 5
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget += 5. The 'next launch must be a spy satellite' order is not enforced.",
+      "source": "src/game/news_suq.cpp:171-173",
+      "usa_text_excerpt": "IN GOVERNMENT TODAY, THE PENTAGON HAS ISSUED AN ORDER THAT T"
+    },
+    {
+      "index": 49,
+      "event_code": 47,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "tech_steal",
+      "params": {
+        "selection": "random",
+        "amount": "rival.Safety - own.Safety"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates: programs owned by both sides where the rival's Safety is higher (probes 0-2, rockets 0-3 and boosters, Manned 0-6, Misc 0-3). One is picked at random (up to 100 random probes; on failure, bad card); our Safety rises to equal the rival's. 'd' shows the gain, 'e' the program name. Bad card if no candidates.",
+      "source": "src/game/news_suq.cpp:234-238; src/game/news_sup.cpp:45-123",
+      "usa_text_excerpt": "SOURCES IN WASHINGTON TODAY HAVE DISCLOSED THAT THE CIA HAS "
+    },
+    {
+      "index": 50,
+      "event_code": 48,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "save_card",
+      "params": {
+        "group": "save_rocket"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Bad card if no rocket owned.",
+      "source": "src/game/news_suq.cpp:338-342; src/game/news_sup.cpp:291-382",
+      "usa_text_excerpt": "ENGINEERS HAVE ANNOUNCED TODAY THAT A POTENTIAL FAILURE MODE"
+    },
+    {
+      "index": 51,
+      "event_code": 49,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_retire",
+      "params": {
+        "candidates": "any astronaut not dead or retired (trainees and injured included)",
+        "budget_delta": -5,
+        "mood_set": 10,
+        "retirement_delay": 2
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= 5; the astronaut's Mood is set to 10 and RetirementDelay = 2 (USA) or retired on the spot (USSR, crews containing them broken up). 'c' shows the name. Bad card if nobody qualifies.",
+      "source": "src/game/news_suq.cpp:517-551",
+      "usa_text_excerpt": "ASTRONAUT c HAS ANNOUNCED RETIREMENT TODAY FROM THE SPACE PR"
+    },
+    {
+      "index": 52,
+      "event_code": 50,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "mission_crew_swap",
+      "params": {
+        "pad": "first pad (lowest index) whose mission has a primary crew"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "'b' shows FIRST/SECOND/THIRD. Bad card if no scheduled mission has a primary crew.",
+      "source": "src/game/news_suq.cpp:553-569; state_utils.cpp:75-85,271-293",
+      "usa_text_excerpt": "THE PRIMARY CREW OF THE b LAUNCH HAS CAUGHT THE COMMON COLD."
+    },
+    {
+      "index": 53,
+      "event_code": 51,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_death",
+      "params": {
+        "candidates": "any astronaut not dead or retired",
+        "budget_delta": -5,
+        "scrub": "all missions this season with Men > 0"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= 5; the victim dies; every manned mission scheduled this season is scrubbed; crews broken up; spot animation. 'c' shows the name. Bad card if nobody qualifies.",
+      "source": "src/game/news_suq.cpp:571-603",
+      "usa_text_excerpt": "c IS KILLED IN A TRAINING ACCIDENT. THE SPACE PROGRAM HAS CA"
+    },
+    {
+      "index": 54,
+      "event_code": 52,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_death",
+      "params": {
+        "candidates": "any astronaut not dead or retired"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Death only (no budget change, no scrub). 'c' shows the name. Bad card if nobody qualifies.",
+      "source": "src/game/news_suq.cpp:605-628",
+      "usa_text_excerpt": "c HAS TRAGICALLY BEEN KILLED IN AN AUTOMOBILE ACCIDENT TODAY"
+    },
+    {
+      "index": 55,
+      "event_code": 53,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_injury",
+      "params": {
+        "candidates": "any astronaut not dead or retired",
+        "seasons": 2,
+        "endurance_short": "1 season with probability (Endurance-1)*25%",
+        "endurance_long": "3 seasons with 25% if Endurance < 1"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Status = Injured, InjuryDelay = 2 (endurance tweaks only with feat_use_endurance, default on), Special = 4 for the news. Bad card if nobody qualifies.",
+      "source": "src/game/news_suq.cpp:630-663",
+      "usa_text_excerpt": "c FAILED A PHYSICAL AND MAY NOT PARTICIPATE IN ANY SPACE MIS"
+    },
+    {
+      "index": 56,
+      "event_code": 54,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_rocket",
+        "cost": 15,
+        "safety_penalty": -20
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no rocket has Safety > Base.",
+      "source": "src/game/news_suq.cpp:497-501; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 15; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -20; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "FOREIGN AGENTS HAVE PENETRATED SECURITY AND DAMAGED THE e RO"
+    },
+    {
+      "index": 57,
+      "event_code": 55,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_manned",
+        "cost": 20,
+        "safety_penalty": -10
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no capsule has Safety > Base.",
+      "source": "src/game/news_suq.cpp:503-507; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 20; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -10; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "THE SPACE PROGRAM HAS SUFFERED A SEVERE SETBACK IN ITS e PRO"
+    },
+    {
+      "index": 58,
+      "event_code": 56,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "half_price_sale",
+      "params": {
+        "pct": 50,
+        "seasons": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "TurnOnly = 3 (rdplex.cpp:1057, 1492). Cleared at end of season.",
+      "source": "src/game/news_suq.cpp:461-463",
+      "usa_text_excerpt": "THERE HAS BEEN AN IMPORTANT ADVANCE IN ENGINEERING FOR THE S"
+    },
+    {
+      "index": 59,
+      "event_code": 57,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_recruit",
+      "params": {
+        "usa": [
+          {
+            "name": "MANKE",
+            "cap": 1,
+            "lm": 2,
+            "eva": 2,
+            "dock": 1,
+            "end": 3
+          },
+          {
+            "name": "POWELL",
+            "cap": 2,
+            "lm": 0,
+            "eva": 0,
+            "dock": 1,
+            "end": 0
+          },
+          {
+            "name": "YEAGER",
+            "cap": 3,
+            "lm": 0,
+            "eva": 1,
+            "dock": 1,
+            "end": 2
+          }
+        ],
+        "ussr": [
+          {
+            "name": "ILYUSHIN",
+            "cap": 3,
+            "lm": 0,
+            "eva": 0,
+            "dock": 3,
+            "end": 3
+          },
+          {
+            "name": "KRAMARENKO",
+            "cap": 2,
+            "lm": 1,
+            "eva": 2,
+            "dock": 0,
+            "end": 3
+          },
+          {
+            "name": "DOLGOV",
+            "cap": 2,
+            "lm": 3,
+            "eva": 0,
+            "dock": 0,
+            "end": 1
+          }
+        ],
+        "status": "basic training 1",
+        "group": 9,
+        "mood": "85 + 5*rand(0..3)",
+        "compat": "1-10",
+        "cr_cl": "1-2 each"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Free. No pool-size check. Never a bad card.",
+      "source": "src/game/news_suq.cpp:665-667; src/game/news_sup.cpp:387-429",
+      "usa_text_excerpt": "CONGRESS URGES ADDITIONAL SUPPORT FROM THE AIR FORCE AND NAV"
+    },
+    {
+      "index": 60,
+      "event_code": 58,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "unimplemented",
+      "params": {
+        "text_promises": "50% chance the next launch explodes"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Sets TurnOnly = 5, which nothing reads; the only consumer (mc2.cpp:488-489, capping step-0 safety at 50) is commented out.",
+      "source": "src/game/news_suq.cpp:669-671",
+      "usa_text_excerpt": "SOURCES FROM THE SPACE PROGRAM HAVE DISCLOSED THAT DUE TO AN"
+    },
+    {
+      "index": 61,
+      "event_code": 59,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "A MAJOR SPACE EXHIBIT OPENED LAST WEEK DISPLAYING AMERICA'S "
+    },
+    {
+      "index": 62,
+      "event_code": 60,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "astronaut_injury",
+      "params": {
+        "candidates": "any astronaut not dead or retired",
+        "seasons": 2,
+        "endurance_short": "1 season with probability (Endurance-1)*25%",
+        "endurance_long": "3 seasons with 25% if Endurance < 1"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Status = Injured, InjuryDelay = 2 (endurance tweaks only with feat_use_endurance, default on), Special = 4 for the news. Bad card if nobody qualifies.",
+      "source": "src/game/news_suq.cpp:630-663",
+      "usa_text_excerpt": "ASTRONAUT c CAN NO LONGER PARTICIPATE IN THE SPACE PROGRAM, "
+    },
+    {
+      "index": 63,
+      "event_code": 61,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "rd_mod_year",
+      "params": {
+        "amount": -1,
+        "seasons_intended": 2,
+        "seasons_actual": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RD_Mods_For_Turn -= 1 and RD_Mods_For_Year = -1. Teams roll 1d5 this season. The year value is never applied next season (start.cpp:728-733 carries only positive values and leaves the negative one unread), so it is effectively one season, matching the card text 'one season'.",
+      "source": "src/game/news_suq.cpp:209-212",
+      "usa_text_excerpt": "A TOP ROCKET DESIGNER HAS RETIRED DUE TO POOR HEALTH. R&D WI"
+    },
+    {
+      "index": 64,
+      "event_code": 62,
+      "pool": 2,
+      "min_year": 61,
+      "effect": "rd_mod_year",
+      "params": {
+        "amount": -1,
+        "seasons_intended": 2,
+        "seasons_actual": 1
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "RD_Mods_For_Turn -= 1 and RD_Mods_For_Year = -1. Teams roll 1d5 this season. The year value is never applied next season (start.cpp:728-733 carries only positive values and leaves the negative one unread), so it is effectively one season, matching the card text 'one season'.",
+      "source": "src/game/news_suq.cpp:209-212",
+      "usa_text_excerpt": "A TOP ROCKET DESIGNER FOR THE SPACE PROGRAM HAS DIED IN SURG"
+    },
+    {
+      "index": 65,
+      "event_code": 63,
+      "pool": 3,
+      "min_year": 61,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE UNITED STATES SPACE PROGRAM WAS HONORED TODAY BY A VISIT"
+    },
+    {
+      "index": 66,
+      "event_code": 64,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "pad_damage",
+      "params": {
+        "pad": "random operational pad with no mission this season (20 tries of rand()%3)",
+        "repair_cost": 10
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Bad card if 20 tries find none (e.g. all built pads busy).",
+      "source": "src/game/news_suq.cpp:673-687",
+      "usa_text_excerpt": "SPACE OFFICIALS ANNOUNCED TODAY THAT ONE OF ITS LAUNCH FACIL"
+    },
+    {
+      "index": 67,
+      "event_code": 65,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "program_unit_cost_up",
+      "params": {
+        "program": "Manned[1] two-man capsule (Gemini/Voskhod)",
+        "amount": 2
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Bad card if the program is not owned.",
+      "source": "src/game/news_suq.cpp:689-695",
+      "usa_text_excerpt": "CONTRACTORS ANNOUNCED TODAY THAT THE GEMINI PROGRAM WILL COS"
+    },
+    {
+      "index": 68,
+      "event_code": 66,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "mission_delay",
+      "params": {
+        "pad": "random among scheduled, non-joint missions whose launch window is also open next season"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Interplanetary flybys outside their window and joint missions are never picked. 'b' shows FIRST/SECOND/THIRD. Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:703-730; state_utils.cpp:107-172",
+      "usa_text_excerpt": "A SPOKESMAN FOR THE SPACE PROGRAM ANNOUNCED TODAY THAT THE b"
+    },
+    {
+      "index": 69,
+      "event_code": 67,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "SENATOR CRUTCHMIRE SHARPLY ATTACKED THE SPACE PROGRAM TODAY."
+    },
+    {
+      "index": 70,
+      "event_code": 68,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE MILITARY COMPLEX LOBBIED STRONGLY TODAY WITH SPACE OFFIC"
+    },
+    {
+      "index": 71,
+      "event_code": 69,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "AMERICA'S TOP GERMAN SCIENTIST SPOKE TODAY ON THE ADVANTAGES"
+    },
+    {
+      "index": 72,
+      "event_code": 70,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "SEVERAL ENGINEERS SPOKE TO UNITED STATES SPACE OFFICIALS TOD"
+    },
+    {
+      "index": 73,
+      "event_code": 71,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE VICE PRESIDENT TOURED A ROCKET CONTRACTOR'S FACILITY TOD"
+    },
+    {
+      "index": 74,
+      "event_code": 72,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "A TOP SCIENTIST CRITICIZED THE SPACE PROGRAM TODAY FOR THE H"
+    },
+    {
+      "index": 75,
+      "event_code": 73,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE ASTRONAUTS HAVE, FOR AN UNDISCLOSED SUM OF MONEY, SIGNED"
+    },
+    {
+      "index": 76,
+      "event_code": 74,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "CHARLES LINDBERGH TOURED THE SPACE PROGRAM'S FACILITIES TODA"
+    },
+    {
+      "index": 77,
+      "event_code": 75,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "TODAY, AN AIR FORCE COLONEL RECOMMENDED A ONE-WAY MISSION TO"
+    },
+    {
+      "index": 78,
+      "event_code": 76,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "budget_delta",
+      "params": {
+        "amount": 15
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget += 15. (Code 76's text also orders a civilian on a multi-manned capsule; that is not enforced.)",
+      "source": "src/game/news_suq.cpp:162-164",
+      "usa_text_excerpt": "THE GOVERNMENT TODAY HAS ANNOUNCED THAT A CIVILIAN WILL BE L"
+    },
+    {
+      "index": 79,
+      "event_code": 77,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "save_card",
+      "params": {
+        "group": "save_capsule"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Bad card if none owned. Note the four-man capsule (index 18) falls in the 'LEM' group instead.",
+      "source": "src/game/news_suq.cpp:344-348; src/game/news_sup.cpp:291-382",
+      "usa_text_excerpt": "THE SPACE PROGRAM'S ENGINEERS HAVE ANNOUNCED TODAY THAT A PO"
+    },
+    {
+      "index": 80,
+      "event_code": 78,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "pay_or_penalty",
+      "params": {
+        "group": "dam_manned",
+        "cost": 10,
+        "safety_penalty": -10
+      },
+      "player_choice": true,
+      "one_shot": true,
+      "notes": "Bad card if no capsule has Safety > Base.",
+      "source": "src/game/news_suq.cpp:509-513; src/game/news_sup.cpp:190-241; ast4.cpp:356-480; mc2.cpp:819,867",
+      "choice": {
+        "options": [
+          {
+            "label": "pay",
+            "consequence": "Cash -= 10; Damage and DCost cleared"
+          },
+          {
+            "label": "decline",
+            "consequence": "next mission using this hardware rolls against Safety -10; cleared after that mission"
+          }
+        ],
+        "prompted": "at the start of each turn while Cash >= cost (game_main.cpp:614, ast4.cpp:356-384), or on demand with F in the R&D / purchase screens"
+      },
+      "usa_text_excerpt": "A MANUFACTURING ERROR HAS CAUSED A DEFECT IN THE e CAPSULE. "
+    },
+    {
+      "index": 81,
+      "event_code": 79,
+      "pool": 3,
+      "min_year": 63,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_any",
+        "amount": -20
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Highest equipment index with Safety > 20, so EVA suits or a kicker are hit before capsules. Bad card if none.",
+      "source": "src/game/news_suq.cpp:453-459; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "A DESIGN ERROR HAS CAUSED A DEDUCTION OF 20% FROM THE SAFETY"
+    },
+    {
+      "index": 82,
+      "event_code": 80,
+      "pool": 4,
+      "min_year": 63,
+      "effect": "program_delay",
+      "params": {
+        "group": "Manned 0-4 (capsules incl. minishuttle and four-man; LMs not affected)",
+        "seasons": 2
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "No capsule purchases this season or next.",
+      "source": "src/game/news_suq.cpp:732-736",
+      "usa_text_excerpt": "THE PRIME CONTRACTOR FOR THE CAPSULE PROGRAM ANNOUNCED TODAY"
+    },
+    {
+      "index": 83,
+      "event_code": 81,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE GOVERNMENT ANNOUNCED TODAY THAT THE NSA AND THE PRESIDEN"
+    },
+    {
+      "index": 84,
+      "event_code": 82,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "unimplemented",
+      "params": {
+        "text_promises": "an extra Duration E mission before a lunar landing"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Sets FuturePlans = 5; FuturePlans is never read anywhere.",
+      "source": "src/game/news_suq.cpp:738-740",
+      "usa_text_excerpt": "MEDICAL DOCTORS AT THE UNITED STATES SPACE PROGRAM ANNOUNCED"
+    },
+    {
+      "index": 85,
+      "event_code": 83,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "program_unit_cost_up",
+      "params": {
+        "program": "Manned[2] three-man capsule (Apollo/Soyuz)",
+        "amount": 3
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Bad card if the program is not owned.",
+      "source": "src/game/news_suq.cpp:697-701",
+      "usa_text_excerpt": "CONTRACTORS ANNOUNCED TODAY THAT THE APOLLO PROGRAM WILL COS"
+    },
+    {
+      "index": 86,
+      "event_code": 84,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_manned",
+        "dice": "4d6",
+        "min": 4,
+        "max": 24
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates are owned programs whose Safety + roll would not exceed MaxSafety; highest index wins (LMs count). 'i' shows the roll. Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:399-407; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "THE PENTAGON ANNOUNCED TODAY THAT THE AIR FORCE HAS SHARED A"
+    },
+    {
+      "index": 87,
+      "event_code": 85,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "mission_crew_swap",
+      "params": {
+        "pad": "first pad (lowest index) whose mission has a primary crew"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "'b' shows FIRST/SECOND/THIRD. Bad card if no scheduled mission has a primary crew.",
+      "source": "src/game/news_suq.cpp:553-569; state_utils.cpp:75-85,271-293",
+      "usa_text_excerpt": "THE PRIMARY CREW FOR THE b LAUNCH THIS SEASON HAS BEEN REMOV"
+    },
+    {
+      "index": 88,
+      "event_code": 86,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "THE PRESIDENT TOURED SPACE FACILITIES IN HOUSTON. ENGINEERS "
+    },
+    {
+      "index": 89,
+      "event_code": 87,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "TODAY, AN AGREEMENT AT THE UNITED NATIONS WAS SIGNED BY THE "
+    },
+    {
+      "index": 90,
+      "event_code": 88,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "A NEW ROCKET ENGINE WAS ROLLED OUT TODAY FOR A PUBLIC VIEWIN"
+    },
+    {
+      "index": 91,
+      "event_code": 89,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "astronaut_retire",
+      "params": {
+        "candidates": "Active astronauts only",
+        "retirement_delay": 2
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "No budget or mood change. USA: RetirementDelay = 2; USSR: retired immediately. 'c' shows the name. Bad card if no active astronaut.",
+      "source": "src/game/news_suq.cpp:742-770",
+      "usa_text_excerpt": "ASTRONAUT c ANNOUNCED A TRANSFER TO THE AIR FORCE TEST PILOT"
+    },
+    {
+      "index": 92,
+      "event_code": 90,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "INTELLIGENCE EXPERTS RELEASED INFORMATION ON A NEW SOVIET RO"
+    },
+    {
+      "index": 93,
+      "event_code": 91,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "budget_delta",
+      "params": {
+        "amount": 20
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget += 20.",
+      "source": "src/game/news_suq.cpp:175-177",
+      "usa_text_excerpt": "IN THE NEWS TODAY, THE PRESIDENT HAS ANNOUNCED THAT THE SPAC"
+    },
+    {
+      "index": 94,
+      "event_code": 92,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "budget_pct",
+      "params": {
+        "pct": 20,
+        "cap": 20
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= min(floor(Budget/5), 20); 'f' shows the deduction.",
+      "source": "src/game/news_suq.cpp:179-182",
+      "usa_text_excerpt": "ANTI-SPACE ACTIVISTS HAVE BEEN SUCCESSFUL IN THEIR DRIVE TO "
+    },
+    {
+      "index": 95,
+      "event_code": 93,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "save_card",
+      "params": {
+        "group": "save_lem"
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Covers four-man capsule and both LMs. Bad card if none owned.",
+      "source": "src/game/news_suq.cpp:350-354; src/game/news_sup.cpp:291-382",
+      "usa_text_excerpt": "UNITED STATES SPACE ENGINEERS HAVE ANNOUNCED TODAY THAT A PO"
+    },
+    {
+      "index": 96,
+      "event_code": 94,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "program_safety_delta",
+      "params": {
+        "group": "nmod_manned",
+        "dice": "4d6",
+        "min": 4,
+        "max": 24
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Candidates are owned programs whose Safety + roll would not exceed MaxSafety; highest index wins (LMs count). 'i' shows the roll. Bad card if none qualify.",
+      "source": "src/game/news_suq.cpp:399-407; src/game/news_sup.cpp:130-187",
+      "usa_text_excerpt": "THERE HAS BEEN A SCIENTIFIC BREAKTHROUGH IN THE e PROGRAM. T"
+    },
+    {
+      "index": 97,
+      "event_code": 95,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "budget_pct",
+      "params": {
+        "pct": 30,
+        "cap": 30
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= min(floor(Budget*3/10), 30); 'f' shows the resulting Budget, not the deduction.",
+      "source": "src/game/news_suq.cpp:184-187",
+      "usa_text_excerpt": "THE g ADMINISTRATION HAS DECIDED TO CUT FUNDING FOR THE SPAC"
+    },
+    {
+      "index": 98,
+      "event_code": 96,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "budget_pct",
+      "params": {
+        "pct": 25,
+        "cap": 25,
+        "max_year": 72
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= min(floor(Budget/4), 25), only in years <= 1972 (Vietnam); later it is a bad card. 'f' shows the resulting Budget.",
+      "source": "src/game/news_suq.cpp:189-196",
+      "usa_text_excerpt": "DUE TO THE VIETNAM CONFLICT, THE PRESIDENT DECREASES THE SPA"
+    },
+    {
+      "index": 99,
+      "event_code": 97,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "TODAY, AN X-15 AIR FORCE PILOT FLEW TO A NEW ALTITUDE RECORD"
+    },
+    {
+      "index": 100,
+      "event_code": 98,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Listed in the explicit 'Nothing Events' case.",
+      "source": "src/game/news_suq.cpp:132-137",
+      "usa_text_excerpt": "UNITED STATES ACTIVISTS PROTESTED IN FRONT OF THE SPACE PROG"
+    },
+    {
+      "index": 101,
+      "event_code": 99,
+      "pool": 4,
+      "min_year": 66,
+      "effect": "budget_delta",
+      "params": {
+        "amount": -5
+      },
+      "player_choice": false,
+      "one_shot": true,
+      "notes": "Budget -= 5.",
+      "source": "src/game/news_suq.cpp:198-200",
+      "usa_text_excerpt": "THE GOVERNMENT OFFICE OF ACCOUNTING AUDITORS ANNOUNCED TODAY"
+    },
+    {
+      "index": 102,
+      "event_code": 100,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "TODAY, THE NATION'S LARGEST ROCKET CONTRACTOR ANNOUNCED THE "
+    },
+    {
+      "index": 103,
+      "event_code": 101,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THE AUSTRALIAN GOVERNMENT HAS ANNOUNCED THAT THEY WILL GENER"
+    },
+    {
+      "index": 104,
+      "event_code": 102,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "TODAY THE WHITE HOUSE ANNOUNCED THE FORMATION OF THE COMSAT "
+    },
+    {
+      "index": 105,
+      "event_code": 103,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "A STUDY BY THE RAND CORPORATION, RELEASED TODAY, WARNS OF TH"
+    },
+    {
+      "index": 106,
+      "event_code": 104,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THIS MORNING, A CORPORATION SUBMITTED TO SPACE LEADERS A PRO"
+    },
+    {
+      "index": 107,
+      "event_code": 105,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "A CONGRESSMAN SPOKE TODAY ON HOW ADVANCES IN SPACE TECHNOLOG"
+    },
+    {
+      "index": 108,
+      "event_code": 106,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THE UNITED STATES ANNOUNCED THE SUCCESSFUL TEST-FIRING OF IT"
+    },
+    {
+      "index": 109,
+      "event_code": 107,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THE UNITED STATES ANNOUNCED TODAY THE CONSTRUCTION OF A SMAL"
+    },
+    {
+      "index": 110,
+      "event_code": 108,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "DOD OFFICIALS ARGUED BEFORE A CONGRESSIONAL HEARING THAT THE"
+    },
+    {
+      "index": 111,
+      "event_code": 109,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "A NEW SPACE GAME MAKES ITS DEBUT IN HOLLYWOOD. BOTH REALISTI"
+    },
+    {
+      "index": 112,
+      "event_code": 110,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "PROPOSALS HAVE BEEN SUBMITTED REGARDING THE CONCEPT OF A REU"
+    },
+    {
+      "index": 113,
+      "event_code": 111,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THE AIR FORCE HAS SUBMITTED TO CONGRESS A PROPOSAL FOR A MAN"
+    },
+    {
+      "index": 114,
+      "event_code": 112,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "STUDIES HAVE BEEN RELEASED ON THE RELIABILITY OF CAPSULE LAN"
+    },
+    {
+      "index": 115,
+      "event_code": 113,
+      "pool": "bad_filler",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Filler text shown instead of a 'bad' card (one whose precondition failed). Picked by ResolveEvent as 100 + random slot 0..13, recorded in BadCardEventFlag to avoid repeats. Never in the deck itself.",
+      "source": "src/game/news.cpp:130-131,806-831",
+      "usa_text_excerpt": "THE AIR FORCE HAS SUBMITTED A PROPOSAL FOR THE LAUNCHING OF "
+    },
+    {
+      "index": 116,
+      "event_code": 114,
+      "pool": "unreachable",
+      "min_year": null,
+      "effect": "none",
+      "params": {},
+      "player_choice": false,
+      "one_shot": false,
+      "notes": "Code 114 is above the deck range (max 99) and the filler range (100-113); never shown.",
+      "source": "src/game/start.cpp:62-68; src/game/news.cpp:817",
+      "usa_text_excerpt": "THE PENTAGON HAS LOBBIED FOR A MANNED MILITARY SPACE FLIGHT."
+    }
+  ],
+  "effect_vocabulary": {
+    "none": "No game effect; the newscast line is flavour only.",
+    "unimplemented": "The card text promises an effect but the upstream code applies nothing (flag never read, or the code is commented out).",
+    "cash_delta": "Cash on hand (P.Cash) changes by params.amount (fixed) or params.dice (rolled).",
+    "cash_pct": "Cash on hand loses floor(Cash * params.pct / 100); skipped (bad card) below params.min_cash.",
+    "budget_delta": "Next season's budget (P.Budget) changes by params.amount or params.dice.",
+    "budget_pct": "Budget loses min(floor(Budget * params.pct / 100), params.cap).",
+    "rd_mod_turn": "RD_Mods_For_Turn += params.amount: every R&D team this season rolls 1d(6 + mod).",
+    "rd_mod_year": "Text says a whole year; code sets RD_Mods_For_Turn and RD_Mods_For_Year, but start.cpp:730 only carries POSITIVE year mods forward, so in practice it is this season only (params.seasons_actual).",
+    "rd_cost_up": "RDCost += params.amount permanently on the most advanced owned program (highest equipment index with Safety > Base).",
+    "tech_steal": "Pick a random program both players own where the rival's Safety is higher; our Safety rises by the gap (to equal the rival's).",
+    "tech_leak": "Pick a random program both players own where the rival's Safety is higher; our Safety falls by the gap (2*ours - rival's), programs that would drop below Base are not candidates.",
+    "program_safety_delta": "Safety of the most advanced owned program in params.group changes by params.amount or params.dice (absolute points, capped at MaxSafety).",
+    "program_safety_halved": "Safety of the most advanced owned rocket with Safety > 50 loses floor(Safety/2).",
+    "program_max_safety_up": "MaxRD and MaxSafety of every program in params.group rise by params.amount (MaxSafety capped at 99, MaxRD capped at MaxSafety).",
+    "program_delay": "Equipment.Delay = params.seasons on every program in params.group: no purchases (InitCost or units) until it counts down (one per end-of-season).",
+    "program_unit_cost_up": "UnitCost += params.amount permanently on params.program, only if that program is owned.",
+    "pay_or_penalty": "Most advanced owned program in params.group with Safety > Base gets Damage += params.safety_penalty and DCost += params.cost. The player may pay DCost (prompted at turn start if affordable, or via the F key in R&D/purchase) to clear it; otherwise the next mission using that hardware runs at Safety + Damage and the damage is cleared after that mission.",
+    "save_card": "SaveCard = 1 on the most advanced owned program in params.group: the next failed step on that hardware is converted into a success and the card is consumed.",
+    "half_price_sale": "TurnOnly = 3: this season InitCost and UnitCost of all hardware are halved (min 1, items already free stay free).",
+    "mission_scrub": "A scheduled mission this season is scrubbed (hardware returned, crews unassigned). Joint missions scrub both halves.",
+    "mission_delay": "A scheduled mission is moved from this season's pad to next season's future slot on the same pad (overwriting any planned future mission there); hardware returns to inventory, crews stay attached.",
+    "mission_crew_swap": "The primary crew is removed from the first scheduled mission that has one; the backup crew (if any) becomes the flight crew. With no backup the mission is scrubbed at launch (MissionCrewCantFly).",
+    "pad_damage": "LaunchFacility[pad] = params.repair_cost: the pad is unusable until the player pays that many MB to repair it.",
+    "astronaut_death": "A random astronaut who is not dead or retired (trainees and injured included) dies; MissionCatastrophicFailureOnTurn |= 2 so every astronaut loses 1-2 mood at season end; any crew containing them is broken up.",
+    "astronaut_injury": "A random astronaut who is not dead or retired becomes Injured for params.seasons seasons (endurance can shorten/lengthen it); crews containing them are broken up.",
+    "astronaut_retire": "A random astronaut from params.candidates announces retirement: RetirementDelay = 2 (USA, retires after two end-of-season updates, cannot be newly assigned meanwhile); the USSR astronaut is retired immediately.",
+    "astronaut_recruit": "Three fixed bonus astronauts join the pool in basic training at no cost.",
+    "female_astronauts": "FemaleAstronautsAllowed = 1: the next recruitment pulls from the mixed roster (and must include at least one woman for AstroLevel 0-2)."
+  }
+}
