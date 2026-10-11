@@ -1,33 +1,40 @@
 # Race Into Space
 
-A cleanroom reimplementation of the 1993 DOS strategy game *Buzz Aldrin's Race Into Space*
-(Interplay / Strategic Visions).
+A hobby reimplementation of the 1993 DOS strategy game *Buzz Aldrin's Race Into Space*
+(Strategic Visions / Interplay) in Godot 4, with high-resolution art and a
+resolution-independent UI.
 
-## Cleanroom policy
+This is not a commercial product.
 
-This project is written from scratch. To keep it that way:
+## Licence and sources
 
-- **No code** from the original game, from the 2005 GPL source release (`raceintospace`), or
-  from any derivative port is copied, translated, or consulted while writing code here.
-- **No original assets** (graphics, music, sound, text, data files) are included or depended on.
-  Everything in `assets/` is newly created or clearly licensed for reuse.
-- Design knowledge comes from **behavioural observation and public documentation only**:
-  the manual, play-testing the original, published strategy guides, and historical sources
-  on the US and Soviet space programmes.
-- Findings from observation are written up as specifications in `docs/` *before* being
-  implemented, so the spec is the thing that is built from, not the original.
+The project is licensed under the GNU GPL version 2 or later (see `LICENSE`), the
+same licence as the open-source port it draws on.
 
-If you have read the original source, do not contribute code to this repository.
+- **Game data and rules** are taken from the GPL port
+  [raceintospace/raceintospace](https://github.com/raceintospace/raceintospace)
+  (cloned, gitignored, under `reference/raceintospace/`) and from the original 1993
+  *Rules of Play* manual and reference card (under `original/manuals/`, gitignored).
+  `docs/upstream-reference-map.md` says where each table lives.
+- **Engine code is new.** The port's C++ is a reference for behaviour we cannot find
+  documented, not something to transliterate; the simulation is written fresh in GDScript.
+- **No original Interplay art, audio, video or fonts** are included. The port's
+  `data/images`, `data/audio` and `data/video` are under restricted terms and are not
+  copied here. Everything in `assets/` is newly created or clearly licensed.
+- **Not called "Buzz Aldrin's" anything.** The name and likeness are licensed
+  separately and are not ours to use. Working title: *Race Into Space*.
 
 ## Layout
 
 ```
-docs/      Game design specs derived from observation and documentation
-src/       Engine and game code
-assets/    Original (new) art, audio, and data
-tools/     Build and development helpers
+docs/       Research report, upstream reference map, design specs
+game/       Godot 4 project (open this folder in the editor)
+assets/     Source art and audio before import (SVG, PSD, WAV)
+tools/      Build and data-conversion helpers
+original/   gitignored: original manuals for reference
+reference/  gitignored: upstream GPL port clone
 ```
 
 ## Status
 
-Day zero. Nothing runs yet.
+Research complete, engine chosen. See `docs/reports/`.

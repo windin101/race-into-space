@@ -20,3 +20,7 @@ original/
 *.BIN
 *.DAT
 *.PAK
+
+# Upstream reference clone (GPL port) and Godot editor cache
+reference/
+.godot/
