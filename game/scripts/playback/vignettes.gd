@@ -55,6 +55,12 @@ static func title_for(letter: String) -> String:
 ## Draw one frame. ctx: {side_color, hardware (String), lunar (bool), failure_text}.
 static func paint(c: CanvasItem, letter: String, t: float, ok: bool, size: Vector2, ctx: Dictionary) -> void:
 	var fam := family_for(letter)
+	var frames := ArtAssets.vignette_frames(fam, ok)
+	if not frames.is_empty():
+		c.draw_rect(Rect2(Vector2.ZERO, size), SPACE)
+		var idx := clampi(int(floor(t * (frames.size() - 1) + 0.5)), 0, frames.size() - 1)
+		ArtAssets.draw_fit(c, frames[idx], Rect2(Vector2.ZERO, size))
+		return
 	_stars(c, size, letter.unicode_at(0))
 	match fam:
 		"launch": _launch(c, t, ok, size, ctx)

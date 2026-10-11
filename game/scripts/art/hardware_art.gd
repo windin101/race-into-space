@@ -11,6 +11,10 @@ const PANEL := Color("2f4f8f")
 
 
 static func paint(c: CanvasItem, rect: Rect2, group: String, slot: int, side: String) -> void:
+	var tex := ArtAssets.hardware(side, group, slot)
+	if tex != null:
+		ArtAssets.draw_fit(c, tex, rect)
+		return
 	var accent := UiPalette.accent(side)
 	match group:
 		"rocket": _rocket(c, rect, slot, accent)

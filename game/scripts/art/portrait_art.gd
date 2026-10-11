@@ -31,6 +31,16 @@ static func features(name: String, female: bool) -> Dictionary:
 
 ## Paint a portrait of `name` into `rect`. female selects hair styles; side colours the suit.
 static func paint(c: CanvasItem, rect: Rect2, name: String, female: bool, side: String, status: String = "") -> void:
+	var tex := ArtAssets.portrait(name)
+	if tex != null:
+		c.draw_rect(rect, BG)
+		ArtAssets.draw_cover(c, tex, rect)
+		if status == "dead":
+			c.draw_rect(rect, Color(0, 0, 0, 0.45))
+			c.draw_rect(Rect2(rect.position + Vector2(0, rect.size.y * 0.9), Vector2(rect.size.x, rect.size.y * 0.1)), Color.BLACK)
+		elif status == "retired":
+			c.draw_rect(rect, Color(0.1, 0.1, 0.1, 0.3))
+		return
 	var f := features(name, female)
 	var skin: Color = f["skin"]
 	var hair: Color = f["hair"]

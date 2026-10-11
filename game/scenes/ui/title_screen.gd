@@ -13,6 +13,15 @@ func _ready() -> void:
 	bg.color = UiPalette.BG_DEEP
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(bg)
+	var key_art := ArtAssets.backdrop("title")
+	if key_art != null:
+		var art := TextureRect.new()
+		art.texture = key_art
+		art.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		art.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		art.set_anchors_preset(Control.PRESET_FULL_RECT)
+		art.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		add_child(art)
 	var center := CenterContainer.new()
 	center.set_anchors_preset(Control.PRESET_FULL_RECT)
 	add_child(center)

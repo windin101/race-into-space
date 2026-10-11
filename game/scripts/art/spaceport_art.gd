@@ -30,6 +30,35 @@ const SHADOW := Color(0, 0, 0, 0.18)
 ## Paint the whole scene. buildings: Array of layout dicts with x, y, w, h, id, built (bool).
 static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, pads_state: Array, season: int = 0) -> void:
 	var usa := side == "usa"
+	# Painted layers from assets/art/spaceport/<side>/ win over the procedural scene.
+	var bg := ArtAssets.spaceport_layer(side, "background_%s" % ("fall" if season == 1 else "spring"))
+	if bg != null:
+		ArtAssets.draw_cover(c, bg, Rect2(Vector2.ZERO, size))
+		for b in buildings:
+			var r := Rect2(Vector2(b["x"] * size.x, b["y"] * size.y), Vector2(b["w"] * size.x, b["h"] * size.y))
+			var id: String = b["id"]
+			var layer: Texture2D = null
+			if id.begins_with("pad_"):
+				var idx := int(id.substr(4)) - 1
+				var st: int = pads_state[idx] if idx < pads_state.size() else -1
+				layer = ArtAssets.spaceport_layer(side, "pad_" + ("site" if st == -1 else ("ok" if st == 0 else "damaged")))
+			else:
+				layer = ArtAssets.spaceport_layer(side, ("building_" if b.get("built", true) else "plot_") + id)
+			if layer != null:
+				_draw_layer(c, layer, r, size)
+			elif id.begins_with("pad_"):
+				var idx2 := int(id.substr(4)) - 1
+				_pad(c, r, pads_state[idx2] if idx2 < pads_state.size() else -1, side)
+			elif b.get("built", true):
+				_building(c, r, id, side)
+			else:
+				_plot(c, r)
+		var flag_tex := ArtAssets.spaceport_layer(side, "flag")
+		if flag_tex != null:
+			_draw_layer(c, flag_tex, Rect2(size.x * 0.9, size.y * 0.1, size.x * 0.07, size.y * 0.14), size)
+		else:
+			_flag(c, size, side)
+		return
 	# Sky gradient as horizontal bands.
 	var horizon := size.y * 0.36
 	var top: Color = SKY_USA_TOP if usa else SKY_USSR_TOP
@@ -79,6 +108,17 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 		else:
 			_plot(c, r)
 	_flag(c, size, side)
+
+
+## A painted layer is either full-canvas (same aspect as the scene: draw over everything)
+## or a crop of its hotspot rectangle (fit into the rectangle).
+static func _draw_layer(c: CanvasItem, tex: Texture2D, rect: Rect2, size: Vector2) -> void:
+	var ts := tex.get_size()
+	var full_aspect := size.x / size.y
+	if absf(ts.x / ts.y - full_aspect) < 0.05 or absf(ts.x / ts.y - 5160.0 / 2160.0) < 0.05:
+		ArtAssets.draw_cover(c, tex, Rect2(Vector2.ZERO, size))
+	else:
+		ArtAssets.draw_fit(c, tex, rect)
 
 
 static func _clouds(c: CanvasItem, size: Vector2, horizon: float, usa: bool) -> void:
