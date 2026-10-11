@@ -1,11 +1,10 @@
 extends Control
-## Title screen: new game, widget gallery, settings, quit.
+## Title screen: new game, load game, widget gallery, settings, quit.
 
-const SPACEPORT := "res://scenes/spaceport/spaceport.tscn"
+const SETUP := "res://scenes/setup/new_game_setup.tscn"
+const PREFERENCES := "res://scenes/admin/preferences.tscn"
 const GALLERY := "res://scenes/ui/widget_gallery.tscn"
 const SETTINGS := "res://scenes/ui/settings_screen.tscn"
-
-var _side := "usa"
 
 
 func _ready() -> void:
@@ -32,18 +31,10 @@ func _ready() -> void:
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
 	v.add_child(_spacer(20))
-	var side_row := HBoxContainer.new()
-	side_row.alignment = BoxContainer.ALIGNMENT_CENTER
-	v.add_child(side_row)
-	var usa := Button.new()
-	usa.text = "Play USA"
-	usa.theme_type_variation = "Accent"
-	usa.pressed.connect(_start.bind("usa"))
-	side_row.add_child(usa)
-	var ussr := Button.new()
-	ussr.text = "Play USSR"
-	ussr.pressed.connect(_start.bind("ussr"))
-	side_row.add_child(ussr)
+	var new_game := _button("New game", func(): Screens.push(load(SETUP)))
+	new_game.theme_type_variation = "Accent"
+	v.add_child(new_game)
+	v.add_child(_button("Load game", func(): Screens.push(load(PREFERENCES))))
 	v.add_child(_button("Widget gallery", func(): Screens.push(load(GALLERY))))
 	v.add_child(_button("Settings", func(): Screens.push(load(SETTINGS))))
 	v.add_child(_button("Quit", func(): get_tree().quit()))
@@ -69,9 +60,3 @@ func _spacer(h: int) -> Control:
 	var c := Control.new()
 	c.custom_minimum_size.y = h
 	return c
-
-
-func _start(side: String) -> void:
-	Session.new_game(randi(), {"human_side": side})
-	Screens.reset(load(SPACEPORT))
-	TurnFlow.on_new_game()

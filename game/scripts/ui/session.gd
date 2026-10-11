@@ -30,6 +30,36 @@ func new_game(p_seed: int, options: Dictionary = {}) -> void:
 	state_changed.emit()
 
 
+## Resume a game rebuilt by SimSave (or any ready SimGame) as the given side.
+func load_game(p_game: SimGame, p_human_side: String) -> void:
+	game = p_game
+	human_side = p_human_side
+	for i in 2:
+		var p := game.state.player(i)
+		p.is_ai = p.side != human_side
+	drivers.clear()
+	for i in 2:
+		if game.state.player(i).is_ai:
+			drivers.append(SimDriver.new(i))
+	_apply_theme()
+	game_started.emit()
+	state_changed.emit()
+
+
+func save_to_slot(slot: String, label: String) -> bool:
+	if game == null:
+		return false
+	return SimSave.save_slot(game, slot, label)
+
+
+func load_from_slot(slot: String) -> bool:
+	var loaded := SimSave.load_slot(GameData, slot)
+	if loaded == null:
+		return false
+	load_game(loaded, SimSave.human_side_of(loaded))
+	return true
+
+
 func state() -> SimState:
 	return game.state if game != null else null
 
