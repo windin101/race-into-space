@@ -1,0 +1,30 @@
+{
+  "_source": {
+    "project": "raceintospace/raceintospace (GPL-2.0-or-later)",
+    "revision": "e1fbccc",
+    "files": [
+      "data/gamedata/urast.json"
+    ],
+    "converter": "tools/import_upstream.py"
+  },
+  "start_year": 1957,
+  "start_season": 0,
+  "sides": {
+    "usa": {
+      "director_name": "WEBB",
+      "starting_budget": 60
+    },
+    "ussr": {
+      "director_name": "KOROLYOV",
+      "starting_budget": 60
+    }
+  },
+  "default_difficulty": {
+    "usa": 0,
+    "ussr": 0
+  },
+  "default_astronaut_level": {
+    "usa": 0,
+    "ussr": 0
+  }
+}

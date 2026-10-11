@@ -24,3 +24,6 @@ original/
 # Upstream reference clone (GPL port) and Godot editor cache
 reference/
 .godot/
+
+# gdUnit4 reports
+game/reports/

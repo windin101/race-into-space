@@ -1,0 +1,265 @@
+{
+  "_source": {
+    "project": "raceintospace/raceintospace (GPL-2.0-or-later)",
+    "revision": "e1fbccc",
+    "files": [
+      "data/gamedata/urast.json"
+    ],
+    "converter": "tools/import_upstream.py",
+    "row_names": "src/game/endgame.cpp PF[] and src/game/museum.cpp tame[], enum order from src/game/data.h"
+  },
+  "rows": [
+    {
+      "index": 0,
+      "key": "orbital_satellite",
+      "title": "Orbital Satellite",
+      "first": 12,
+      "second": 5,
+      "other": 1,
+      "failure": -3
+    },
+    {
+      "index": 1,
+      "key": "lunar_flyby",
+      "title": "Lunar Flyby",
+      "first": 5,
+      "second": 3,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 2,
+      "key": "mercury_flyby",
+      "title": "Mercury Flyby",
+      "first": 5,
+      "second": 2,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 3,
+      "key": "venus_flyby",
+      "title": "Venus Flyby",
+      "first": 7,
+      "second": 4,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 4,
+      "key": "mars_flyby",
+      "title": "Mars Flyby",
+      "first": 7,
+      "second": 4,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 5,
+      "key": "jupiter_flyby",
+      "title": "Jupiter Flyby",
+      "first": 8,
+      "second": 4,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 6,
+      "key": "saturn_flyby",
+      "title": "Saturn Flyby",
+      "first": 9,
+      "second": 4,
+      "other": 2,
+      "failure": -3
+    },
+    {
+      "index": 7,
+      "key": "lunar_probe_landing",
+      "title": "Lunar Probe Landing",
+      "first": 16,
+      "second": 9,
+      "other": 2,
+      "failure": -5
+    },
+    {
+      "index": 8,
+      "key": "duration_f",
+      "title": "Duration F",
+      "first": 7,
+      "second": 7,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 9,
+      "key": "duration_e",
+      "title": "Duration E",
+      "first": 5,
+      "second": 5,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 10,
+      "key": "duration_d",
+      "title": "Duration D",
+      "first": 1,
+      "second": 1,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 11,
+      "key": "duration_c",
+      "title": "Duration C",
+      "first": 5,
+      "second": 5,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 12,
+      "key": "duration_b",
+      "title": "Duration B",
+      "first": 3,
+      "second": 3,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 13,
+      "key": "one_person_craft",
+      "title": "One-Person Craft",
+      "first": 3,
+      "second": 1,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 14,
+      "key": "two_person_craft",
+      "title": "Two-Person Craft",
+      "first": 7,
+      "second": 2,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 15,
+      "key": "three_person_craft",
+      "title": "Three-Person Craft",
+      "first": 15,
+      "second": 5,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 16,
+      "key": "minishuttle",
+      "title": "Minishuttle",
+      "first": 20,
+      "second": 8,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 17,
+      "key": "four_person_craft",
+      "title": "Four-Person Craft",
+      "first": 20,
+      "second": 8,
+      "other": 0,
+      "failure": 0
+    },
+    {
+      "index": 18,
+      "key": "manned_orbital",
+      "title": "Manned Orbital",
+      "first": 12,
+      "second": 5,
+      "other": 1,
+      "failure": -10
+    },
+    {
+      "index": 19,
+      "key": "manned_lunar_pass",
+      "title": "Manned Lunar Pass",
+      "first": 12,
+      "second": 5,
+      "other": 2,
+      "failure": -10
+    },
+    {
+      "index": 20,
+      "key": "manned_lunar_orbit",
+      "title": "Manned Lunar Orbit",
+      "first": 20,
+      "second": 7,
+      "other": 1,
+      "failure": -10
+    },
+    {
+      "index": 21,
+      "key": "manned_rescue_attempt",
+      "title": "Manned Rescue Attempt",
+      "first": 10,
+      "second": 9,
+      "other": 9,
+      "failure": -3
+    },
+    {
+      "index": 22,
+      "key": "manned_lunar_landing",
+      "title": "Manned Lunar Landing",
+      "first": 40,
+      "second": 15,
+      "other": 8,
+      "failure": -10
+    },
+    {
+      "index": 23,
+      "key": "orbiting_lab",
+      "title": "Orbiting Lab",
+      "first": 6,
+      "second": 4,
+      "other": 0,
+      "failure": -10
+    },
+    {
+      "index": 24,
+      "key": "manned_docking",
+      "title": "Manned Docking",
+      "first": 8,
+      "second": 4,
+      "other": 1,
+      "failure": -3
+    },
+    {
+      "index": 25,
+      "key": "woman_in_space",
+      "title": "Woman in Space",
+      "first": 8,
+      "second": 0,
+      "other": 0,
+      "failure": -4
+    },
+    {
+      "index": 26,
+      "key": "spacewalk",
+      "title": "Spacewalk",
+      "first": 8,
+      "second": 4,
+      "other": 1,
+      "failure": -3
+    },
+    {
+      "index": 27,
+      "key": "manned_space_mission",
+      "title": "Manned Space Mission",
+      "first": 15,
+      "second": 5,
+      "other": 0,
+      "failure": -10
+    }
+  ]
+}
