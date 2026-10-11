@@ -44,6 +44,8 @@ var missions: Array = [null, null, null]      ## this season's missions, one per
 var future: Array = [null, null, null]        ## planned for next season
 var mission_log: Array = []                   ## completed mission results
 var catastrophe_flags := 0
+var reviews: Array = []                        ## annual review records
+var review_index := 8                          ## running review value, lower is better
 
 
 static func create(p_index: int, data, model: String) -> SimPlayer:

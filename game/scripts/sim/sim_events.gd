@@ -332,8 +332,19 @@ static func apply_card(state: SimState, p: SimPlayer, card: Dictionary) -> Dicti
 					return {"ok": true, "pad": pad}
 			return {"ok": false}
 		"pad_damage":
-			var pad := int(params.get("pad", 0))
-			if p.pads[pad] != SimPlayer.PAD_OK or p.missions[pad] != null:
+			var pad := -1
+			if typeof(params.get("pad", 0)) == TYPE_STRING:
+				# "random operational pad with no mission this season", up to 20 tries.
+				for attempt in 20:
+					var candidate := state.rng.below(3)
+					if p.pads[candidate] == SimPlayer.PAD_OK and p.missions[candidate] == null:
+						pad = candidate
+						break
+			else:
+				pad = int(params.get("pad", 0))
+				if p.pads[pad] != SimPlayer.PAD_OK or p.missions[pad] != null:
+					pad = -1
+			if pad < 0:
 				return {"ok": false}
 			p.pads[pad] = int(params.get("repair_cost", 15))
 			return {"ok": true, "pad": pad}

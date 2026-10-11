@@ -210,15 +210,22 @@ static func crew_of(p: SimPlayer, slot: int, crew_index: int) -> Array:
 	return members
 
 
-## Pick the capsule allowed by the mission's minimum-equipment class.
-static func _capsule_candidates(p: SimPlayer, m_eq: int) -> Array:
+## Capsules allowed by the mission's minimum-equipment class, safest first. A plan may
+## name "capsule_slot" to force one.
+static func _capsule_candidates(p: SimPlayer, m_eq: int, pl: Dictionary = {}) -> Array:
+	var slots: Array
 	match m_eq:
 		0: return []
-		1: return _owned_with_units(p, "manned", [0, 1, 2, 3, 4])
-		2: return _owned_with_units(p, "manned", [1, 2, 3, 4])
-		3: return _owned_with_units(p, "manned", [2, 4])
-		5: return _owned_with_units(p, "manned", [4])
-	return _owned_with_units(p, "manned", [1, 2, 3, 4])
+		1: slots = [0, 1, 2, 3, 4]
+		2: slots = [1, 2, 3, 4]
+		3: slots = [2, 4]
+		5: slots = [4]
+		_: slots = [1, 2, 3, 4]
+	if pl.has("capsule_slot") and int(pl["capsule_slot"]) in slots:
+		return _owned_with_units(p, "manned", [int(pl["capsule_slot"])])
+	var out := _owned_with_units(p, "manned", slots)
+	out.sort_custom(func(a, b): return a.safety > b.safety)
+	return out
 
 
 ## Build the launch for a plan from owned hardware, or return {} with a reason when the
@@ -247,7 +254,7 @@ static func assemble(state: SimState, p: SimPlayer, pl: Dictionary) -> Dictionar
 		var payload := {"capsule": null, "lm": null, "kicker": null, "probe": null, "eva": null, "docking": null, "photo": null}
 		var vl: String = letters[v]
 		if capsule_needed_by_vehicle[v]:
-			var caps := _capsule_candidates(p, m["m_eq"])
+			var caps := _capsule_candidates(p, m["m_eq"], pl)
 			if caps.is_empty():
 				return {"reason": "no suitable capsule"}
 			payload["capsule"] = caps[0]

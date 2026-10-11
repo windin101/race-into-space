@@ -6,7 +6,13 @@ GODOT="${GODOT_BIN:-$HOME/.local/bin/godot}"
 cd "$(dirname "$0")/../game"
 "$GODOT" --headless --path . --import >/dev/null 2>&1 || true
 out=$("$GODOT" --headless --path . -s res://addons/gdUnit4/bin/GdUnitCmdTool.gd --add res://test --ignoreHeadlessMode "$@" 2>&1 </dev/null | sed 's/\x1b\[[0-9;]*m//g')
-echo "$out" | grep -E 'PASSED|FAILED|ERROR|Statistics|Expecting|but was|WARNING' | sed 's#res://test/##'
+echo "$out" | grep -E 'PASSED|FAILED|ERROR|Statistics|Expecting|but was|WARNING|SCRIPT ERROR|Parse Error' | sed 's#res://test/##'
+if echo "$out" | grep -qiE 'script errors were detected|SCRIPT ERROR|Parse Error'; then
+  echo "TESTS FAILED (script errors)"; exit 1
+fi
+if ! echo "$out" | grep -qE '^Statistics'; then
+  echo "TESTS FAILED (no suites ran)"; exit 1
+fi
 if echo "$out" | grep -E '^Statistics' | grep -qv '0 errors | 0 failures'; then
   echo "TESTS FAILED"; exit 1
 fi
