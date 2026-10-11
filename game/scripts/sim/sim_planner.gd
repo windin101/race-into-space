@@ -212,6 +212,54 @@ static func crew_of(p: SimPlayer, slot: int, crew_index: int) -> Array:
 	return members
 
 
+## Plan choices the player can make before launch; screens use these rather than
+## editing the plan dictionary.
+static func set_capsule(pl: Dictionary, slot: int) -> void:
+	if slot < 0:
+		pl.erase("capsule_slot")
+	else:
+		pl["capsule_slot"] = slot
+
+
+static func set_crew_choice(pl: Dictionary, vehicle: int, crew_index: int) -> void:
+	var choice: Array = pl.get("crew_choice", [0, 0])
+	choice[clampi(vehicle, 0, 1)] = crew_index
+	pl["crew_choice"] = choice
+
+
+## Fly a plan as one of its documented downgrades (or restore the original).
+static func set_mission(state: SimState, pl: Dictionary, mission_index: int) -> bool:
+	var original: int = pl.get("original_mission_index", pl["mission_index"])
+	if mission_index != original and not (mission_index in mission_def(state, original)["downgrades"]):
+		return false
+	pl["original_mission_index"] = original
+	pl["mission_index"] = mission_index
+	return true
+
+
+## Capsules allowed by the mission's minimum-equipment class, safest first; owned
+## programs with no units are included when with_empty is true.
+static func capsule_candidates(p: SimPlayer, m_eq: int, with_empty := false) -> Array:
+	var cands := _capsule_candidates(p, m_eq)
+	if with_empty:
+		var slots: Array = _capsule_slots(m_eq)
+		for slot in slots:
+			var prog: SimProgram = p.program("manned", slot)
+			if prog != null and prog.owned and prog.units == 0:
+				cands.append(prog)
+	return cands
+
+
+static func _capsule_slots(m_eq: int) -> Array:
+	match m_eq:
+		0: return []
+		1: return [0, 1, 2, 3, 4]
+		2: return [1, 2, 3, 4]
+		3: return [2, 4]
+		5: return [4]
+	return [1, 2, 3, 4]
+
+
 ## Capsules allowed by the mission's minimum-equipment class, safest first. A plan may
 ## name "capsule_slot" to force one.
 static func _capsule_candidates(p: SimPlayer, m_eq: int, pl: Dictionary = {}) -> Array:

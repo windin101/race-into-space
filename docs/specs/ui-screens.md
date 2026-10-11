@@ -56,7 +56,9 @@ Economy (`SimEconomy`): `can_buy_pad(p)`, `buy_pad(p)`, `repair_pad(p, i)`, `PAD
 Planner (`SimPlanner`): `can_plan(state, p, mission_index, pad, duration) -> {ok, reason}`,
 `plan(state, p, mission_index, pad, duration)`, `cancel_plan(p, pad)`,
 `requirement_penalty(state, p, mission_index, duration) -> {milestone, duration, new_mission, total, lm, skipped_milestones}`,
-`set_rush(p, pad, months)`, `assemble(state, p, plan) -> launch or {reason}`,
+`set_rush(p, pad, months, scheduled := false)` (Mission Control passes true for this season's missions),
+`set_capsule(plan, slot)`, `set_crew_choice(plan, vehicle, crew_index)`, `set_mission(state, plan, index)` (downgrades only),
+`capsule_candidates(p, m_eq, with_empty)`, `assemble(state, p, plan) -> launch or {reason}`,
 `assemble_with_downgrades(...)`, `readiness(launch) -> {lowest_safety, band}`,
 `crew_of(p, slot, crew_index)`, `launch_date(state)`. Plans live in `p.future[pad]`
 (next season) and `p.missions[pad]` (this season): `{mission_index, pad, duration, joint,
