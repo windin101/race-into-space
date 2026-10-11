@@ -154,7 +154,7 @@ rates and method in `docs/specs/tuning-notes.md`. The human-beats-level-1 half i
 unverified until someone plays it. `SimDriver` remains as the simple baseline used by
 tests and the default batch runner.
 
-## Phase 7: Art and audio
+## Phase 7: Art and audio (done 2026-10-11 as procedural placeholders, tag phase-7)
 
 - Style guide in `docs/art-style.md`: painted spaceports, illustrated hardware, astronaut
   portraits (generated or illustrated, not Interplay's), period typography.
@@ -165,6 +165,16 @@ tests and the default batch runner.
   file.
 
 Done when: no placeholder art remains on any screen and the manifest is complete.
+
+Outcome: the flat blocks and empty cards are gone, replaced by procedural vector art drawn
+live at any resolution: `SpaceportArt` (both sides, building states, pad states, seasons),
+`HardwareArt` (one silhouette per program slot), `PortraitArt` (deterministic faces by
+name with status tints); `docs/art-style.md` is the style guide; `tools/gen_audio.py`
+synthesises three music loops and ten effects (CC0) played through the `Sound` autoload on
+Music/SFX buses; `assets/MANIFEST.md` lists every file and a test enforces it. 4K renders
+and sheets are in `docs/screens/phase7/` (`tools/art_capture.tscn`). Hand-painted art and
+recorded music can replace each painter or file without touching callers; that is the open
+item, not a blocker.
 
 ## Phase 8: Polish and release
 

@@ -48,6 +48,8 @@ func push(screen, args: Dictionary = {}) -> Control:
 	if node.has_method("setup"):
 		node.call("setup", args)
 	_fade_in(node)
+	if stack.size() > 1:
+		Sound.sfx("click", -6.0)
 	screen_changed.emit(node)
 	return node
 
@@ -71,6 +73,7 @@ func pop() -> void:
 	if below.has_method("on_resume"):
 		below.call("on_resume")
 	_fade_in(below)
+	Sound.sfx("back", -8.0)
 	screen_changed.emit(below)
 
 

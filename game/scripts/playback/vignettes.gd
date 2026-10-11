@@ -132,7 +132,7 @@ static func _lm(c: CanvasItem, pos: Vector2, s: float, side: Color, flame: float
 	c.draw_rect(Rect2(pos.x - s * 0.5, pos.y - s * 0.9, s, s * 0.6), METAL_DARK)
 	c.draw_rect(Rect2(pos.x - s * 0.35, pos.y - s * 1.35, s * 0.7, s * 0.5), METAL)
 	c.draw_rect(Rect2(pos.x - s * 0.35, pos.y - s * 1.0, s * 0.7, s * 0.08), side)
-	for dx in [-1.0, 1.0]:
+	for dx: float in [-1.0, 1.0]:
 		c.draw_line(pos + Vector2(dx * s * 0.4, -s * 0.35), pos + Vector2(dx * s * 0.75, 0), METAL, s * 0.07)
 		c.draw_line(pos + Vector2(dx * s * 0.75, 0), pos + Vector2(dx * s * 0.9, 0), METAL, s * 0.07)
 	if flame > 0.0:
@@ -430,7 +430,7 @@ static func _lm_liftoff(c: CanvasItem, t: float, ok: bool, size: Vector2, ctx: D
 	var base := Vector2(size.x * 0.5, ground)
 	var s := size.y * 0.14
 	c.draw_rect(Rect2(base.x - s * 0.5, base.y - s * 0.9, s, s * 0.6), METAL_DARK)
-	for dx in [-1.0, 1.0]:
+	for dx: float in [-1.0, 1.0]:
 		c.draw_line(base + Vector2(dx * s * 0.4, -s * 0.35), base + Vector2(dx * s * 0.75, 0), METAL, s * 0.07)
 	var rise := pow(maxf(t - 0.1, 0.0), 1.8) * size.y * 1.2
 	var top := base + Vector2(0, -s * 0.9 - rise)

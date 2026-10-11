@@ -13,13 +13,22 @@ var _ceilings: Label
 var _units: Label
 var _costs: Label
 var _button: Button
+var _icon: Control
 
 
 func _init() -> void:
 	theme_type_variation = "Card"
 	custom_minimum_size = Vector2(300, 150)
+	var h := HBoxContainer.new()
+	add_child(h)
+	_icon = Control.new()
+	_icon.custom_minimum_size = Vector2(90, 90)
+	_icon.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_icon.draw.connect(_draw_icon)
+	h.add_child(_icon)
 	var v := VBoxContainer.new()
-	add_child(v)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
 	var top := HBoxContainer.new()
 	v.add_child(top)
 	_name = Label.new()
@@ -50,8 +59,16 @@ func _init() -> void:
 	add_child(_button)
 
 
+func _draw_icon() -> void:
+	if program == null:
+		return
+	var side := Session.human_side if Session.has_game() else "usa"
+	HardwareArt.paint(_icon, Rect2(Vector2.ZERO, _icon.size), program.group, program.slot, side)
+
+
 func set_program(p: SimProgram) -> void:
 	program = p
+	_icon.queue_redraw()
 	_name.text = p.display_name().capitalize()
 	_kind.text = _kind_name(p)
 	_safety.value = p.safety if p.owned else p.base_safety()

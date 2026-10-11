@@ -208,10 +208,18 @@ func _play_launch(launch: Dictionary) -> void:
 		match item["kind"]:
 			"step":
 				shown = item["index"] + 1
+				if item["step"].get("letter", "") == "A":
+					Sound.sfx("launch", -4.0)
+				if not item["step"].get("success", false):
+					Sound.sfx("explosion", -6.0)
 				await _play_step(item["step"])
 				_chart.reveal(shown)
 				_append_log(item["step"])
 			"flash", "verdict":
+				if item["kind"] == "verdict":
+					Sound.sfx("success" if item["color"] == UiPalette.OK else "failure")
+				elif item["kicker"] == "FIRST":
+					Sound.sfx("first")
 				_log.append_text("[color=#%s]%s: %s[/color]\n" % [item["color"].to_html(false), item["headline"], item["body"]])
 				var hold: float = (PlaybackScript.VERDICT_SECONDS if item["kind"] == "verdict" else PlaybackScript.FLASH_SECONDS) / _speed
 				await _flash.flash(item["kicker"], item["headline"], item["body"], item["color"], hold)

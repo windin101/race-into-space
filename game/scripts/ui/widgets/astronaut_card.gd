@@ -13,13 +13,22 @@ var _status: Label
 var _mood: StatBar
 var _skills: Dictionary = {}
 var _button: Button
+var _portrait: Control
 
 
 func _init() -> void:
 	theme_type_variation = "Card"
 	custom_minimum_size = Vector2(280, 210)
+	var h := HBoxContainer.new()
+	add_child(h)
+	_portrait = Control.new()
+	_portrait.custom_minimum_size = Vector2(84, 100)
+	_portrait.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	_portrait.draw.connect(_draw_portrait)
+	h.add_child(_portrait)
 	var v := VBoxContainer.new()
-	add_child(v)
+	v.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	h.add_child(v)
 	var top := HBoxContainer.new()
 	v.add_child(top)
 	_name = Label.new()
@@ -47,8 +56,16 @@ func _init() -> void:
 	add_child(_button)
 
 
+func _draw_portrait() -> void:
+	if astronaut == null:
+		return
+	var side := Session.human_side if Session.has_game() else "usa"
+	PortraitArt.paint(_portrait, Rect2(Vector2.ZERO, _portrait.size), astronaut.name, astronaut.female, side, astronaut.status_name())
+
+
 func set_astronaut(a: SimAstronaut) -> void:
 	astronaut = a
+	_portrait.queue_redraw()
 	_name.text = a.name.capitalize()
 	_status.text = a.status_name().replace("_", " ")
 	_mood.value = a.mood

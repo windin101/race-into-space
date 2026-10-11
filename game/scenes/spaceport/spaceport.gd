@@ -10,8 +10,6 @@ var _buttons: Dictionary = {}
 var _hud: Label
 var _flag: Button
 var _sky: ColorRect
-var _ground: ColorRect
-var _horizon: ColorRect
 
 
 func _ready() -> void:
@@ -26,25 +24,27 @@ func _ready() -> void:
 
 
 func _build_backdrop() -> void:
+	# The painting is drawn live from the layout, so hotspots and art always agree.
 	_sky = ColorRect.new()
-	_sky.color = UiPalette.BG_DEEP.lerp(UiPalette.accent_dark(_side()), 0.25)
+	_sky.color = Color.TRANSPARENT
 	_sky.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_sky.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sky.draw.connect(_paint)
+	_sky.resized.connect(_sky.queue_redraw)
 	add_child(_sky)
-	_horizon = ColorRect.new()
-	_horizon.color = UiPalette.PANEL
-	_horizon.anchor_top = 0.36
-	_horizon.anchor_bottom = 0.40
-	_horizon.anchor_right = 1.0
-	_horizon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_horizon)
-	_ground = ColorRect.new()
-	_ground.color = Color("1b2a1f")
-	_ground.anchor_top = 0.40
-	_ground.anchor_bottom = 1.0
-	_ground.anchor_right = 1.0
-	_ground.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_ground)
+
+
+func _paint() -> void:
+	var me := Session.me() if Session.has_game() else null
+	var buildings: Array = []
+	for b in _layout.get("buildings", []):
+		var entry: Dictionary = b.duplicate()
+		var btn: Button = _buttons.get(b["id"])
+		entry["built"] = btn == null or btn.visible
+		buildings.append(entry)
+	var pads: Array = me.pads if me != null else [0, -1, -1]
+	var season: int = Session.state().season if Session.has_game() else 0
+	SpaceportArt.paint(_sky, _sky.size, _side(), buildings, pads, season)
 
 
 func _build_buildings() -> void:
@@ -52,6 +52,7 @@ func _build_buildings() -> void:
 		var btn := Button.new()
 		btn.text = b["title"]
 		btn.name = b["id"]
+		_style_hotspot(btn)
 		btn.clip_text = true
 		btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		_place(btn, b)
@@ -63,10 +64,25 @@ func _build_buildings() -> void:
 	var f: Dictionary = _layout.get("flag", {"x": 0.9, "y": 0.1, "w": 0.07, "h": 0.14})
 	_flag = Button.new()
 	_flag.text = "End\nTurn"
-	_flag.theme_type_variation = "Accent"
+	_style_hotspot(_flag)
 	_place(_flag, f)
 	_flag.pressed.connect(_on_end_turn)
 	add_child(_flag)
+
+
+## Hotspots sit on the painting: a translucent plate for the label, accent outline on hover.
+static func _style_hotspot(btn: Button) -> void:
+	btn.theme_type_variation = "Flat"
+	btn.add_theme_color_override("font_color", UiPalette.BG_DEEP)
+	btn.add_theme_color_override("font_hover_color", UiPalette.BG_DEEP)
+	btn.add_theme_color_override("font_pressed_color", UiPalette.BG_DEEP)
+	btn.add_theme_color_override("font_disabled_color", Color(UiPalette.BG_DEEP, 0.45))
+	btn.add_theme_stylebox_override("normal", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
+	btn.add_theme_stylebox_override("hover", UiTheme.flat(Color(1, 1, 1, 0.25), UiPalette.GOLD, 4, 2))
+	btn.add_theme_stylebox_override("pressed", UiTheme.flat(Color(1, 1, 1, 0.4), UiPalette.GOLD, 4, 2))
+	btn.add_theme_stylebox_override("focus", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
+	btn.add_theme_stylebox_override("disabled", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
+	btn.add_theme_font_override("font", load(UiTheme.FONT_BODY_BOLD))
 
 
 ## Anchor a control to a fractional rectangle of the canvas.
@@ -84,6 +100,7 @@ static func _place(c: Control, r: Dictionary) -> void:
 func _build_hud() -> void:
 	_hud = Label.new()
 	_hud.theme_type_variation = "Subheading"
+	_hud.add_theme_color_override("font_color", UiPalette.BG_DEEP)
 	_hud.anchor_left = 0.02
 	_hud.anchor_top = 0.02
 	_hud.anchor_right = 0.6
@@ -92,6 +109,7 @@ func _build_hud() -> void:
 	add_child(_hud)
 	var title := Label.new()
 	title.theme_type_variation = "Title"
+	title.add_theme_color_override("font_color", UiPalette.BG_DEEP)
 	title.text = "Cape Canaveral" if _side() == "usa" else "Baikonur"
 	title.anchor_left = 0.02
 	title.anchor_top = 0.10
@@ -116,7 +134,8 @@ func _refresh() -> void:
 		var btn: Button = _buttons.get("pad_%d" % (i + 1))
 		if btn:
 			btn.text = "Launch Pad %d" % (i + 1) if me.pads[i] <= 0 else "Pad %d (damaged)" % (i + 1)
-			btn.theme_type_variation = "" if me.pads[i] != SimPlayer.PAD_NONE else "Flat"
+			if me.pads[i] == SimPlayer.PAD_NONE:
+				btn.text = "Pad %d site" % (i + 1)
 	# Buildings appear as the programme grows, as on the original spaceport.
 	var any_program := me.owned_programs().size() > 1          # photo recon is pre-owned
 	var any_manned := false
@@ -137,6 +156,8 @@ func _set_building(id: String, built: bool) -> void:
 	var btn: Button = _buttons.get(id)
 	if btn:
 		btn.visible = built
+	if _sky:
+		_sky.queue_redraw()
 
 
 func _on_building(b: Dictionary) -> void:
@@ -155,6 +176,7 @@ func _on_end_turn() -> void:
 	if not Session.has_game():
 		return
 	if await ConfirmBox.ask(self, "End the season?", "Lower the flag and let %s play out." % Session.state().date_string()):
+		Sound.sfx("flag")
 		var report := Session.end_turn()
 		TurnFlow.after_end_turn(report)
 

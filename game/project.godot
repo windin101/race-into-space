@@ -18,6 +18,11 @@ GameData="*res://scripts/data/game_data.gd"
 Settings="*res://scripts/ui/settings.gd"
 Session="*res://scripts/ui/session.gd"
 Screens="*res://scripts/ui/screen_manager.gd"
+Sound="*res://scripts/ui/sound.gd"
+
+[audio]
+
+buses/default_bus_layout="res://default_bus_layout.tres"
 
 [display]
 
