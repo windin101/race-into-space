@@ -28,7 +28,7 @@ repeatable importer, so the simulation never reads the upstream clone at runtime
 Done when: importer runs clean, Godot loads every file at startup without errors, and a
 GDScript test suite (gdUnit4) asserts row counts and a handful of known values.
 
-## Phase 2: Headless simulation core
+## Phase 2: Headless simulation core (done 2026-10-11, tag phase-2)
 
 Goal: a complete game can be played by script with no UI, so rules can be tested and
 tuned before any screen exists.
@@ -56,6 +56,9 @@ tuned before any screen exists.
 Done when: a seeded scripted game from 1957 to a Moon landing runs headless, every
 rule above has at least one test, and tuning notes for the undocumented formulas are in
 `docs/specs/`.
+
+Outcome: 110 tests across ten suites; `tools/sim_cli.gd` plays scripted games (seed 101
+lands in 1974); `docs/specs/tuning-notes.md` compares the curves to the Let's Play.
 
 ## Phase 3: UI framework
 

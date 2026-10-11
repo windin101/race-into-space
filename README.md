@@ -37,4 +37,5 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Phase 1 (data pipeline) complete. See `docs/plan.md`.
+Phase 2 (headless simulation core) complete: the whole game plays headless with a
+scripted driver. See `docs/plan.md`. Run tests with `tools/run_tests.sh`.
