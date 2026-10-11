@@ -5,6 +5,7 @@ extends RefCounted
 ## chain is pushed in reverse so the first to show sits on top.
 
 const LAUNCH_RESULTS := "res://scenes/turn/launch_results.tscn"
+const PLAYBACK := "res://scenes/playback/mission_playback.tscn"
 const NEWSCAST := "res://scenes/turn/newscast.tscn"
 const ANNUAL_REVIEW := "res://scenes/turn/annual_review.tscn"
 const END_GAME := "res://scenes/turn/end_game.tscn"
@@ -23,6 +24,8 @@ static func after_end_turn(report: Dictionary) -> void:
 			chain.append([ANNUAL_REVIEW, {"review": Session.me().reviews.back()}])
 	if not report.get("launches", []).is_empty():
 		chain.append([LAUNCH_RESULTS, {"report": report}])
+		if not Settings.skip_launch_animation:
+			chain.append([PLAYBACK, {"report": report}])
 	# Push bottom-up: the last element is shown first.
 	chain.reverse()
 	for entry in chain:

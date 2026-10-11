@@ -37,7 +37,8 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Phase 4 (game screens) complete: the whole game is playable by hand against the
-scripted driver, with save and load. See `docs/plan.md`.
+Phase 5 (mission playback) complete: launches play as animated vignettes with the
+step chart and news flashes; the whole game is playable by hand with save and load.
+See `docs/plan.md`.
 Run tests with `tools/run_tests.sh`; render screenshots with
 `godot --path game res://tools/ui_screenshots.tscn`.

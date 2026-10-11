@@ -115,7 +115,7 @@ before it can show readiness for manned flights (a crew-less planner preview wou
 and review portrait rules are prose in the data and encoded in `TurnLogic` with
 citations; the newscast "down to i%" wording now has `detail.new_safety` available.
 
-## Phase 5: Mission playback
+## Phase 5: Mission playback (done 2026-10-11, tag phase-5)
 
 Goal: replace the 1994 FMV with an original, animated mission sequence.
 
@@ -129,6 +129,13 @@ Goal: replace the 1994 FMV with an original, animated mission sequence.
 
 Done when: every step letter in the mission codes has a vignette, and a complete lunar
 landing plays without gaps.
+
+Outcome: `scripts/playback/vignettes.gd` paints 18 procedural vector families covering
+all 34 step letters with success and failure variants; `scenes/playback/mission_playback`
+plays each visible launch with the roll-versus-safety chart, mission log and FIRST /
+failure / verdict flashes, with speed, skip and full-stage controls; a test plays a joint
+LOR landing end to end. `docs/screens/phase5/` has the vignette contact sheet and three
+playback frames (`tools/playback_capture.tscn`). Richer art for the vignettes is Phase 7.
 
 ## Phase 6: AI opponent
 
