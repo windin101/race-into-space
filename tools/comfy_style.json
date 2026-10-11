@@ -1,0 +1,37 @@
+{
+  "_about": "Prompts and settings for tools/comfy_batch.py. Edit the style lines to steer the look; names and seeds come from the game data.",
+  "server": "http://127.0.0.1:8188",
+  "models": {
+    "t2i": "qwen_image_fp8_e4m3fn.safetensors",
+    "edit": "qwen_image_edit_2509_fp8_e4m3fn.safetensors",
+    "clip": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
+    "vae": "qwen_image_vae.safetensors"
+  },
+  "sampling": {"steps": 20, "cfg": 2.5, "sampler": "euler", "scheduler": "simple", "shift": 3.0},
+  "style": "flat vector illustration in the style of 1960s space programme press art, clean geometric shapes, limited palette, soft two-tone shading, no outlines, no text, no logos",
+  "negative": "photograph, photorealistic, blurry, noisy, text, watermark, logo, signature, frame, border, 3d render, deformed hands, extra limbs",
+  "portrait": {
+    "prompt": "Repaint this portrait as a {style}. Keep the same person: same face shape, skin tone, hair colour and style, eye colour, expression and glasses if present. Head and shoulders of a {era} {nationality} {role} in a {suit} flight suit, {gender}, looking at the viewer, plain dark navy background.",
+    "era": "1960s",
+    "size": [672, 800],
+    "output": [336, 400]
+  },
+  "hardware": {
+    "prompt": "Repaint this spacecraft silhouette as a {style}. Keep exactly the same outline, proportions and orientation. A {name}, {kind}, {nationality} space programme of the 1960s, centred, on a plain solid bright green background #00ff00.",
+    "size": [1024, 1024],
+    "output": [512, 512],
+    "chroma_key": [0, 255, 0]
+  },
+  "backdrops": {
+    "size": [1920, 1080],
+    "prompts": {
+      "title": "Wide painted key art, {style}: a Saturn-class rocket and an R-7 rocket rising on opposite sides of a night sky over a launch complex, the Moon large above, 1957 to 1977 space race, cinematic but flat, no text",
+      "newscast_usa": "Television news studio of 1965, {style}: an empty anchor desk at the left, a world map and clocks behind, broadcast lights, muted colours, no people, no text",
+      "newscast_ussr": "Soviet television news studio of 1965, {style}: an empty anchor desk at the left, a map of the USSR and a red banner behind, muted colours, no people, no text",
+      "endgame_usa_win": "Celebration painting, {style}: an Apollo capsule and parachutes over an aircraft carrier, ticker tape, 1969, triumphant, no text",
+      "endgame_usa_lose": "Sombre painting, {style}: an empty launch pad at dusk at Cape Canaveral, a lowered flag, 1977, no text",
+      "endgame_ussr_win": "Celebration painting, {style}: cosmonauts on Red Square, red banners, a lunar lander silhouette above, triumphant, no text",
+      "endgame_ussr_lose": "Sombre painting, {style}: an empty pad at Baikonur on the steppe at dusk, a lowered red flag, 1977, no text"
+    }
+  }
+}
