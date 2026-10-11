@@ -37,5 +37,7 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Phase 2 (headless simulation core) complete: the whole game plays headless with a
-scripted driver. See `docs/plan.md`. Run tests with `tools/run_tests.sh`.
+Phase 3 (UI framework) complete: theme, screen manager, widgets, settings and a
+placeholder spaceport on top of the headless simulation. See `docs/plan.md`.
+Run tests with `tools/run_tests.sh`; render screenshots with
+`godot --path game res://tools/ui_screenshots.tscn`.

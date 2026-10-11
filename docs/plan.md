@@ -60,7 +60,7 @@ rule above has at least one test, and tuning notes for the undocumented formulas
 Outcome: 110 tests across ten suites; `tools/sim_cli.gd` plays scripted games (seed 101
 lands in 1974); `docs/specs/tuning-notes.md` compares the curves to the Let's Play.
 
-## Phase 3: UI framework
+## Phase 3: UI framework (done 2026-10-11, tag phase-3)
 
 Goal: the scaffolding every screen uses, proven at 1080p, 1440p ultrawide and 4K.
 
@@ -77,6 +77,11 @@ Goal: the scaffolding every screen uses, proven at 1080p, 1440p ultrawide and 4K
 
 Done when: a demo scene shows all widgets, and resizing between 720p and 4K keeps
 layouts correct with no clipped text.
+
+Outcome: `scenes/ui/widget_gallery.tscn` shows every widget; `tools/ui_screenshots.tscn`
+renders title, spaceport, gallery and settings at 1280x720, 1920x1080, 2560x1440,
+3440x1440 and 3840x2160 into `docs/screens/phase3/` and fails on clipped text (0 found).
+SVG icons as DPITexture are deferred to Phase 7 when icons exist.
 
 ## Phase 4: Game screens
 
