@@ -83,7 +83,7 @@ renders title, spaceport, gallery and settings at 1280x720, 1920x1080, 2560x1440
 3440x1440 and 3840x2160 into `docs/screens/phase3/` and fails on clipped text (0 found).
 SVG icons as DPITexture are deferred to Phase 7 when icons exist.
 
-## Phase 4: Game screens
+## Phase 4: Game screens (done 2026-10-11, tag phase-4)
 
 Goal: the full game is playable end to end on placeholder art.
 
@@ -103,6 +103,17 @@ Build in play order so each slice is testable:
 
 Done when: a human can play a full game against the scripted driver from Phase 2 with
 no console errors, and every screen has a screenshot in `docs/screens/`.
+
+Outcome: 21 screens under `game/scenes/`; `docs/screens/phase4/` holds a render of each;
+`test_ui_playthrough` drives twenty seasons through every screen with real reports;
+`test_all_scenes` opens each with a live game; 173 tests. Save/load slots work.
+
+Backlog from the build (not blocking): Budget Office shows the rival's true numbers
+rather than an intelligence estimate; the Future Missions hardware preview needs a crew
+before it can show readiness for manned flights (a crew-less planner preview would help);
+`OpsView.shopping_list` does a what-if assembly instead of a planner flag; intel accuracy
+and review portrait rules are prose in the data and encoded in `TurnLogic` with
+citations; the newscast "down to i%" wording now has `detail.new_safety` available.
 
 ## Phase 5: Mission playback
 

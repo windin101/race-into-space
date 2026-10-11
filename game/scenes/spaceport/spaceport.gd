@@ -115,9 +115,28 @@ func _refresh() -> void:
 	for i in 3:
 		var btn: Button = _buttons.get("pad_%d" % (i + 1))
 		if btn:
-			btn.disabled = me.pads[i] == SimPlayer.PAD_NONE
 			btn.text = "Launch Pad %d" % (i + 1) if me.pads[i] <= 0 else "Pad %d (damaged)" % (i + 1)
+			btn.theme_type_variation = "" if me.pads[i] != SimPlayer.PAD_NONE else "Flat"
+	# Buildings appear as the programme grows, as on the original spaceport.
+	var any_program := me.owned_programs().size() > 1          # photo recon is pre-owned
+	var any_manned := false
+	for prog in me.owned_programs():
+		if prog.is_capsule():
+			any_manned = true
+	var any_astronauts := not me.astronauts.is_empty()
+	_set_building("programs", any_program)
+	_set_building("research", any_program)
+	_set_building("astronaut_complex", any_manned or any_astronauts)
+	_set_building("training", any_astronauts)
+	_set_building("vab", any_program)
+	_set_building("mission_control", any_program)
 	_flag.disabled = s.ended
+
+
+func _set_building(id: String, built: bool) -> void:
+	var btn: Button = _buttons.get(id)
+	if btn:
+		btn.visible = built
 
 
 func _on_building(b: Dictionary) -> void:

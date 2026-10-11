@@ -37,7 +37,7 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Phase 3 (UI framework) complete: theme, screen manager, widgets, settings and a
-placeholder spaceport on top of the headless simulation. See `docs/plan.md`.
+Phase 4 (game screens) complete: the whole game is playable by hand against the
+scripted driver, with save and load. See `docs/plan.md`.
 Run tests with `tools/run_tests.sh`; render screenshots with
 `godot --path game res://tools/ui_screenshots.tscn`.
