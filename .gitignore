@@ -1,0 +1,22 @@
+# Build output
+build/
+dist/
+out/
+*.o
+*.obj
+*.a
+*.so
+*.dll
+*.exe
+
+# Editors / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+
+# Never commit original game files
+original/
+*.BIN
+*.DAT
+*.PAK
