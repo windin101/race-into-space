@@ -65,6 +65,8 @@ const ROW_LUNAR_LANDING := 22
 const ROW_MANNED_DOCKING := 24
 const ROW_SPACEWALK := 26
 const ROW_MANNED_SPACE_MISSION := 27
+## Prestige rows an unmanned flight may claim: orbital satellite, flybys, probe landing.
+const UNMANNED_ROWS := [0, 1, 2, 3, 4, 5, 6, 7]
 const ROW_FIRST_CAPSULE := 13       ## + capsule slot
 const PLANET_ROW_BY_MISSION := {7: 1, 11: 2, 9: 3, 10: 4, 12: 5, 13: 6}
 const MANNED_GOAL_ROWS := [22, 20, 19, 18, 27]   ## PosGoal priority order
@@ -397,6 +399,10 @@ static func _assign_hardware(ctx: Dictionary, s: Dictionary) -> void:
 			row = PLANET_ROW_BY_MISSION.get(ctx["mission_index"], -1)
 	# Steps on the alternate branch carry no prestige, except Lunar Orbit.
 	if s["past_bang"] and row >= 0 and letter != "L":
+		row = -1
+	# An unmanned flight can only claim the satellite, probe and planetary rows; the
+	# "Manned ..." rows, docking and spacewalk need a crew aboard.
+	if row >= 0 and ctx["total_manned"] == 0 and not (row in UNMANNED_ROWS):
 		row = -1
 	s["row"] = row
 

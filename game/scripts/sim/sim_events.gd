@@ -253,7 +253,7 @@ static func apply_card(state: SimState, p: SimPlayer, card: Dictionary) -> Dicti
 				return {"ok": false}
 			var loss: int = int(prog.safety / 2.0)
 			prog.safety -= loss
-			return {"ok": true, "program": prog.display_name(), "amount": -loss}
+			return {"ok": true, "program": prog.display_name(), "amount": -loss, "new_safety": prog.safety}
 		"program_max_safety_up":
 			var amt := int(params.get("amount", 5))
 			for slot in 3:

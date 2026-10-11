@@ -117,6 +117,8 @@ func _fly(launch: Dictionary) -> Dictionary:
 	var result: Dictionary = SimMission.fly(state, launch)
 	for r in restores:
 		r[0].safety = r[1]
+	result["year"] = state.year
+	result["season"] = state.season
 	result["pad"] = launch["pad"]
 	if launch.has("downgraded_from"):
 		result["downgraded_from"] = launch["downgraded_from"]

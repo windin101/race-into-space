@@ -530,3 +530,28 @@ func test_joint_lunar_landing_flies_both_vehicles() -> void:
 	assert_int(by_letter["L"]["vehicle"]).is_equal(1)
 	assert_int(s.player(0).program("manned", 5).successes).is_equal(1)
 	assert_int(s.player(0).program("misc", 5).safety).is_equal(55 + 5)   # manned lunar pass bonus
+
+
+func test_unmanned_capsule_flight_cannot_claim_manned_rows() -> void:
+	# Unmanned Earth Orbital (mission 5) carries a capsule but no crew: the orbit step must
+	# not hand out the Manned Orbital row even when it succeeds.
+	var s := SimState.new(data, 21)
+	var p := s.player(0)
+	p.cash = 5000
+	for pair in [["rocket", 0], ["rocket", 4], ["manned", 0]]:
+		var prog: SimProgram = p.program(pair[0], pair[1])
+		SimHardware.buy_program(s, p, prog)
+		prog.safety = 99
+		prog.units = 3
+	var launch := {
+		"mission_index": 5, "player": 0, "pad": 0,
+		"vehicles": [{"rocket": p.program("rocket", 0), "boosters": p.program("rocket", 4),
+			"payload": {"capsule": p.program("manned", 0), "lm": null, "kicker": null, "probe": null,
+				"eva": null, "docking": null, "photo": null}, "crew": []}],
+		"duration_level": 0, "requirement_penalty": 0, "rush_penalty": 0, "lm_penalty": 0,
+	}
+	var result := SimMission.fly(s, launch)
+	for g in result["goals"]:
+		assert_bool(g["row"] in SimMission.UNMANNED_ROWS).override_failure_message(
+			"unmanned flight claimed row %d" % g["row"]).is_true()
+	assert_bool(result["manned"]).is_false()
