@@ -31,7 +31,7 @@ func _ready() -> void:
 		b.pressed.connect(_set_group.bind(g))
 		filters.add_child(b)
 		_group_buttons[g] = b
-	UiHelp.attach(filters, "I005")
+	UiHelp.attach(filters, "I008")
 
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL

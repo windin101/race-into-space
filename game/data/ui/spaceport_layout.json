@@ -8,7 +8,7 @@
       "y": 0.62,
       "w": 0.16,
       "h": 0.14,
-      "help": "I003",
+      "help": "I702",
       "scene": "res://scenes/admin/administration.tscn"
     },
     {
@@ -18,7 +18,7 @@
       "y": 0.55,
       "w": 0.15,
       "h": 0.12,
-      "help": "I007",
+      "help": "I009",
       "scene": "res://scenes/research/research.tscn"
     },
     {
@@ -28,7 +28,7 @@
       "y": 0.8,
       "w": 0.18,
       "h": 0.12,
-      "help": "I020",
+      "help": "I176",
       "scene": "res://scenes/astronauts/astronaut_complex.tscn"
     },
     {
@@ -38,7 +38,7 @@
       "y": 0.8,
       "w": 0.14,
       "h": 0.11,
-      "help": "I021",
+      "help": "I120",
       "scene": "res://scenes/astronauts/training.tscn"
     },
     {
@@ -48,7 +48,7 @@
       "y": 0.6,
       "w": 0.13,
       "h": 0.22,
-      "help": "I012",
+      "help": "I016",
       "scene": "res://scenes/vab/vehicle_assembly.tscn"
     },
     {
@@ -58,7 +58,7 @@
       "y": 0.86,
       "w": 0.16,
       "h": 0.09,
-      "help": "I010",
+      "help": "I018",
       "scene": "res://scenes/mission_control/mission_control.tscn"
     },
     {
@@ -68,7 +68,7 @@
       "y": 0.4,
       "w": 0.08,
       "h": 0.12,
-      "help": "I013",
+      "help": "I015",
       "scene": "res://scenes/pads/launch_pad.tscn",
       "args": {
         "pad": 0
@@ -81,7 +81,7 @@
       "y": 0.52,
       "w": 0.08,
       "h": 0.12,
-      "help": "I013",
+      "help": "I015",
       "scene": "res://scenes/pads/launch_pad.tscn",
       "args": {
         "pad": 1
@@ -94,7 +94,7 @@
       "y": 0.64,
       "w": 0.08,
       "h": 0.12,
-      "help": "I013",
+      "help": "I015",
       "scene": "res://scenes/pads/launch_pad.tscn",
       "args": {
         "pad": 2
@@ -107,7 +107,7 @@
       "y": 0.82,
       "w": 0.15,
       "h": 0.11,
-      "help": "I030",
+      "help": "I700",
       "scene": "res://scenes/museum/museum.tscn"
     },
     {
@@ -117,7 +117,7 @@
       "y": 0.84,
       "w": 0.12,
       "h": 0.09,
-      "help": "I040",
+      "help": "I704",
       "scene": "res://scenes/intel/intelligence.tscn"
     },
     {
@@ -127,7 +127,7 @@
       "y": 0.69,
       "w": 0.15,
       "h": 0.08,
-      "help": "I008",
+      "help": "I027",
       "scene": "res://scenes/programs/program_office.tscn"
     }
   ],

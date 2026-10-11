@@ -72,6 +72,13 @@ func sort_by(key: String, descending := false) -> void:
 	_refresh_header_titles()
 
 
+## Highlight a row by index without emitting signals (used to reflect state on open).
+func select_index(i: int) -> void:
+	selected_index = i if i >= 0 and i < rows.size() else -1
+	for j in _row_nodes.size():
+		_row_nodes[j].theme_type_variation = "Accent" if j == selected_index else "Flat"
+
+
 func selected_row() -> Dictionary:
 	return rows[selected_index] if selected_index >= 0 and selected_index < rows.size() else {}
 
