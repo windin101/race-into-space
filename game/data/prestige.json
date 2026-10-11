@@ -84,7 +84,7 @@
     {
       "index": 8,
       "key": "duration_f",
-      "title": "Duration F",
+      "title": "Duration Level F",
       "first": 7,
       "second": 7,
       "other": 0,
@@ -93,7 +93,7 @@
     {
       "index": 9,
       "key": "duration_e",
-      "title": "Duration E",
+      "title": "Duration Level E",
       "first": 5,
       "second": 5,
       "other": 0,
@@ -102,7 +102,7 @@
     {
       "index": 10,
       "key": "duration_d",
-      "title": "Duration D",
+      "title": "Duration Level D",
       "first": 1,
       "second": 1,
       "other": 0,
@@ -111,7 +111,7 @@
     {
       "index": 11,
       "key": "duration_c",
-      "title": "Duration C",
+      "title": "Duration Level C",
       "first": 5,
       "second": 5,
       "other": 0,
@@ -120,7 +120,7 @@
     {
       "index": 12,
       "key": "duration_b",
-      "title": "Duration B",
+      "title": "Duration Level B",
       "first": 3,
       "second": 3,
       "other": 0,

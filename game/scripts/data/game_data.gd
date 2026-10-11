@@ -34,8 +34,8 @@ func load_all() -> void:
 	budget_adjustments = _load_json("budget_adjustments.json")
 	new_game = _load_json("new_game.json")
 	constants = _load_json("constants.json", true)
-	for name in ["events", "news", "reviews", "endgame", "help"]:
-		text[name] = _load_json("text/%s.json" % name)
+	for table in ["events", "news", "reviews", "endgame", "help"]:
+		text[table] = _load_json("text/%s.json" % table)
 	loaded = load_errors.is_empty()
 	if not loaded:
 		push_error("GameData: %d file(s) failed to load: %s" % [load_errors.size(), ", ".join(load_errors)])

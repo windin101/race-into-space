@@ -13,6 +13,7 @@
     "code": "Mission step string: one letter per step; +1/+2 switch joint-launch part; ! marks end; | terminates. Letter semantics are in constants.json (step_letters).",
     "alt": "Per-step alternate/abort step index: -1 none, -2 continue, -3 end (36 slots).",
     "days": "Duration level required: 0 none, 1-6 = A-F (confirm in constants.json).",
+    "crew_mode": "0 unmanned, 1 unmanned with capsule/minishuttle, 2 single-pad manned, 3 joint with one manned launch, 4 joint with two manned launches, 5 joint with unmanned capsule (upstream mCrew).",
     "prestige_categories": "Indices into prestige.json rows that this mission can claim.",
     "downgrades": "Ordered mission indices this mission falls back to when hardware is missing; 0 = none.",
     "diagram": "Future Missions bubble-diagram tokens (upstream missSteps.json)."
@@ -107,7 +108,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         0,
         0
@@ -211,7 +212,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         32,
         0
@@ -322,7 +323,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         128,
         0
@@ -431,7 +432,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 1,
+      "crew_mode": 1,
       "m_vab": [
         128,
         0
@@ -538,7 +539,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         128,
         0
@@ -652,7 +653,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 1,
+      "crew_mode": 1,
       "m_vab": [
         128,
         0
@@ -762,7 +763,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         136,
         0
@@ -879,7 +880,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -994,7 +995,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         2,
         0
@@ -1106,7 +1107,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -1215,7 +1216,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -1324,7 +1325,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -1433,7 +1434,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -1542,7 +1543,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 0,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         4,
         0
@@ -1651,7 +1652,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         160,
         0
@@ -1766,7 +1767,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 1,
+      "crew_mode": 1,
       "m_vab": [
         160,
         0
@@ -1878,7 +1879,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         128
@@ -1994,7 +1995,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         144,
         0
@@ -2110,7 +2111,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 5,
+      "crew_mode": 5,
       "m_vab": [
         32,
         128
@@ -2222,7 +2223,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         128
@@ -2340,7 +2341,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         168,
         0
@@ -2455,7 +2456,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         136
@@ -2570,7 +2571,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         136
@@ -2688,7 +2689,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         168,
         136
@@ -2808,7 +2809,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         152,
         0
@@ -2925,7 +2926,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         128,
         0
@@ -3040,7 +3041,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 1,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         136,
         0
@@ -3157,7 +3158,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         160,
         0
@@ -3274,7 +3275,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         144,
         0
@@ -3392,7 +3393,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         152,
         0
@@ -3513,7 +3514,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         128
@@ -3637,7 +3638,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         128
@@ -3753,7 +3754,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         128
@@ -3872,7 +3873,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         168,
         0
@@ -3992,7 +3993,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         136
@@ -4110,7 +4111,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         136
@@ -4234,7 +4235,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         136
@@ -4356,7 +4357,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 4,
+      "crew_mode": 4,
       "m_vab": [
         160,
         128
@@ -4476,7 +4477,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         224,
         0
@@ -4594,7 +4595,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         96,
         128
@@ -4712,7 +4713,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         232,
         0
@@ -4837,7 +4838,7 @@
       "joint": 1,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         96,
         136
@@ -4956,7 +4957,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 1,
+      "crew_mode": 1,
       "m_vab": [
         129,
         0
@@ -5068,7 +5069,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         129,
         0
@@ -5184,7 +5185,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         129
@@ -5303,7 +5304,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 1,
+      "crew_mode": 1,
       "m_vab": [
         129,
         0
@@ -5418,7 +5419,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         129,
         0
@@ -5538,7 +5539,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         32,
         129
@@ -5661,7 +5662,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         225,
         0
@@ -5785,7 +5786,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         97,
         129
@@ -5909,7 +5910,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         233,
         0
@@ -6033,7 +6034,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         97,
         137
@@ -6156,7 +6157,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         96,
         129
@@ -6281,7 +6282,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         233,
         0
@@ -6410,7 +6411,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 5,
-      "crew": 2,
+      "crew_mode": 2,
       "m_vab": [
         136,
         0
@@ -6531,7 +6532,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         96,
         137
@@ -6660,7 +6661,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         97,
         137
@@ -6789,7 +6790,7 @@
       "joint": 1,
       "lunar": 1,
       "m_eq": 3,
-      "crew": 3,
+      "crew_mode": 3,
       "m_vab": [
         33,
         128
@@ -6912,7 +6913,7 @@
       "joint": 0,
       "lunar": 0,
       "m_eq": 2,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         160,
         0
@@ -7026,7 +7027,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         160,
         0
@@ -7145,7 +7146,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 2,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         225,
         0
@@ -7266,7 +7267,7 @@
       "joint": 0,
       "lunar": 1,
       "m_eq": 5,
-      "crew": 0,
+      "crew_mode": 0,
       "m_vab": [
         128,
         0

@@ -52,13 +52,16 @@ indexes into it.
 `missions[62]`, position equals `index`. Fields:
 
 - `name`, `abbr`
-- `code`: step string. One letter per step; `+1`/`+2` switch between the two launches of a
-  joint mission; `!` marks the end of the normal sequence; `|` terminates. Letter meanings
+- `code`: step string. One letter per step; `+n` switches to launch vehicle n of a joint
+  mission (rescue missions use `+4`); `!` marks the end of the normal sequence; `|` terminates. Letter meanings
   live in `constants.json` under `step_letters`.
 - `alt[36]`, `alt_d[36]`: per-step alternate/abort step index (-1 none, -2 continue, -3 end).
 - `days`: duration level required, 0 none, 1 to 6 for A to F.
 - `dur`, `docking`, `eva`, `lm`, `joint`, `lunar`: 0/1 flags for what the mission involves.
-- `m_eq`: equipment-class code, `crew`: crew size, `m_vab[2]`: VAB illustration ids (upstream art, unused here).
+- `m_eq`: equipment-class code, `m_vab[2]`: VAB illustration ids (upstream art, unused here).
+- `crew_mode`: 0 unmanned, 1 unmanned with capsule, 2 single-pad manned, 3 joint with one
+  manned launch, 4 joint with two manned launches, 5 joint with unmanned capsule. Crew
+  head counts come from the capsule's capacity in `constants.json` (`crew.capacity_by_hardware`).
 - `prestige_categories`: up to five prestige row indices this mission can claim.
 - `lm_ad`: LM-related flag (confirm in constants).
 - `downgrades`: ordered mission indices to fall back to when hardware is missing; `0` ends the list.

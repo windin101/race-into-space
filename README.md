@@ -37,4 +37,4 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Research complete, engine chosen. See `docs/reports/`.
+Phase 1 (data pipeline) complete. See `docs/plan.md`.

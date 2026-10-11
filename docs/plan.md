@@ -9,7 +9,7 @@ Living roadmap. Phases run roughly in order, but 3 (UI framework) can start as s
 - Research report (`docs/reports/`), upstream reference map, original manuals.
 - Decisions: Godot + GDScript, high-res vector/painted art, no Interplay media, new title.
 
-## Phase 1: Data pipeline
+## Phase 1: Data pipeline (done 2026-10-11, tag phase-1)
 
 Goal: every table the game needs exists as project-owned data in `game/data/`, with a
 repeatable importer, so the simulation never reads the upstream clone at runtime.
@@ -23,7 +23,7 @@ repeatable importer, so the simulation never reads the upstream clone at runtime
   giving the upstream file:line they came from.
 - Validation script cross-checks hardware and prestige against the 1993 manual text and
   reports discrepancies (the XMS-2/Lapot duration one is already known).
-- Data schema documented in `docs/data-schema.md`.
+- Data schema documented in `docs/data-schema.md`; code-derived rules in `docs/specs/code-derived-rules.md`.
 
 Done when: importer runs clean, Godot loads every file at startup without errors, and a
 GDScript test suite (gdUnit4) asserts row counts and a handful of known values.

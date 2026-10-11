@@ -35,8 +35,8 @@ PRESTIGE_ROWS = [
 ]
 PRESTIGE_TITLES = [
     "Orbital Satellite", "Lunar Flyby", "Mercury Flyby", "Venus Flyby", "Mars Flyby",
-    "Jupiter Flyby", "Saturn Flyby", "Lunar Probe Landing", "Duration F", "Duration E",
-    "Duration D", "Duration C", "Duration B", "One-Person Craft", "Two-Person Craft",
+    "Jupiter Flyby", "Saturn Flyby", "Lunar Probe Landing", "Duration Level F", "Duration Level E",
+    "Duration Level D", "Duration Level C", "Duration Level B", "One-Person Craft", "Two-Person Craft",
     "Three-Person Craft", "Minishuttle", "Four-Person Craft", "Manned Orbital",
     "Manned Lunar Pass", "Manned Lunar Orbit", "Manned Rescue Attempt",
     "Manned Lunar Landing", "Orbiting Lab", "Manned Docking", "Woman in Space",
@@ -189,7 +189,7 @@ def import_missions(gd: Path, out: Path, upstream: Path):
             "joint": r["Jt"],
             "lunar": r["Lun"],
             "m_eq": r["mEq"],
-            "crew": r["mCrew"],
+            "crew_mode": r["mCrew"],
             "m_vab": r["mVab"],
             "prestige_categories": [c for c in r["PCat"] if c >= 0],
             "lm_ad": r["LMAd"],
@@ -202,6 +202,7 @@ def import_missions(gd: Path, out: Path, upstream: Path):
             "code": "Mission step string: one letter per step; +1/+2 switch joint-launch part; ! marks end; | terminates. Letter semantics are in constants.json (step_letters).",
             "alt": "Per-step alternate/abort step index: -1 none, -2 continue, -3 end (36 slots).",
             "days": "Duration level required: 0 none, 1-6 = A-F (confirm in constants.json).",
+            "crew_mode": "0 unmanned, 1 unmanned with capsule/minishuttle, 2 single-pad manned, 3 joint with one manned launch, 4 joint with two manned launches, 5 joint with unmanned capsule (upstream mCrew).",
             "prestige_categories": "Indices into prestige.json rows that this mission can claim.",
             "downgrades": "Ordered mission indices this mission falls back to when hardware is missing; 0 = none.",
             "diagram": "Future Missions bubble-diagram tokens (upstream missSteps.json).",
