@@ -1,0 +1,6 @@
+source: nasa_resource_reel_1_medium.mp4
+url: https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201
+licence: Public domain (NASA resource reel HD 049)
+start: 00:36:34
+duration: 3.0
+fps: 12

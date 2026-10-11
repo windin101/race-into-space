@@ -1,0 +1,6 @@
+source: apollo11_launch_255-s-4655.mp4
+url: https://archive.org/details/255-s-4655
+licence: Public domain (NASA/NARA 255-S-4655)
+start: 00:04:14
+duration: 4.0
+fps: 12

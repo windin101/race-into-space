@@ -4,13 +4,13 @@
     python3 -I tools/footage_import.py --src clip.mp4 --family launch --outcome ok \
         --start 00:00:03 --duration 3 --fps 12 --source-url "https://..." --licence "Public domain (NASA)"
 
-Writes game/assets/art/vignettes/<family>_<outcome>/frame_0001.png ... at 1920x1080
-(letterboxed, never stretched), prints the manifest line to add to game/assets/MANIFEST.md,
-and records the provenance beside the frames in SOURCE.txt. Families and outcomes are
+Writes game/assets/art/vignettes/<family>_<outcome>/frame_0001.webp ... at 1920x1080
+(letterboxed, never stretched; lossy WebP q85, about 100 KB a frame), prints the manifest
+line to add to game/assets/MANIFEST.md, and records the provenance in SOURCE.txt. Families and outcomes are
 those in docs/art-asset-list.md section 4. Requires ffmpeg.
 
 Keep clips short (2 to 4 s) and frame rates modest (10 to 15 fps): the player stretches
-the sequence over the step duration, and 36 PNG frames at 1080p is about 20 MB.
+the sequence over the step duration, and 36 WebP frames at 1080p is about 4 MB.
 """
 
 import argparse
@@ -35,6 +35,7 @@ def main() -> None:
     ap.add_argument("--licence", default="Public domain (NASA)")
     ap.add_argument("--out-root", type=Path, default=Path("game/assets/art/vignettes"))
     ap.add_argument("--video", action="store_true", help="also write an Ogg Theora .ogv beside the frames")
+    ap.add_argument("--quality", type=int, default=85, help="WebP quality 0-100")
     a = ap.parse_args()
     if shutil.which("ffmpeg") is None:
         raise SystemExit("ffmpeg is required")
@@ -43,13 +44,14 @@ def main() -> None:
 
     out_dir = a.out_root / f"{a.family}_{a.outcome}"
     out_dir.mkdir(parents=True, exist_ok=True)
-    for old in out_dir.glob("frame_*.png"):
+    for old in list(out_dir.glob("frame_*.png")) + list(out_dir.glob("frame_*.webp")):
         old.unlink()
     scale = "scale=1920:1080:force_original_aspect_ratio=decrease,pad=1920:1080:(ow-iw)/2:(oh-ih)/2:color=black"
     cmd = ["ffmpeg", "-y", "-loglevel", "error", "-ss", a.start, "-t", str(a.duration), "-i", str(a.src),
-           "-vf", f"fps={a.fps},{scale}", "-start_number", "1", str(out_dir / "frame_%04d.png")]
+           "-vf", f"fps={a.fps},{scale}", "-c:v", "libwebp", "-quality", str(a.quality), "-lossless", "0",
+           "-start_number", "1", str(out_dir / "frame_%04d.webp")]
     subprocess.run(cmd, check=True)
-    frames = sorted(out_dir.glob("frame_*.png"))
+    frames = sorted(out_dir.glob("frame_*.webp"))
     if a.video:
         subprocess.run(["ffmpeg", "-y", "-loglevel", "error", "-ss", a.start, "-t", str(a.duration), "-i", str(a.src),
                         "-vf", scale, "-c:v", "libtheora", "-q:v", "7", "-an",
@@ -59,7 +61,7 @@ def main() -> None:
     rel = f"art/vignettes/{a.family}_{a.outcome}/"
     print(f"wrote {len(frames)} frames to {out_dir}")
     print("manifest line:")
-    print(f"| {rel}frame_*.png | {a.family} vignette ({a.outcome}), {len(frames)} frames | {a.source_url or a.src.name} | {a.licence} |")
+    print(f"| {rel}frame_*.webp | {a.family} vignette ({a.outcome}), {len(frames)} frames | {a.source_url or a.src.name} | {a.licence} |")
 
 
 if __name__ == "__main__":

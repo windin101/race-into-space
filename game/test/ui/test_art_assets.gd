@@ -20,7 +20,7 @@ func test_missing_assets_return_null_and_painters_still_draw() -> void:
 	assert_object(ArtAssets.hardware("usa", "rocket", 0)).is_null()
 	assert_object(ArtAssets.spaceport_layer("usa", "background_spring")).is_null()
 	assert_object(ArtAssets.backdrop("title")).is_null()
-	assert_array(ArtAssets.vignette_frames("launch", true)).is_empty()
+	assert_array(ArtAssets.vignette_frames("duration", false)).is_empty()
 	var canvas := Control.new()
 	canvas.size = Vector2(200, 200)
 	add_child(canvas)

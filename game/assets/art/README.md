@@ -7,6 +7,6 @@ Naming, sizes and formats are in `docs/art-asset-list.md`. Add every file to
 - `spaceport/<usa|ussr>/background_<spring|fall>.png`, `building_<id>.png`, `plot_<id>.png`, `pad_<site|ok|damaged>.png`, `flag.png`
 - `hardware/<usa|ussr>/<group>_<slot>.png`
 - `portraits/<NAME>.png`
-- `vignettes/<family>_<ok|fail>/frame_0001.png` ...
+- `vignettes/<family>_<ok|fail>/frame_0001.webp` (or .png/.jpg) ...
 - `backdrops/title.png`, `newscast_<side>.png`, `review_<role>.png`, `endgame_<side>_<win|lose>.png`
 - `icons/<name>.svg`, `patches/mission_<index>.png`

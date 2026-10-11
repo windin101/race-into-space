@@ -69,12 +69,22 @@ func test_audio_assets_exist_and_load() -> void:
 func test_manifest_lists_every_asset_file() -> void:
 	var manifest := FileAccess.get_file_as_string("res://assets/MANIFEST.md")
 	assert_str(manifest).is_not_empty()
+	# Manifest paths may end in a wildcard ("frame_*.webp") covering a frame sequence.
+	var prefixes: Array = []
+	for line in manifest.split("\n"):
+		if line.begins_with("| ") and line.contains("*"):
+			var cell: String = line.split("|")[1].strip_edges()
+			prefixes.append(cell.split("*")[0])
 	var missing: Array = []
 	for path: String in _files("res://assets"):
 		var rel: String = path.trim_prefix("res://assets/")
-		if rel.ends_with(".import") or rel.ends_with(".md") or rel.ends_with(".txt"):
+		if rel.ends_with(".import") or rel.ends_with(".md") or rel.ends_with(".txt") or rel.ends_with(".gitkeep"):
 			continue
-		if not manifest.contains(rel):
+		var listed := manifest.contains(rel)
+		for pre in prefixes:
+			if rel.begins_with(pre):
+				listed = true
+		if not listed:
 			missing.append(rel)
 	assert_array(missing).override_failure_message("not in MANIFEST.md: " + str(missing)).is_empty()
 

@@ -74,3 +74,27 @@ Atlas or Vanguard failure from the NASA reels) is found.
 - Universal Newsreel reels that incorporate Soviet-supplied film carry residual risk;
   prefer shots that are plainly the newsreel's own.
 - Nothing from the original game or its port is used, as before.
+
+## Imported so far (2026-10-11)
+
+| family | clip | source |
+|---|---|---|
+| launch | Apollo 11 liftoff from the pad, 4 s | NARA 255-S-4655 |
+| insertion | Apollo 11 first-stage burn, tracking camera, 3 s | NARA 255-S-4655 |
+| landing | Mercury capsule recovery, frogmen alongside, 4 s | NASA resource reel HD 049 at 29:20 |
+| eva | Ed White's Gemini 4 spacewalk, 3.5 s | HD 049 at 31:48 |
+| orbit | Gemini drifting over Earth, 3 s | HD 049 at 36:34 |
+| docking | Agena target vehicle approach, 3 s | HD 049 at 40:10 |
+| duration | Earth crescent past the S-IVB, 3 s | HD 049 at 50:44 |
+| lm_ops | Apollo 9 lunar module free flight, 3 s | HD 049 at 57:40 |
+
+All at 12 fps, lossy WebP, about 16 MB in total. Still procedural: power_on, reentry,
+lunar_pass, lunar_eva, lm_descent, lm_landing, lm_liftoff, lm_test, photo, planetary,
+and every failure variant. Reel 1 ends at Apollo 9; the Apollo 11 lunar surface and
+descent footage is on archive.org (`Apollo1116mmOnboardFilm`) and in NASA's other
+resource reels, which is the next pull. The 4:3 film is pillarboxed in the 16:9 stage;
+`footage_import.py` could gain a crop option if the bars annoy.
+
+Workflow that worked: download once into `reference/footage/` (gitignored), run
+`tools/footage_sheet.py --every 20` for an overview, then `--every 2` around a window,
+then `footage_import.py` with the chosen in-point.

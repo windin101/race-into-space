@@ -23,5 +23,16 @@ hardware, portraits, vignettes) is code, not files, and is covered by the projec
 | audio/sfx/first.ogg | prestige first fanfare | synthesised | CC0 |
 | audio/sfx/newscast.ogg | newscast sting | synthesised | CC0 |
 
+Vignette frame sequences are imported with `python3 -I tools/footage_import.py`; each folder
+also carries a `SOURCE.txt` with the clip, timecode and licence.
+
 Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio`.
 `test_assets.gd` fails if a file under `assets/` is missing from this table.
+| art/vignettes/launch_ok/frame_*.webp | launch vignette (ok), 48 frames | https://archive.org/details/255-s-4655 | Public domain (NASA/NARA 255-S-4655) |
+| art/vignettes/insertion_ok/frame_*.webp | insertion vignette (ok), 36 frames | https://archive.org/details/255-s-4655 | Public domain (NASA/NARA 255-S-4655) |
+| art/vignettes/landing_ok/frame_*.webp | landing vignette (ok), 48 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/vignettes/eva_ok/frame_*.webp | eva vignette (ok), 42 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/vignettes/orbit_ok/frame_*.webp | orbit vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/vignettes/docking_ok/frame_*.webp | docking vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/vignettes/duration_ok/frame_*.webp | duration vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/vignettes/lm_ops_ok/frame_*.webp | lm_ops vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |

@@ -49,7 +49,7 @@ static func icon(name: String) -> Texture2D:
 
 
 ## Frames of a vignette clip, or [] when none are provided. Looks for
-## vignettes/<family>_<ok|fail>/frame_*.png sorted by name.
+## vignettes/<family>_<ok|fail>/frame_*.{png,webp,jpg} sorted by name.
 static func vignette_frames(family: String, ok: bool) -> Array:
 	var key := "%s_%s" % [family, "ok" if ok else "fail"]
 	if _frames_cache.has(key):
@@ -62,7 +62,7 @@ static func vignette_frames(family: String, ok: bool) -> Array:
 		dir.list_dir_begin()
 		var entry := dir.get_next()
 		while entry != "":
-			if not dir.current_is_dir() and entry.begins_with("frame_") and entry.ends_with(".png"):
+			if not dir.current_is_dir() and entry.begins_with("frame_") and (entry.ends_with(".png") or entry.ends_with(".webp") or entry.ends_with(".jpg")):
 				names.append(entry)
 			entry = dir.get_next()
 		names.sort()
