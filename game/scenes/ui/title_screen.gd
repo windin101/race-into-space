@@ -74,3 +74,4 @@ func _spacer(h: int) -> Control:
 func _start(side: String) -> void:
 	Session.new_game(randi(), {"human_side": side})
 	Screens.reset(load(SPACEPORT))
+	TurnFlow.on_new_game()

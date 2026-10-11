@@ -121,11 +121,25 @@ func _refresh() -> void:
 
 
 func _on_building(b: Dictionary) -> void:
-	Screens.push(load(PLACEHOLDER_PANEL).new(), {"id": b["id"], "title": b["title"], "help": b.get("help", "")})
+	var args: Dictionary = b.get("args", {}).duplicate()
+	args["id"] = b["id"]
+	args["title"] = b["title"]
+	args["help"] = b.get("help", "")
+	var scene: String = b.get("scene", "")
+	if scene != "" and ResourceLoader.exists(scene):
+		Screens.push(load(scene), args)
+	else:
+		Screens.push(load(PLACEHOLDER_PANEL).new(), args)
 
 
 func _on_end_turn() -> void:
 	if not Session.has_game():
 		return
 	if await ConfirmBox.ask(self, "End the season?", "Lower the flag and let %s play out." % Session.state().date_string()):
-		Session.end_turn()
+		var report := Session.end_turn()
+		TurnFlow.after_end_turn(report)
+
+
+## The hub refreshes itself when a turn screen above it closes.
+func on_resume() -> void:
+	_refresh()

@@ -135,8 +135,10 @@ static func requirement_penalty(state: SimState, p: SimPlayer, mission_index: in
 			"total": total, "lm": lm_pen, "skipped_milestones": skipped}
 
 
-static func set_rush(p: SimPlayer, pad: int, months: int) -> bool:
-	var pl = p.future[pad]
+## Rush a plan by 1 or 2 months (3 MB and -3% each). Mission Control rushes this season's
+## scheduled missions (scheduled = true); the planner can also pre-set it on next season's.
+static func set_rush(p: SimPlayer, pad: int, months: int, scheduled := false) -> bool:
+	var pl = p.missions[pad] if scheduled else p.future[pad]
 	if pl == null or pl.get("part", 1) == 2 or months < 0 or months > RUSH_MAX_MONTHS:
 		return false
 	var delta: int = (months - int(pl["rush_months"])) * RUSH_COST_PER_MONTH
