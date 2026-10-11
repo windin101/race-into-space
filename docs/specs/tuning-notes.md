@@ -68,3 +68,33 @@ A typical scripted game flies 60 to 85 missions per side.
 - Planetary flybys resolve in one call instead of two to seven seasons later.
 - The Random hardware model is not implemented.
 - The three astronaut-data levels only gate recruit stat visibility so far.
+
+## AI opponent (Phase 6, 2026-10-11)
+
+`SimAi` replaces the scripted driver for computer sides. It plans from a success estimate:
+the geometric mean per-step pass chance of a mission, computed from the step letters and
+the effective safety of the hardware each step rolls against, compared to a bar per
+mission class (manned, lunar, landing, probe, test) that varies by the AI side's level.
+It buys hardware from a roadmap as soon as either the manned or the probe goal reaches
+the item (or whenever cash exceeds 120 MB), keeps two crews per capsule, runs three
+pads from the second manned goal, and fills spare pads with unmanned tests of hardware
+that is past research but below its flight ceiling. Upstream's cash handicap is kept:
++25 MB every two seasons at level 1, every season at level 2, never when the human
+plays on easy. The AI die (1-98) is applied by the mission module.
+
+Batches with both sides played by the AI (`sim_cli --ai --level N`):
+
+| level | games | landings | years |
+|---|---|---|---|
+| 0 | 12 | 7 | 1974-1977 |
+| 1 | 24 | 18 | 1972-1977 |
+| 2 | 12 | 11 | 1969-1976 |
+
+Sides land about equally once same-month launch ties alternate by season (they used to
+go to the USA every time, which is why the scripted driver never landed as the USSR).
+
+Findings while tuning: lowering the bars makes the AI slower, not faster, because every
+failure costs a season and prestige; the lever that mattered was parallelism (a third
+pad from the docking phase and sixteen astronauts), which took level 1 from 42% to 75%.
+Not verified: that a competent human beats level 1. Astronaut-data levels only change
+what recruiting shows.

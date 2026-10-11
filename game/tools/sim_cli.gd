@@ -1,7 +1,7 @@
 extends SceneTree
 ## Headless batch runner: plays scripted games and prints curves for tuning.
 ##
-##   godot --headless --path game -s res://tools/sim_cli.gd -- --games 20 --seed 1 [--model historical] [--verbose]
+##   godot --headless --path game -s res://tools/sim_cli.gd -- --games 20 --seed 1 [--model historical] [--verbose] [--ai] [--level 0|1|2] [--trace]
 
 
 func _init() -> void:
@@ -11,6 +11,8 @@ func _init() -> void:
 	var model: String = args.get("model", "basic")
 	var verbose := args.has("verbose")
 	var trace := args.has("trace")
+	var use_ai := args.has("ai")
+	var level := int(args.get("level", "1"))
 
 	var data = load("res://scripts/data/game_data.gd").new()
 	root.add_child(data)
@@ -27,8 +29,8 @@ func _init() -> void:
 	var outcomes: Dictionary = {}
 	for g in games:
 		var seed_value := first_seed + g
-		var game := SimGame.new(data, seed_value, {"model": model, "ai_usa": true, "ai_ussr": true})
-		var drivers := [SimDriver.new(0), SimDriver.new(1)]
+		var game := SimGame.new(data, seed_value, {"model": model, "ai_usa": true, "ai_ussr": true, "level_usa": level, "level_ussr": level})
+		var drivers: Array = [SimAi.new(0), SimAi.new(1)] if use_ai else [SimDriver.new(0), SimDriver.new(1)]
 		var turns := 0
 		while not game.state.ended and turns < 50:
 			for d in drivers:
@@ -58,7 +60,7 @@ func _init() -> void:
 						if not prog.is_photo_recon():
 							owned.append("%s%d" % [prog.display_name().substr(0, 3), prog.safety])
 					line += " | P%d cash %3d bud %3d steps %d/%d astro %d plans %s hw %s" % [i, pp.cash, pp.budget,
-						drivers[i].manned_step, drivers[i].probe_step, pp.astronauts.size(), str(plans), " ".join(owned)]
+						drivers[i].get("manned_step") if not use_ai else drivers[i].manned_goal, drivers[i].get("probe_step") if not use_ai else drivers[i].probe_goal, pp.astronauts.size(), str(plans), " ".join(owned)]
 				print(line)
 			var report := game.end_turn()
 			if verbose:

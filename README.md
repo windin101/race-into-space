@@ -37,8 +37,8 @@ reference/  gitignored: upstream GPL port clone
 
 ## Status
 
-Phase 5 (mission playback) complete: launches play as animated vignettes with the
-step chart and news flashes; the whole game is playable by hand with save and load.
-See `docs/plan.md`.
+Phase 6 (AI opponent) complete: the computer plans from a success estimate and lands
+in most games at every level; launches play as animated vignettes; the whole game is
+playable by hand with save and load. See `docs/plan.md`.
 Run tests with `tools/run_tests.sh`; render screenshots with
 `godot --path game res://tools/ui_screenshots.tscn`.

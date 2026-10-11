@@ -137,7 +137,7 @@ failure / verdict flashes, with speed, skip and full-stage controls; a test play
 LOR landing end to end. `docs/screens/phase5/` has the vignette contact sheet and three
 playback frames (`tools/playback_capture.tscn`). Richer art for the vignettes is Phase 7.
 
-## Phase 6: AI opponent
+## Phase 6: AI opponent (done 2026-10-11, tag phase-6)
 
 - Port the observable behaviour: same rules as the human, difficulty as handicap,
   tendency to retry failed mission types.
@@ -147,6 +147,12 @@ playback frames (`tools/playback_capture.tscn`). Richer art for the vignettes is
 
 Done when: the AI lands on the Moon within the 1977 window in most seeded games at each
 level, and loses to a competent human at Level 1.
+
+Outcome: `SimAi` (success-estimate planner with per-level bars, roadmap purchasing,
+three-pad parallelism, cash handicap) lands in 58% / 75% / 92% of games at levels 0 / 1 / 2;
+rates and method in `docs/specs/tuning-notes.md`. The human-beats-level-1 half is
+unverified until someone plays it. `SimDriver` remains as the simple baseline used by
+tests and the default batch runner.
 
 ## Phase 7: Art and audio
 

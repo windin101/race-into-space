@@ -8,7 +8,7 @@ signal state_changed
 
 var game: SimGame
 var human_side := "usa"
-var drivers: Array = []       ## scripted drivers for AI sides until Phase 6
+var drivers: Array = []       ## SimAi for each computer side
 
 
 func has_game() -> bool:
@@ -24,7 +24,7 @@ func new_game(p_seed: int, options: Dictionary = {}) -> void:
 	drivers.clear()
 	for i in 2:
 		if game.state.player(i).is_ai:
-			drivers.append(SimDriver.new(i))
+			drivers.append(SimAi.new(i))
 	_apply_theme()
 	game_started.emit()
 	state_changed.emit()
@@ -40,7 +40,7 @@ func load_game(p_game: SimGame, p_human_side: String) -> void:
 	drivers.clear()
 	for i in 2:
 		if game.state.player(i).is_ai:
-			drivers.append(SimDriver.new(i))
+			drivers.append(SimAi.new(i))
 	_apply_theme()
 	game_started.emit()
 	state_changed.emit()

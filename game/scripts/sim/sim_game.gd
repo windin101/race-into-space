@@ -104,7 +104,12 @@ func _ordered_launches() -> Array:
 			launch["month"] = maxi(0, int(months[i]) - int(pl.get("rush_months", 0)))
 			launch["plan"] = pl
 			launches.append(launch)
-	launches.sort_custom(func(a, b): return a["month"] < b["month"] or (a["month"] == b["month"] and a["player"] < b["player"]))
+	# Same-month launches alternate priority by season so neither side always wins ties.
+	var first_player := state.turn_index() % 2
+	launches.sort_custom(func(a, b):
+		if a["month"] != b["month"]:
+			return a["month"] < b["month"]
+		return (a["player"] == first_player) and (b["player"] != first_player))
 	return launches
 
 
