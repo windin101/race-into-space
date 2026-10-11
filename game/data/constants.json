@@ -1,390 +1,1082 @@
 {
-  "_about": "Code-only game rules of Race Into Space (upstream HEAD e1fbccc) transcribed into data. Every top-level key carries provenance in a sibling _source entry or inline 'source' fields, as 'src/game/file.cpp:LINE' relative to reference/raceintospace/. See docs/specs/code-derived-rules.md for the plain-English rules.",
-
-  "prestige_rows": [
-    "ORBITAL SATELLITE", "LUNAR FLYBY", "MERCURY FLYBY", "VENUS FLYBY", "MARS FLYBY",
-    "JUPITER FLYBY", "SATURN FLYBY", "LUNAR PROBE LANDING", "DURATION LEVEL F",
-    "DURATION LEVEL E", "DURATION LEVEL D", "DURATION LEVEL C", "DURATION LEVEL B",
-    "ONE-PERSON CRAFT", "TWO-PERSON CRAFT", "THREE-PERSON CRAFT", "MINISHUTTLE",
-    "FOUR-PERSON CRAFT", "MANNED ORBITAL", "MANNED LUNAR PASS", "MANNED LUNAR ORBIT",
-    "MANNED RESCUE ATTEMPT", "MANNED LUNAR LANDING", "ORBITING LAB", "MANNED DOCKING",
-    "WOMAN IN SPACE", "SPACEWALK", "MANNED SPACE MISSION"
+ "_about": "Code-only game rules of Race Into Space (upstream HEAD e1fbccc) transcribed into data. Every top-level key carries provenance in a sibling _source entry or inline 'source' fields, as 'src/game/file.cpp:LINE' relative to reference/raceintospace/. See docs/specs/code-derived-rules.md for the plain-English rules.",
+ "prestige_rows": [
+  "ORBITAL SATELLITE",
+  "LUNAR FLYBY",
+  "MERCURY FLYBY",
+  "VENUS FLYBY",
+  "MARS FLYBY",
+  "JUPITER FLYBY",
+  "SATURN FLYBY",
+  "LUNAR PROBE LANDING",
+  "DURATION LEVEL F",
+  "DURATION LEVEL E",
+  "DURATION LEVEL D",
+  "DURATION LEVEL C",
+  "DURATION LEVEL B",
+  "ONE-PERSON CRAFT",
+  "TWO-PERSON CRAFT",
+  "THREE-PERSON CRAFT",
+  "MINISHUTTLE",
+  "FOUR-PERSON CRAFT",
+  "MANNED ORBITAL",
+  "MANNED LUNAR PASS",
+  "MANNED LUNAR ORBIT",
+  "MANNED RESCUE ATTEMPT",
+  "MANNED LUNAR LANDING",
+  "ORBITING LAB",
+  "MANNED DOCKING",
+  "WOMAN IN SPACE",
+  "SPACEWALK",
+  "MANNED SPACE MISSION"
+ ],
+ "prestige_rows_source": "src/game/endgame.cpp:50 PF[29][40]; src/game/museum.cpp:56 tame[29][40]; enum PrestigeValues src/game/data.h:1105-1135 (Prestige_Duration_A = -1 is deliberately out of table; Prestige_LunarMoonwalk = 40 is a hero flag only)",
+ "prestige_enum": {
+  "OrbitalSatellite": 0,
+  "LunarFlyby": 1,
+  "MercuryFlyby": 2,
+  "VenusFlyby": 3,
+  "MarsFlyby": 4,
+  "JupiterFlyby": 5,
+  "SaturnFlyby": 6,
+  "LunarProbeLanding": 7,
+  "Duration_F": 8,
+  "Duration_E": 9,
+  "Duration_D": 10,
+  "Duration_C": 11,
+  "Duration_B": 12,
+  "Duration_A": -1,
+  "OnePerson": 13,
+  "TwoPerson": 14,
+  "ThreePerson": 15,
+  "Minishuttle": 16,
+  "FourPerson": 17,
+  "MannedOrbital": 18,
+  "MannedLunarPass": 19,
+  "MannedLunarOrbit": 20,
+  "MannedRescueAttempt": 21,
+  "MannedLunarLanding": 22,
+  "OrbitingLab": 23,
+  "MannedDocking": 24,
+  "WomanInSpace": 25,
+  "Spacewalk": 26,
+  "MannedSpaceMission": 27,
+  "_source": "src/game/data.h:1105-1135"
+ },
+ "prestige_award": {
+  "add_index_meaning": [
+   "first_in_world",
+   "second_nation",
+   "subsequent",
+   "failure"
   ],
-  "prestige_rows_source": "src/game/endgame.cpp:50 PF[29][40]; src/game/museum.cpp:56 tame[29][40]; enum PrestigeValues src/game/data.h:1105-1135 (Prestige_Duration_A = -1 is deliberately out of table; Prestige_LunarMoonwalk = 40 is a hero flag only)",
-  "prestige_enum": {
-    "OrbitalSatellite": 0, "LunarFlyby": 1, "MercuryFlyby": 2, "VenusFlyby": 3, "MarsFlyby": 4,
-    "JupiterFlyby": 5, "SaturnFlyby": 6, "LunarProbeLanding": 7, "Duration_F": 8, "Duration_E": 9,
-    "Duration_D": 10, "Duration_C": 11, "Duration_B": 12, "Duration_A": -1, "OnePerson": 13,
-    "TwoPerson": 14, "ThreePerson": 15, "Minishuttle": 16, "FourPerson": 17, "MannedOrbital": 18,
-    "MannedLunarPass": 19, "MannedLunarOrbit": 20, "MannedRescueAttempt": 21, "MannedLunarLanding": 22,
-    "OrbitingLab": 23, "MannedDocking": 24, "WomanInSpace": 25, "Spacewalk": 26, "MannedSpaceMission": 27,
-    "_source": "src/game/data.h:1105-1135"
+  "first_requires": "Prestige[row].Place == -1 (nobody has done it)",
+  "second_requires": "Prestige[row].mPlace == -1 and Place != this player",
+  "subsequent_rule": "Add[2] is only paid while the running mission total is < 3 (prest.cpp:424)",
+  "chained_credit": "A first/second on a row also flags lower rows in the same chain as done without paying points: MannedOrbital->OrbitalSatellite, LunarFlyby->MannedOrbital, LunarProbeLanding->LunarFlyby, LunarPass->LunarProbeLanding, LunarOrbit->LunarPass, LunarLanding->LunarOrbit, Duration C->B, D->C, E->D, F->E, TwoPerson->OnePerson, ThreePerson->TwoPerson, Minishuttle->ThreePerson, FourPerson->Minishuttle",
+  "failure_rule": "The single highest manned milestone attempted and failed pays Add[3] once (NegGoal, prest.cpp:531,609)",
+  "mission_total_floor": -10,
+  "mission_total_floor_no_death": -7,
+  "death_turns_all_successes_to_failures": true,
+  "catastrophic_threshold_stepinfo": 3000,
+  "manned_mission_bonus_row": 27,
+  "downgrade_prestige_penalty": {
+   "value": 0,
+   "note": "pNeg[plr][pad]=1 (-3 prestige per downgrade) is commented out at rush.cpp:189; the 1993 manual says -3"
   },
-  "prestige_award": {
-    "add_index_meaning": ["first_in_world", "second_nation", "subsequent", "failure"],
-    "first_requires": "Prestige[row].Place == -1 (nobody has done it)",
-    "second_requires": "Prestige[row].mPlace == -1 and Place != this player",
-    "subsequent_rule": "Add[2] is only paid while the running mission total is < 3 (prest.cpp:424)",
-    "chained_credit": "A first/second on a row also flags lower rows in the same chain as done without paying points: MannedOrbital->OrbitalSatellite, LunarFlyby->MannedOrbital, LunarProbeLanding->LunarFlyby, LunarPass->LunarProbeLanding, LunarOrbit->LunarPass, LunarLanding->LunarOrbit, Duration C->B, D->C, E->D, F->E, TwoPerson->OnePerson, ThreePerson->TwoPerson, Minishuttle->ThreePerson, FourPerson->Minishuttle",
-    "failure_rule": "The single highest manned milestone attempted and failed pays Add[3] once (NegGoal, prest.cpp:531,609)",
-    "mission_total_floor": -10,
-    "mission_total_floor_no_death": -7,
-    "death_turns_all_successes_to_failures": true,
-    "catastrophic_threshold_stepinfo": 3000,
-    "manned_mission_bonus_row": 27,
-    "downgrade_prestige_penalty": {"value": 0, "note": "pNeg[plr][pad]=1 (-3 prestige per downgrade) is commented out at rush.cpp:189; the 1993 manual says -3"},
-    "_source": "src/game/prest.cpp:318-480 Set_Goal, :531-560 PosGoal/NegGoal/SupGoal, :609 PrestNeg, :616-930 AllotPrest, :1116 Update_Prestige_Data"
+  "_source": "src/game/prest.cpp:318-480 Set_Goal, :531-560 PosGoal/NegGoal/SupGoal, :609 PrestNeg, :616-930 AllotPrest, :1116 Update_Prestige_Data"
+ },
+ "milestones": {
+  "enum": {
+   "OrbitalSatellite": 0,
+   "ManInSpace": 1,
+   "EarthOrbit": 2,
+   "LunarFlyby": 3,
+   "LunarPlanetary": 4,
+   "LunarPass": 5,
+   "LunarOrbit": 6,
+   "LunarLanding": 7
   },
-
-  "milestones": {
-    "enum": {"OrbitalSatellite": 0, "ManInSpace": 1, "EarthOrbit": 2, "LunarFlyby": 3, "LunarPlanetary": 4, "LunarPass": 5, "LunarOrbit": 6, "LunarLanding": 7},
-    "prestige_row_to_milestone": {"0": 0, "27": 1, "18": 2, "1": 3, "7": 4, "19": 5, "20": 6, "22": 7},
-    "set_when": "A first OR second-nation success on the mapped prestige row sets Mile[plr][m]=1 (prest.cpp:331-360, :398-427)",
-    "skip_penalty_per_milestone": 3,
-    "skip_rule": "For the highest milestone in the mission's PCat list, every lower-numbered milestone with Mile==0 costs 3 safety on every hardware step (MilestonePenalty). Milestones the mission does not satisfy still count.",
-    "_source": "src/game/data.h:1137-1146 enum Milestones; src/game/prest.cpp:122-146 MilestonePenalty; :265-295 PrestMap"
+  "prestige_row_to_milestone": {
+   "0": 0,
+   "27": 1,
+   "18": 2,
+   "1": 3,
+   "7": 4,
+   "19": 5,
+   "20": 6,
+   "22": 7
   },
-  "new_mission_penalty": {
-    "value_by_difficulty": {"easy": 1, "medium": 2, "hard": 3},
-    "formula": "1 + Def.Lev (player's own level) if any PCat milestone of the mission is still unmet; otherwise 0",
-    "_source": "src/game/prest.cpp:164-174 NewMissionPenalty"
+  "set_when": "A first OR second-nation success on the mapped prestige row sets Mile[plr][m]=1 (prest.cpp:331-360, :398-427)",
+  "skip_penalty_per_milestone": 3,
+  "skip_rule": "For the highest milestone in the mission's PCat list, every lower-numbered milestone with Mile==0 costs 3 safety on every hardware step (MilestonePenalty). Milestones the mission does not satisfy still count.",
+  "_source": "src/game/data.h:1137-1146 enum Milestones; src/game/prest.cpp:122-146 MilestonePenalty; :265-295 PrestMap"
+ },
+ "new_mission_penalty": {
+  "value_by_difficulty": {
+   "easy": 1,
+   "medium": 2,
+   "hard": 3
   },
-  "duration_levels": {
-    "level_index": {"none": 0, "A": 1, "B": 2, "C": 3, "D": 4, "E": 5, "F": 6},
-    "days_range": {"A": [1, 2], "B": [3, 5], "C": [6, 7], "D": [8, 12], "E": [13, 16], "F": [17, 20]},
-    "days_range_source": "manual table only: original/manuals/rules-of-play-1993.txt:1572-1578 and doc/manual/manual.md:812-845; engine never uses day counts for rules",
-    "max_days_per_level_for_astronaut_log": [0, 2, 5, 7, 12, 16, 20],
-    "actual_days_logged": {
-      "A": "1 for mission codes < 14, else 2",
-      "B": "3 for codes < 27, 4 for codes < 40, else 5",
-      "C": "6 for codes < 32, else 7",
-      "D": "8 for codes < 44; 8+rand(0..3) for single lunar orbitals (46,48,50); 9+rand(0..3) for joint lunar orbitals / any lunar landing",
-      "E": "13+rand(0..3)",
-      "F": "17+rand(0..3)"
-    },
-    "mission_days_field": "mission.json Days = minimum duration level for the plan (0 = unmanned; 1-6 = A-F). For Dur==1 plans the player picks any level >= Days up to 6 (future.cpp:884 MaxDur=6, :1043).",
-    "prestige_row_for_level": {"B": 12, "C": 11, "D": 10, "E": 9, "F": 8, "formula": "row = 14 - level (prest.cpp:830)"},
-    "implied_level_for_non_duration_missions": {"MannedSpaceMission": 1, "MannedOrbital_codes_le_6": 1, "MannedOrbital_other": 2, "MannedLunarPass": 3, "MannedLunarOrbit": 4, "MannedLunarLanding": 4},
-    "player_duration_level": "DurationLevel = highest Duration row (F..B) the player holds as first or second nation; 1 after MannedSpaceMission (prest.cpp:884-897)",
-    "one_man_capsule_cap": {"max_level": 2, "source": "src/game/mc.cpp:237 (Hard[Capsule]==0 -> Duration=MIN(2,Duration))"},
-    "skip_penalty_per_level": 5,
-    "skip_rule": "required = max(Days-1, 0); raised to 3 if the mission carries MannedLunarPass, to 4 if MannedLunarOrbit or MannedLunarLanding; penalty = 5 * max(required - DurationLevel, 0)",
-    "_source": "src/game/prest.cpp:87-110 DurationPenalty; src/game/mc.cpp:417-470 MissionPast dys[]; src/game/mission_util.cpp:213 GetDurationParens"
+  "formula": "1 + Def.Lev (player's own level) if any PCat milestone of the mission is still unmet; otherwise 0",
+  "_source": "src/game/prest.cpp:164-174 NewMissionPenalty"
+ },
+ "duration_levels": {
+  "level_index": {
+   "none": 0,
+   "A": 1,
+   "B": 2,
+   "C": 3,
+   "D": 4,
+   "E": 5,
+   "F": 6
   },
-
-  "lm_tests": {
-    "point_per_successful_lem_thrust_test_step": 1,
-    "lunar_orbital_lm_test_missions_48_to_52_pay_double": true,
-    "points_required": 3,
-    "penalty_per_missing_point": 3,
-    "penalty_table_by_points": {"0": -9, "1": -6, "2": -3, "3": 0},
-    "applies_to": "the LM program's MisSaf only, on lunar landing missions (code >= 53) when the LM ID[1] >= '5'",
-    "_source": "src/game/prest.cpp:184-192 Set_LM (loc 26, StepInfo 1 or 50); :898-905; src/game/mc2.cpp:800-815 MissionSetup; src/game/rush.cpp:675 display 3*MIN(LMpts-3,0)"
+  "days_range": {
+   "A": [
+    1,
+    2
+   ],
+   "B": [
+    3,
+    5
+   ],
+   "C": [
+    6,
+    7
+   ],
+   "D": [
+    8,
+    12
+   ],
+   "E": [
+    13,
+    16
+   ],
+   "F": [
+    17,
+    20
+   ]
   },
-  "docking_module": {
-    "base_safety": 40,
-    "success_increment": 10,
-    "failure_increment": 5,
-    "cap": "MaxSafety (93)",
-    "no_rnd": "MaxRD 0 in data; improves only by flying",
-    "in_orbit_seasons_after_power_on": 2,
-    "_source": "data/gamedata/urast.json Misc[4]; src/game/prest.cpp:756-768 (manned, Check_Dock(500)); :1083-1094 (unmanned, Check_Dock(2)); src/game/mis_m.cpp:403 DockingModuleInOrbit=2"
+  "days_range_source": "manual table only: original/manuals/rules-of-play-1993.txt:1572-1578 and doc/manual/manual.md:812-845; engine never uses day counts for rules",
+  "max_days_per_level_for_astronaut_log": [
+   0,
+   2,
+   5,
+   7,
+   12,
+   16,
+   20
+  ],
+  "actual_days_logged": {
+   "A": "1 for mission codes < 14, else 2",
+   "B": "3 for codes < 27, 4 for codes < 40, else 5",
+   "C": "6 for codes < 32, else 7",
+   "D": "8 for codes < 44; 8+rand(0..3) for single lunar orbitals (46,48,50); 9+rand(0..3) for joint lunar orbitals / any lunar landing",
+   "E": "13+rand(0..3)",
+   "F": "17+rand(0..3)"
   },
-  "photo_recon": {
-    "base_safety": 55,
-    "manned_lunar_pass_or_orbit_success": 5,
-    "unmanned_lunar_flyby_or_probe_photo_step_success": 5,
-    "lunar_probe_safe_landing_extra": 10,
-    "cap": 99,
-    "_source": "data/gamedata/urast.json Misc[5]; src/game/prest.cpp:709-715; :1060-1075; :195-212 Check_Photo (loc 20 success, or loc 22 at step index 4)"
+  "mission_days_field": "mission.json Days = minimum duration level for the plan (0 = unmanned; 1-6 = A-F). For Dur==1 plans the player picks any level >= Days up to 6 (future.cpp:884 MaxDur=6, :1043).",
+  "prestige_row_for_level": {
+   "B": 12,
+   "C": 11,
+   "D": 10,
+   "E": 9,
+   "F": 8,
+   "formula": "row = 14 - level (prest.cpp:830)"
   },
-
-  "rush": {
-    "cost_mb_per_month": 3,
-    "safety_penalty_per_month": 3,
-    "max_months": 2,
-    "applies_to": "MisSaf of every distinct hardware item on both launches of a joint mission (deduplicated so shared items are hit once)",
-    "default_launch_months": {"1_mission": [4], "2_missions": [3, 5], "3_missions": [2, 3, 4], "note": "0-based month + Season*6; rushing subtracts months"},
-    "_source": "src/game/rush.cpp:388-395 refund, :441-451 charge, :581-593 SetRush display; src/game/mc2.cpp:982-1008 MisRush; src/game/rush.cpp:548-572 SetLaunchDates"
+  "implied_level_for_non_duration_missions": {
+   "MannedSpaceMission": 1,
+   "MannedOrbital_codes_le_6": 1,
+   "MannedOrbital_other": 2,
+   "MannedLunarPass": 3,
+   "MannedLunarOrbit": 4,
+   "MannedLunarLanding": 4
   },
-  "requirement_penalty_application": {
-    "total": "max(0, Milestone + Duration + NewMission) subtracted from MisSaf of every distinct hardware item on the mission (not LM-test points, which are applied in MissionSetup)",
-    "_source": "src/game/prest.cpp:63-68 AchievementPenalty; src/game/mc2.cpp:944-975 MisSkip"
+  "player_duration_level": "DurationLevel = highest Duration row (F..B) the player holds as first or second nation; 1 after MannedSpaceMission (prest.cpp:884-897)",
+  "one_man_capsule_cap": {
+   "max_level": 2,
+   "source": "src/game/mc.cpp:237 (Hard[Capsule]==0 -> Duration=MIN(2,Duration))"
   },
-
-  "budget": {
-    "opening_budget_mb": 60,
-    "opening_cash_rule": "Cash = Budget at game start",
-    "season_end": "Budget += Prestige earned this season (each player), then Budget capped at 180; Prestige reset to 0",
-    "year_end": "at the end of Season 1 (fall) Cash += Budget; if Cash > 999 then Cash = 900",
-    "cap": 180,
-    "newscast_adjustment": {
-      "floor_before": 40,
-      "bands": [[0, 50], [50, 90], [90, 110], [110, 140], [140, 160], [160, null]],
-      "band_rule": "j = k where range[k] < Budget <= range[k+1]; j = 5 if Budget > 160",
-      "ntable_index": "j * 10 + rand(0..9)",
-      "ntable_layout": "180 ints = 3 blocks of 60; each block = 6 bands x 10 picks. Only block 0 (indices 0-59) is used for both players; the +60 / +120 blocks are a TODO for difficulty",
-      "ntable_file": "data/gamedata/ntable.json (copied as game/data/budget_adjustments.json)"
-    },
-    "half_price_sale_event": "TurnOnly == 3 halves InitCost and UnitCost for the season (min 1)",
-    "_source": "src/game/game_main.cpp:468 (Cash=Budget), :738-746 (Budget+=Prestige, cap 180), :769-782 (yearly cash), src/game/news_suq.cpp:87-115 REvent; src/game/rdplex.cpp:1491-1501"
+  "skip_penalty_per_level": 5,
+  "skip_rule": "required = max(Days-1, 0); raised to 3 if the mission carries MannedLunarPass, to 4 if MannedLunarOrbit or MannedLunarLanding; penalty = 5 * max(required - DurationLevel, 0)",
+  "_source": "src/game/prest.cpp:87-110 DurationPenalty; src/game/mc.cpp:417-470 MissionPast dys[]; src/game/mission_util.cpp:213 GetDurationParens"
+ },
+ "lm_tests": {
+  "point_per_successful_lem_thrust_test_step": 1,
+  "lunar_orbital_lm_test_missions_48_to_52_pay_double": true,
+  "points_required": 3,
+  "penalty_per_missing_point": 3,
+  "penalty_table_by_points": {
+   "0": -9,
+   "1": -6,
+   "2": -3,
+   "3": 0
   },
-
-  "difficulty": {
-    "levels": {"0": "easy", "1": "medium", "2": "hard"},
-    "fields": "Def.Lev1/Lev2 = game difficulty per side; Def.Ast1/Ast2 = astronaut-info level per side",
-    "_source": "src/game/data.h:139-141 struct Defl; per-effect sources inline below",
-    "effects_game_level": [
-      {"effect": "Mission step die: easy uses MisRandom() (uniform 1-65, else Gaussian mean 57 sd sqrt(1000) clipped to 66-100, biased against high rolls); medium/hard use uniform 1-100 (AI 1-98)", "source": "src/game/mc2.cpp:493-497; src/game/mis_m.cpp:211-215; src/game/game_main.cpp:1003-1030"},
-      {"effect": "New-mission safety penalty = 1 + level", "source": "src/game/prest.cpp:170"},
-      {"effect": "Crew death: easy halves the hardware Safety; otherwise Safety reset to Base. MaxRD reset to MSF (original MaxRD) in both cases", "source": "src/game/mis_m.cpp:719-727 F_KillCrew"},
-      {"effect": "R&D team cap: hard allows 5 teams always; easy/medium cap teams at min(MaxRD - Safety, 5)", "source": "src/game/rdplex.cpp:806-815 MaxTeamsNeeded"},
-      {"effect": "Intel briefing accuracy chance = (6 - level)/10 -> 60% / 50% / 40%", "source": "src/game/intel.cpp:1369-1373"},
-      {"effect": "Presidential review: a season with prestige <= -10 raises the review index by 1 + level (operator-precedence bug: expression parses as (1+(plr==0)) ? Lev1 : Lev2, so it adds Lev1 for USA, Lev2 for USSR, never the +1)", "source": "src/game/review.cpp:356"},
-      {"effect": "Score multiplier: own level 1 => 1x prestige; level 2 => 2x (+1/3 if opponent level 1, 5/3 if opponent level 3); level 3 => 3x (+2/3 vs level 1, +1/3 vs level 2). Lunar landing bonus by year: L1 50 (<=67) / 25 (<=69); L2 75/50/25 (<=73); L3 150/75/50", "source": "src/game/hardef.cpp:1594-1662 CalcScore"},
-      {"effect": "AI opponent gets +25 MB cash injections when buying big rockets, and extra R&D passes, only if the human is NOT on easy (Level_Check)", "source": "src/game/aimast.cpp:69-71, :264-279, :589-610"},
-      {"effect": "Presidential review can only fire the player (PresRev >= 16) when playing an AI and the human is not on easy", "source": "src/game/game_main.cpp:558-575"},
-      {"effect": "EASYMODE flag is set when one side is easy and the other hard, but nothing reads it", "source": "src/game/mc.cpp:339-355; grep shows no reader"}
+  "applies_to": "the LM program's MisSaf only, on lunar landing missions (code >= 53) when the LM ID[1] >= '5'",
+  "_source": "src/game/prest.cpp:184-192 Set_LM (loc 26, StepInfo 1 or 50); :898-905; src/game/mc2.cpp:800-815 MissionSetup; src/game/rush.cpp:675 display 3*MIN(LMpts-3,0)"
+ },
+ "docking_module": {
+  "base_safety": 40,
+  "success_increment": 10,
+  "failure_increment": 5,
+  "cap": "MaxSafety (93)",
+  "no_rnd": "MaxRD 0 in data; improves only by flying",
+  "in_orbit_seasons_after_power_on": 2,
+  "_source": "data/gamedata/urast.json Misc[4]; src/game/prest.cpp:756-768 (manned, Check_Dock(500)); :1083-1094 (unmanned, Check_Dock(2)); src/game/mis_m.cpp:403 DockingModuleInOrbit=2"
+ },
+ "photo_recon": {
+  "base_safety": 55,
+  "manned_lunar_pass_or_orbit_success": 5,
+  "unmanned_lunar_flyby_or_probe_photo_step_success": 5,
+  "lunar_probe_safe_landing_extra": 10,
+  "cap": 99,
+  "_source": "data/gamedata/urast.json Misc[5]; src/game/prest.cpp:709-715; :1060-1075; :195-212 Check_Photo (loc 20 success, or loc 22 at step index 4)"
+ },
+ "rush": {
+  "cost_mb_per_month": 3,
+  "safety_penalty_per_month": 3,
+  "max_months": 2,
+  "applies_to": "MisSaf of every distinct hardware item on both launches of a joint mission (deduplicated so shared items are hit once)",
+  "default_launch_months": {
+   "1_mission": [
+    4
+   ],
+   "2_missions": [
+    3,
+    5
+   ],
+   "3_missions": [
+    2,
+    3,
+    4
+   ],
+   "note": "0-based month + Season*6; rushing subtracts months"
+  },
+  "_source": "src/game/rush.cpp:388-395 refund, :441-451 charge, :581-593 SetRush display; src/game/mc2.cpp:982-1008 MisRush; src/game/rush.cpp:548-572 SetLaunchDates"
+ },
+ "requirement_penalty_application": {
+  "total": "max(0, Milestone + Duration + NewMission) subtracted from MisSaf of every distinct hardware item on the mission (not LM-test points, which are applied in MissionSetup)",
+  "_source": "src/game/prest.cpp:63-68 AchievementPenalty; src/game/mc2.cpp:944-975 MisSkip"
+ },
+ "budget": {
+  "opening_budget_mb": 60,
+  "opening_cash_rule": "Cash = Budget at game start",
+  "season_end": "Budget += Prestige earned this season (each player), then Budget capped at 180; Prestige reset to 0",
+  "year_end": "at the end of Season 1 (fall) Cash += Budget; if Cash > 999 then Cash = 900",
+  "cap": 180,
+  "newscast_adjustment": {
+   "floor_before": 40,
+   "bands": [
+    [
+     0,
+     50
     ],
-    "effects_astronaut_level": [
-      {"effect": "Recruit stats shown: always Capsule+Endurance; Docking also if level < 2; LM+EVA also if level < 1 (needs feat_show_recruit_stats)", "source": "src/game/ast1.cpp:510-525 ProfileMask"},
-      {"effect": "Crew compatibility display: level 0 shows per-crewmate compatible/incompatible; level 1 shows one 'CREW RELATIONSHIP' colour; level 2 shows nothing", "source": "src/game/ast4.cpp:96-158"},
-      {"effect": "Advanced training mood: +6 - (level+1) per season => +5 / +4 / +3", "source": "src/game/start.cpp:144, :218-258"},
-      {"effect": "Successful-mission mood: code adds two branches; USA on easy gets +20+15=35, otherwise +15+15=30; USSR on easy +15+20=35, otherwise 30", "source": "src/game/start.cpp:506-518"}
+    [
+     50,
+     90
+    ],
+    [
+     90,
+     110
+    ],
+    [
+     110,
+     140
+    ],
+    [
+     140,
+     160
+    ],
+    [
+     160,
+     null
     ]
+   ],
+   "band_rule": "j = k where range[k] < Budget <= range[k+1]; j = 5 if Budget > 160",
+   "ntable_index": "j * 10 + rand(0..9)",
+   "ntable_layout": "180 ints = 3 blocks of 60; each block = 6 bands x 10 picks. Only block 0 (indices 0-59) is used for both players; the +60 / +120 blocks are a TODO for difficulty",
+   "ntable_file": "data/gamedata/ntable.json (copied as game/data/budget_adjustments.json)"
   },
-
-  "rnd": {
-    "teams_min": 1, "teams_max": 5,
-    "cost": "RDCost MB per team, paid once per season per program",
-    "roll": "each team rolls 1d(6 + RD_Mods_For_Turn); sum is added to Safety, capped at MaxRD",
-    "precondition": "Safety < MaxRD",
-    "rd_mods": "event cards: 15-18 => +1 this turn; 3,61,62 => -1 this turn and RD_Mods_For_Year=-1; 19 => -2 this turn; 41 => -2 this turn and -2 for the year; 42,43 => RDCost+1 on the most advanced program. Only positive year mods are copied into the next turn (start.cpp:729-733)",
-    "max_rd_growth": "after any mission with a successful step on that hardware, MaxRD += 1 (cheat_addMaxS default 1), capped at MaxSafety - 2",
-    "tech_transfer_on_program_purchase": {
-      "note": "Buying a new program sets its starting Safety from related programs' Safety. Formula shape per unit: Safety = base + min(cap, (related.Safety - threshold) / divisor); some combos set a fixed value when two related programs are >= 75",
-      "probe": {"base": 40, "from_other_probe": "(n-40)/3.5 cap 10 (orbital<-interplanetary/lunar; interplanetary<-lunar; lunar<-interplanetary)", "from_orbital_probe": "(n-40)/7 cap 5"},
-      "rocket": {"atlas_base": 10, "titan_base": 10, "saturn_base": 5, "nova_base": 5, "boosters_base": 10, "fixed_when_two_related_ge_75": {"titan": 65, "saturn": 60, "nova": 35}},
-      "manned": {"capsule_base": 5, "lm_base": 10, "minishuttle": "no transfer", "fixed_three_man_when_two_related_ge_75": 40, "fixed_four_man": 35},
-      "misc": {"kicker_a_base": 10, "kicker_b_base": 10},
-      "source": "src/game/rdplex.cpp:1517-2060 BuyUnit"
-    },
-    "purchase": {"new_program": "pay InitCost, Num becomes 1", "additional_unit": "pay UnitCost while Num < 6", "delay": "a program with Delay > 0 (set only by event cards, 2 seasons) cannot be bought", "source": "src/game/rdplex.cpp:1380-1384, :1503-1514; news_suq.cpp:467, :734"},
-    "_source": "src/game/rdplex.cpp:59 MAX_RD_TEAMS, :632-650, :881-910 RDUnit; src/game/mc2.cpp:859-942 MissionSetDown; src/game/news_suq.cpp:205-224"
+  "half_price_sale_event": "TurnOnly == 3 halves InitCost and UnitCost for the season (min 1)",
+  "_source": "src/game/game_main.cpp:468 (Cash=Budget), :738-746 (Budget+=Prestige, cap 180), :769-782 (yearly cash), src/game/news_suq.cpp:87-115 REvent; src/game/rdplex.cpp:1491-1501"
+ },
+ "difficulty": {
+  "levels": {
+   "0": "easy",
+   "1": "medium",
+   "2": "hard"
   },
-
-  "mission_roll": {
-    "safety_for_step": "MisSaf of the step's hardware (Safety + SMods + Damage at launch, minus requirement/rush/LM penalties) + crew skill (asf), capped at 99",
-    "crew_skill_by_class": {"Capsule": "commander Cap", "LM": "LM specialist LM", "Probe_DM (docking)": "docking specialist Docking", "EVA": "EVA specialist EVA", "duration": "crew average Endurance (feat_use_endurance)"},
-    "booster_combo": "boosterSafety option 0 (default): rocket*booster/100; 1: min; 2 (classic): average",
-    "joint_duration": "average of both capsules' MisSaf when both crews are in space",
-    "docking_module_on_steps_1_2": "uses MSF instead of MisSaf",
-    "failure_if": "die > safety (die 1-100)",
-    "save_card": "a program holding a SaveCard (event card) cancels one failure",
-    "failure_type_roll": "rnum 1-10000 for manned steps matched against fails.json percentage (first row with percentage > rnum); unmanned steps roll -(1..5) and match percentage == rnum",
-    "safety_after_mission": {
-      "success": "+1 Safety per hardware item with at least one successful step (not docking module, not photo recon), capped at MaxSafety",
-      "failure": "no generic reduction; failure codes 24/26 cut Safety by rand(0..9); crew death halves (easy) or resets to Base; booster Safety follows the primary rocket if it was reset to Base",
-      "temporary": "MisSaf penalties, SMods, Damage and DCost are cleared after the mission"
-    },
-    "_source": "src/game/mis_m.cpp:313-330, :586-615 StepSafety, :95-120 GetFailStat, :367-371 unmanned rnum; src/game/mc2.cpp:493-500 dice; src/game/hardware.cpp:165-192; src/game/mc2.cpp:859-942 MissionSetDown; src/game/mis_m.cpp:1193-1200"
+  "fields": "Def.Lev1/Lev2 = game difficulty per side; Def.Ast1/Ast2 = astronaut-info level per side",
+  "_source": "src/game/data.h:139-141 struct Defl; per-effect sources inline below",
+  "effects_game_level": [
+   {
+    "effect": "Mission step die: easy uses MisRandom() (uniform 1-65, else Gaussian mean 57 sd sqrt(1000) clipped to 66-100, biased against high rolls); medium/hard use uniform 1-100 (AI 1-98)",
+    "source": "src/game/mc2.cpp:493-497; src/game/mis_m.cpp:211-215; src/game/game_main.cpp:1003-1030"
+   },
+   {
+    "effect": "New-mission safety penalty = 1 + level",
+    "source": "src/game/prest.cpp:170"
+   },
+   {
+    "effect": "Crew death: easy halves the hardware Safety; otherwise Safety reset to Base. MaxRD reset to MSF (original MaxRD) in both cases",
+    "source": "src/game/mis_m.cpp:719-727 F_KillCrew"
+   },
+   {
+    "effect": "R&D team cap: hard allows 5 teams always; easy/medium cap teams at min(MaxRD - Safety, 5)",
+    "source": "src/game/rdplex.cpp:806-815 MaxTeamsNeeded"
+   },
+   {
+    "effect": "Intel briefing accuracy chance = (6 - level)/10 -> 60% / 50% / 40%",
+    "source": "src/game/intel.cpp:1369-1373"
+   },
+   {
+    "effect": "Presidential review: a season with prestige <= -10 raises the review index by 1 + level (operator-precedence bug: expression parses as (1+(plr==0)) ? Lev1 : Lev2, so it adds Lev1 for USA, Lev2 for USSR, never the +1) [CORRECTION 2026-10-11: the bug adds Def.Lev1 for BOTH sides, not Lev1/Lev2 per side; see game/data/review.json]",
+    "source": "src/game/review.cpp:356"
+   },
+   {
+    "effect": "Score multiplier: own level 1 => 1x prestige; level 2 => 2x (+1/3 if opponent level 1, 5/3 if opponent level 3); level 3 => 3x (+2/3 vs level 1, +1/3 vs level 2). Lunar landing bonus by year: L1 50 (<=67) / 25 (<=69); L2 75/50/25 (<=73); L3 150/75/50",
+    "source": "src/game/hardef.cpp:1594-1662 CalcScore"
+   },
+   {
+    "effect": "AI opponent gets +25 MB cash injections when buying big rockets, and extra R&D passes, only if the human is NOT on easy (Level_Check)",
+    "source": "src/game/aimast.cpp:69-71, :264-279, :589-610"
+   },
+   {
+    "effect": "Presidential review can only fire the player (PresRev >= 16) when playing an AI and the human is not on easy",
+    "source": "src/game/game_main.cpp:558-575"
+   },
+   {
+    "effect": "EASYMODE flag is set when one side is easy and the other hard, but nothing reads it",
+    "source": "src/game/mc.cpp:339-355; grep shows no reader"
+   }
+  ],
+  "effects_astronaut_level": [
+   {
+    "effect": "Recruit stats shown: always Capsule+Endurance; Docking also if level < 2; LM+EVA also if level < 1 (needs feat_show_recruit_stats)",
+    "source": "src/game/ast1.cpp:510-525 ProfileMask"
+   },
+   {
+    "effect": "Crew compatibility display: level 0 shows per-crewmate compatible/incompatible; level 1 shows one 'CREW RELATIONSHIP' colour; level 2 shows nothing",
+    "source": "src/game/ast4.cpp:96-158"
+   },
+   {
+    "effect": "Advanced training mood: +6 - (level+1) per season => +5 / +4 / +3",
+    "source": "src/game/start.cpp:144, :218-258"
+   },
+   {
+    "effect": "Successful-mission mood: code adds two branches; USA on easy gets +20+15=35, otherwise +15+15=30; USSR on easy +15+20=35, otherwise 30",
+    "source": "src/game/start.cpp:506-518"
+   }
+  ]
+ },
+ "rnd": {
+  "teams_min": 1,
+  "teams_max": 5,
+  "cost": "RDCost MB per team, paid once per season per program",
+  "roll": "each team rolls 1d(6 + RD_Mods_For_Turn); sum is added to Safety, capped at MaxRD",
+  "precondition": "Safety < MaxRD",
+  "rd_mods": "event cards: 15-18 => +1 this turn; 3,61,62 => -1 this turn and RD_Mods_For_Year=-1; 19 => -2 this turn; 41 => -2 this turn and -2 for the year; 42,43 => RDCost+1 on the most advanced program. Only positive year mods are copied into the next turn (start.cpp:729-733)",
+  "max_rd_growth": "after any mission with a successful step on that hardware, MaxRD += 1 (cheat_addMaxS default 1), capped at MaxSafety - 2",
+  "tech_transfer_on_program_purchase": {
+   "note": "Buying a new program sets its starting Safety from related programs' Safety. Formula shape per unit: Safety = base + min(cap, (related.Safety - threshold) / divisor); some combos set a fixed value when two related programs are >= 75",
+   "probe": {
+    "base": 40,
+    "from_other_probe": "(n-40)/3.5 cap 10 (orbital<-interplanetary/lunar; interplanetary<-lunar; lunar<-interplanetary)",
+    "from_orbital_probe": "(n-40)/7 cap 5"
+   },
+   "rocket": {
+    "atlas_base": 10,
+    "titan_base": 10,
+    "saturn_base": 5,
+    "nova_base": 5,
+    "boosters_base": 10,
+    "fixed_when_two_related_ge_75": {
+     "titan": 65,
+     "saturn": 60,
+     "nova": 35
+    }
+   },
+   "manned": {
+    "capsule_base": 5,
+    "lm_base": 10,
+    "minishuttle": "no transfer",
+    "fixed_three_man_when_two_related_ge_75": 40,
+    "fixed_four_man": 35
+   },
+   "misc": {
+    "kicker_a_base": 10,
+    "kicker_b_base": 10
+   },
+   "source": "src/game/rdplex.cpp:1517-2060 BuyUnit"
   },
-
-  "mission_code_tokens": {
-    "+1 / +2": "switch following steps to launch vehicle 1 or 2 of a joint mission (+n => pad + n - 1)",
-    "@x": "duration step (parsed as 'b'); 2nd char unused",
-    "%x": "orbiting-lab step (parsed as 'c'); 2nd char unused",
-    "~nX": "interplanetary coast: repeat step letter X n times",
-    "^ / &": "switch to second / first pad (unused alternates of +)",
-    "!": "end of main path; everything after is an alternate branch (PastBANG=1)",
-    "|": "string terminator",
-    "I": "always resets to the primary pad",
-    "d": "alternate-path marker: previous step's success/failure goto = Alt[step] (0 => 100 = end)",
-    "_source": "src/game/mc2.cpp:87-166 MissionParse"
+  "purchase": {
+   "new_program": "pay InitCost, Num becomes 1",
+   "additional_unit": "pay UnitCost while Num < 6",
+   "delay": "a program with Delay > 0 (set only by event cards, 2 seasons) cannot be bought",
+   "source": "src/game/rdplex.cpp:1380-1384, :1503-1514; news_suq.cpp:467, :734"
   },
-  "mission_step_letters": {
-    "_note": "loc = letter - 'A' (lowercase letters continue after Z: a=26 .. g=32); failure table key FName = 'F0' + loc (F1xx/F2xx/F3xx are special-case variants chosen in mc2.cpp:593-670). class = hardware rolled against.",
-    "A": {"loc": 0, "name": "LAUNCH", "class": "PrimaryBooster (+Boosters if fitted)"},
-    "B": {"loc": 1, "name": "ORBITAL INS. BURN", "class": "Kicker if fitted, else Capsule, else LM, else Probe/DM; after step 11 Capsule", "prestige": "MannedOrbital (18) if a capsule flies"},
-    "C": {"loc": 2, "name": "HARDWARE POWER-ON", "class": "Kicker-C, else LM if present, else Probe/DM", "prestige": "OrbitalSatellite (0) only for the orbital probe (ID P0)"},
-    "D": {"loc": 3, "name": "REENTRY", "class": "Capsule (Kicker-C if fitted)", "prestige": "MannedSpaceMission (27)"},
-    "E": {"loc": 4, "name": "RECOVERY/LANDING", "class": "Capsule"},
-    "F": {"loc": 5, "name": "EARTH ORBITAL ACTIVITIES", "class": "Capsule"},
-    "G": {"loc": 6, "name": "EARTH DE-ORBIT BURN", "class": "Capsule"},
-    "H": {"loc": 7, "name": "ORBITAL EVA", "class": "EVA suits", "prestige": "Spacewalk (26)"},
-    "I": {"loc": 8, "name": "DOCKING", "class": "Probe/DM slot (docking module)", "prestige": "MannedDocking (24) if manned"},
-    "J": {"loc": 9, "name": "TRANS-LUNAR INJECTION", "class": "as B"},
-    "K": {"loc": 10, "name": "TRANS-EARTH INJECTION", "class": "Capsule"},
-    "L": {"loc": 11, "name": "LUNAR ORBITAL INS. BURN", "class": "as B", "prestige": "MannedLunarOrbit (20) if a capsule flies"},
-    "M": {"loc": 12, "name": "LUNAR ORBITAL ACTIVITIES", "class": "Capsule"},
-    "N": {"loc": 13, "name": "EARTH MID-COURSE ACT.", "class": "Capsule"},
-    "O": {"loc": 14, "name": "LUNAR MID-COURSE ACT.", "class": "Capsule", "prestige": "MannedLunarPass (19)"},
-    "P": {"loc": 15, "name": "LUNAR EVA", "class": "EVA suits", "prestige": "Spacewalk (26)"},
-    "Q": {"loc": 16, "name": "LEM ACTIVITIES", "class": "Kicker-C, else LM, else Capsule, else Probe/DM"},
-    "R": {"loc": 17, "name": "LUNAR DE-ORBIT BURN", "class": "as Q"},
-    "S": {"loc": 18, "name": "LUNAR LANDING", "class": "as Q", "prestige": "LunarProbeLanding (7) for the lunar probe (ID P2)"},
-    "T": {"loc": 19, "name": "LUNAR LIFTOFF", "class": "as Q", "prestige": "MannedLunarLanding (22)"},
-    "U": {"loc": 20, "name": "PHOTO RECONNAISSANCE", "class": "Photo recon"},
-    "V": {"loc": 21, "name": "PLANET ORBIT BURN", "class": "Probe/DM"},
-    "W": {"loc": 22, "name": "PLANETARY ACTIVITIES", "class": "Probe/DM", "prestige": "LunarFlyby (1) / Mercury 2 / Venus 3 / Mars 4 / Jupiter 5 / Saturn 6 by mission"},
-    "X": {"loc": 23, "name": "EARTH RENDEZVOUS", "class": "Capsule"},
-    "Y": {"loc": 24, "name": "LUNAR RENDEZVOUS", "class": "Capsule"},
-    "Z": {"loc": 25, "name": "TRANS-PLANETARY INJ.", "class": "Probe/DM"},
-    "a": {"loc": 26, "name": "LEM THRUST TEST", "class": "LM", "note": "each success = 1 LM point"},
-    "b": {"loc": 27, "name": "DURATION", "class": "Capsule (crew Endurance as skill)"},
-    "c": {"loc": 28, "name": "JOINT DURATION", "class": "Capsule (average of both)"},
-    "d": {"loc": 29, "name": "REENTRY CORRIDOR (alt-path marker)", "class": "none"},
-    "e": {"loc": 30, "name": "MID-COURSE CORR. BURN", "class": "Probe/DM"},
-    "f": {"loc": 31, "name": "MID-COURSE CORR. BURN", "class": "Capsule"},
-    "g": {"loc": 32, "name": "EARTH ORBITAL INS. BURN", "class": "Capsule", "note": "loc becomes 29 when mission.Lun is set"},
-    "_source": "src/game/game_main.cpp:106-140 S_Name[]; src/game/mc2.cpp:188-290 MissionSteps (class), :292-400 (prestige), :571-585 (loc)"
+  "_source": "src/game/rdplex.cpp:59 MAX_RD_TEAMS, :632-650, :881-910 RDUnit; src/game/mc2.cpp:859-942 MissionSetDown; src/game/news_suq.cpp:205-224"
+ },
+ "mission_roll": {
+  "safety_for_step": "MisSaf of the step's hardware (Safety + SMods + Damage at launch, minus requirement/rush/LM penalties) + crew skill (asf), capped at 99",
+  "crew_skill_by_class": {
+   "Capsule": "commander Cap",
+   "LM": "LM specialist LM",
+   "Probe_DM (docking)": "docking specialist Docking",
+   "EVA": "EVA specialist EVA",
+   "duration": "crew average Endurance (feat_use_endurance)"
   },
-  "missSteps_json": {"meaning": "Future Missions diagram drawing commands (letters A-K with numeric parameters, terminated by Z). Pure graphics; no rules.", "_source": "src/game/futbub.cpp:145-240 MissionPath"},
-
-  "failure_codes": {
-    "fields": {
-      "MissionStep": "F-code matched against the step's FName (4 chars)",
-      "percentage": "manned: upper bound of the 0-10000 band (rows scanned in file order, first with percentage > rnum wins); unmanned: -1..-5 exact match",
-      "code": "outcome handler in FailEval (below)",
-      "val": "handler parameter (safety cut %, injury/survival %, flag bits, pad repair MB)",
-      "xtra": "second handler parameter (death %, pad repair MB)",
-      "fail": "two-digit animation suffix appended to the step name to pick the fseq.json failure clip; NOT an outcome",
-      "text": "failure report text"
-    },
-    "unmanned_rule": "any failure on a fully unmanned mission ends the mission (StepInfo 1003); code 12 also destroys the pad for 20 MB",
-    "code": {
-      "0": {"effect": "no effect, continue", "stepinfo": 50},
-      "1": {"effect": "no effect (default group)", "stepinfo": 50},
-      "2": {"effect": "mission ends, hardware fails", "stepinfo": "1000+loc"},
-      "3": {"effect": "kill all crew on this launch, mission ends", "stepinfo": "4600+loc"},
-      "4": {"effect": "branch to alternate step (fgoto); end if none; prestige on this step invalidated", "stepinfo": "1900+loc"},
-      "5": {"effect": "stranded: treated as code 3", "stepinfo": "4600+loc"},
-      "6": {"effect": "MisSaf -= val (temporary, floor 1), continue", "stepinfo": "900+loc"},
-      "7": {"effect": "flagged permanent safety cut; code only sets StepInfo and continues (no Safety change found)", "stepinfo": "1700+loc"},
-      "8": {"effect": "no effect", "stepinfo": 50},
-      "9": {"effect": "recheck the same step with new dice", "stepinfo": 9},
-      "10": {"effect": "no effect", "stepinfo": 50},
-      "11": {"effect": "no effect", "stepinfo": 50},
-      "12": {"effect": "MisSaf -= val, launch pad destroyed (repair cost = xtra MB), mission ends", "stepinfo": "1600+loc"},
-      "13": {"effect": "kill all crew, pad destroyed (repair = val, or xtra if val==0), mission ends", "stepinfo": "4500+loc"},
-      "14": {"effect": "no effect", "stepinfo": 50},
-      "15": {"effect": "MisSaf -= rand(1..20); player may scrub (abort to alternate) or continue", "stepinfo": "15 (+1000 if scrubbed)"},
-      "16": {"effect": "per crew member: val% chance of harm; of those, xtra% die else injured; then branch if anyone alive", "stepinfo": "1100/2100/3100+loc"},
-      "17": {"effect": "per crew member: xtra% retire; then each survives with val% else dies; branch if alive", "stepinfo": "1300/2300/3300+loc"},
-      "18": {"effect": "set mission flag bits val; if already set, branch to alternate (prestige invalidated)", "stepinfo": "18 / 1800+loc"},
-      "19": {"effect": "set flag bits val and recheck the step", "stepinfo": "19 / 1200+loc"},
-      "20": {"effect": "no effect (skips crew experience test)", "stepinfo": 50},
-      "21": {"effect": "no effect", "stepinfo": 50},
-      "22": {"effect": "EVA specialist survives with val% else dies; branch to alternate", "stepinfo": "19 / 3200+loc"},
-      "23": {"effect": "per crew member val% retire; branch to alternate", "stepinfo": "23+loc / 2400+loc"},
-      "24": {"effect": "hardware recovered: Safety -= rand(0..9) permanently, mission ends", "stepinfo": "800+loc"},
-      "25": {"effect": "mission ends, minishuttle recovered", "stepinfo": 700},
-      "26": {"effect": "Safety -= rand(0..9) permanently and branch to alternate", "stepinfo": 1926},
-      "27": {"effect": "no effect", "stepinfo": 50},
-      "28": {"effect": "no effect", "stepinfo": 50},
-      "29": {"effect": "no effect", "stepinfo": 50},
-      "30": {"effect": "duration failure: Duration reset to 1 (A), stop duration loop, continue", "stepinfo": 1950},
-      "31": {"effect": "kill the LM crew (all crew on direct ascent / Soyuz LL); branch via death goto", "stepinfo": "3100+step"},
-      "33": {"effect": "kill crews on both capsules (docking), mission ends", "stepinfo": "4600+loc"},
-      "40": {"effect": "minor docking failure: continue unless a later step needs docking (TLI 9, LEM thrust 26, joint duration 28)", "stepinfo": 1951}
-    },
-    "stepinfo_classes": {"1": "success", "50": "harmless failure", "1000-2999": "mission-ending or branching failure", "3000+": "death (catastrophic for prestige)", "4xxx": "whole crew killed (4197/4198/4199 = first/second/both launches in joint missions)", "1999": "scrubbed before flight", "5000": "lost interplanetary probe"},
-    "fail_ids": "35 distinct values: 0,5,10,11,12,13,15,16,17,20,21,25,30,31,32,40,41,50,51,55,60,61,62,63,64,70,71,80,81,90,91,96,97,98,99. Dominant codes in data: 96 => 0 (harmless), 97 => 4/15 (abort/scrub), 10/20/25/30 => 2 (mission ends), 60/61/63/91/99 => 3 (crew lost); see spec for full table",
-    "_source": "src/game/mis_m.cpp:65-120 GetFailStat, :365-385, :782-1200 FailEval, :706-780 F_KillCrew/F_IRCrew; src/game/mc.cpp:519-545 spResult; src/game/mis_c.cpp:126"
+  "booster_combo": "boosterSafety option 0 (default): rocket*booster/100; 1: min; 2 (classic): average",
+  "joint_duration": "average of both capsules' MisSaf when both crews are in space",
+  "docking_module_on_steps_1_2": "uses MSF instead of MisSaf",
+  "failure_if": "die > safety (die 1-100)",
+  "save_card": "a program holding a SaveCard (event card) cancels one failure",
+  "failure_type_roll": "rnum 1-10000 for manned steps matched against fails.json percentage (first row with percentage > rnum); unmanned steps roll -(1..5) and match percentage == rnum",
+  "safety_after_mission": {
+   "success": "+1 Safety per hardware item with at least one successful step (not docking module, not photo recon), capped at MaxSafety",
+   "failure": "no generic reduction; failure codes 24/26 cut Safety by rand(0..9); crew death halves (easy) or resets to Base; booster Safety follows the primary rocket if it was reset to Base",
+   "temporary": "MisSaf penalties, SMods, Damage and DCost are cleared after the mission"
   },
-
-  "crew": {
-    "capacity_per_program": {"0": 0, "1": 1, "2": 2, "3": 3, "4": 3, "5": 4, "_note": "program index 1-5 = one/two/three-man capsule, minishuttle, four-man"},
-    "capacity_by_hardware": {"one_man_capsule": 1, "two_man_capsule": 2, "three_man_capsule": 3, "minishuttle": 3, "four_man_capsule": 4, "two_man_lm": 2, "one_man_lm": 1},
-    "mission_mCrew_field": "mission.json mCrew: 0 unmanned, 1 unmanned with capsule/minishuttle, 2 single-pad manned, 3 joint with one manned launch, 4 joint with two manned launches, 5 joint with unmanned capsule",
-    "role_slots_by_crew_size": {"1": {"cap": 0, "lm": 0, "eva": 0, "dock": null}, "2": {"cap": 0, "dock": 0, "lm": 1, "eva": 1}, "3": {"cap": 0, "lm": 1, "eva": 1, "dock": 2}, "4": {"cap": 0, "lm": 1, "eva": 2, "dock": 3}},
-    "lm_crew": "one-person LM: the LM specialist; two-person LM: LM specialist + commander",
-    "no_crew_scrubs": "a manned mission whose primary and backup crews are gone is scrubbed (prestige -20 marker)",
-    "max_crews_per_program": 8, "max_flight_crew": 4, "max_pool": 65,
-    "_source": "src/game/ast4.cpp:58; src/game/hardware.cpp:34-68 CrewSize; src/game/mission_util.cpp:160-185 IsManned; src/game/mc.cpp:195-226; src/game/mis_m.cpp:1226-1262 LMCrew; src/game/news_suq.cpp:50-80; src/game/data.h:116-120"
+  "_source": "src/game/mis_m.cpp:313-330, :586-615 StepSafety, :95-120 GetFailStat, :367-371 unmanned rnum; src/game/mc2.cpp:493-500 dice; src/game/hardware.cpp:165-192; src/game/mc2.cpp:859-942 MissionSetDown; src/game/mis_m.cpp:1193-1200"
+ },
+ "mission_code_tokens": {
+  "+1 / +2": "switch following steps to launch vehicle 1 or 2 of a joint mission (+n => pad + n - 1)",
+  "@x": "duration step (parsed as 'b'); 2nd char unused",
+  "%x": "orbiting-lab step (parsed as 'c'); 2nd char unused",
+  "~nX": "interplanetary coast: repeat step letter X n times",
+  "^ / &": "switch to second / first pad (unused alternates of +)",
+  "!": "end of main path; everything after is an alternate branch (PastBANG=1)",
+  "|": "string terminator",
+  "I": "always resets to the primary pad",
+  "d": "alternate-path marker: previous step's success/failure goto = Alt[step] (0 => 100 = end)",
+  "_source": "src/game/mc2.cpp:87-166 MissionParse"
+ },
+ "mission_step_letters": {
+  "_note": "loc = letter - 'A' (lowercase letters continue after Z: a=26 .. g=32); failure table key FName = 'F0' + loc (F1xx/F2xx/F3xx are special-case variants chosen in mc2.cpp:593-670). class = hardware rolled against.",
+  "A": {
+   "loc": 0,
+   "name": "LAUNCH",
+   "class": "PrimaryBooster (+Boosters if fitted)"
   },
-
-  "astronauts": {
-    "_source": "src/game/ast1.cpp, ast2.cpp, ast3.cpp, start.cpp AstroTurn, astros.cpp; per-rule sources inline below",
-    "recruitment": {
-      "group_cost_mb": {"first_group": 20, "later_groups": 15},
-      "delay_seasons_after_group": [6, 4, 4, 8, 99],
-      "recruit_losses": "60% chance to lose 1 point from Endurance or Capsule (50/50); then 3 points removed at random from LM/EVA/Docking (may go negative; raised to 0 after basic training)",
-      "starting_mood": "85 + 5*rand(0..3) => 85-100",
-      "compat": "Compat = 1..10, CL = 1..2, CR = 1..2",
-      "random_roster_stats": "each skill rand(0..4) (feat_random_nauts)",
-      "_source": "src/game/ast1.cpp:556-627 Recruit, :636 cost, :1189 DelayTable, :530-539; src/game/roster_entry.cpp:62-102"
-    },
-    "skills": {"range": [0, 4], "list": ["Cap", "LM", "EVA", "Docking", "Endurance"]},
-    "basic_training": {"seasons": 3, "cost": "included in recruitment", "gain_per_season": "one random skill below 4 gains +1 (70%) or +2 (30%)", "washout": "each season 5% chance of an incident: of those 75% (minus 10% per Endurance point) injured 2 seasons, else retired", "_source": "src/game/start.cpp:166-205, :432-480"},
-    "advanced_training": {"seasons": 4, "seasons_short_option": 3, "cost_mb": 3, "cost_if_skill_already_3": 2, "entry_blocked_if_skill_4": true, "gain": "+1 to the focus skill at season 2 and at completion (+2 total)", "mood_per_season": "+6 - (Ast level + 1)", "refund_on_withdrawal": {"after_season_1": 3, "after_season_2": 2, "after_season_3": 1}, "_source": "src/game/ast2.cpp:587-606; src/game/ast3.cpp:515-527; src/game/start.cpp:218-258"},
-    "mood": {
-      "range": [0, 100],
-      "moved_to_better_program": 5,
-      "program_first_this_turn": 5,
-      "own_mission_failure_but_program_first": 20,
-      "mission_success": "+30 (easy astronaut level: +35), see difficulty",
-      "random_fall_bonus": "5% chance of +5 in season 1",
-      "hero_in_crew": 5,
-      "in_mercury_program_6plus_seasons": -4,
-      "not_moved_this_turn": -4,
-      "not_in_a_crew (Prime 0)": -6,
-      "in_a_crew (Prime > 0)": -3,
-      "scrubbed_mission": -5,
-      "injured": -4,
-      "catastrophic_death_bit1": -5,
-      "card_death_bit2": "-(1..2)",
-      "crew_conflict": "-3 per incompatible crewmate (-2 in minishuttle/four-man programs)",
-      "_source": "src/game/start.cpp:138-141, :495-585, :318-324 AstroConflictsMod"
-    },
-    "compatibility": {"rule": "ast likes peer if peer.Compat in [ast.Compat - CL, ast.Compat + CR] on a ring of 10; not symmetric", "_source": "src/game/astros.cpp:102-125 Compatible"},
-    "retirement": {
-      "unhappy_threshold": 20,
-      "unhappy_rule": "Mood < 20 and active: USA retires in 2 seasons (delay 2), USSR retires immediately; reason 13",
-      "mustering_out": "every even season once Active >= 8: 10% chance; USA delay 3, USSR delay 2; reason 1-6",
-      "scared_after_death": "bit 1 of MissionCatastrophicFailureOnTurn: USA 20% / USSR 10% chance, capped at 40% of active roster; but bit 1 is never set in the RIS code (only |=4 and =2 exist) so this is dead",
-      "injury_resolution": "InjuryDelay counts down each season; mission injury = 3 seasons (reason 'Injured for a year')",
-      "death": "Status DEAD, reason 8; counted in tMen",
-      "_source": "src/game/start.cpp:345-366, :369-426, :482-493, :589-603; src/game/mis_m.cpp:731-775"
-    },
-    "hero": "crew of a first on MannedSpaceMission, WomanInSpace, MannedOrbital, MannedLunarPass, MannedLunarLanding; the EVA specialist for Spacewalk / Lunar EVA firsts",
-    "hero_source": "src/game/prest.cpp:297-316 HeroCheck; src/game/mc.cpp:471-476"
+  "B": {
+   "loc": 1,
+   "name": "ORBITAL INS. BURN",
+   "class": "Kicker if fitted, else Capsule, else LM, else Probe/DM; after step 11 Capsule",
+   "prestige": "MannedOrbital (18) if a capsule flies"
   },
-
-  "calendar": {
-    "start": {"year": 57, "season": 0},
-    "seasons_per_year": 2,
-    "season_names": {"0": "spring (months 0-5)", "1": "fall (months 6-11)"},
-    "month_abbr": ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"],
-    "days_in_month": [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31],
-    "no_winner_end": {"year": 77, "season": 1},
-    "win_condition": "first successful Manned Lunar Landing (Prestige row 22 Place set) ends the game after that launch sequence",
-    "annual_review": "computed at the start of every spring (season 0) except 1957 from the last two seasons' prestige; review index 1-16; 16 = fired",
-    "review_delta": "val = sum of the two seasons (or max/2+min if signs differ): val<0 and idx<4 => +1; 2..10 => -1; 11..20 => -1 (idx<4) else -2; >=21 => -1 (idx<4) else -3; -9..0 => +1; <=-10 => +1 (+level, see bug); then +1 if your index is above the opponent's; clamp 1..16",
-    "mission_month_slots": {"1_mission": [4], "2_missions": [3, 5], "3_missions": [2, 3, 4], "note": "month index + 6*season; rushing moves earlier"},
-    "planet_windows": {"mars": "spring 60,62,64,66; fall 69,71,73", "jupiter": "any season of 60,64,68,72,73,77", "saturn": "any season of 61,66,72"},
-    "interplanetary_resolution": "Mars/Jupiter/Saturn flybys resolve Event seasons later (2/4/7) with a yearly brandom(100) > Saf failure test",
-    "patch_index": "records.cpp:62 Pict[56] is a museum image index table, not a rule",
-    "_source": "data/gamedata/urast.json Year/Season; src/game/game_main.cpp:731, :527-530, :769-786; src/game/review.cpp:326-365 CalcPresRev; src/game/rush.cpp:55, :558-565; src/game/newmis.cpp:45; src/game/mis_c.cpp:97; src/game/mission_util.cpp:330-370; src/game/mc.cpp:377-385; src/game/start.cpp:803-830"
+  "C": {
+   "loc": 2,
+   "name": "HARDWARE POWER-ON",
+   "class": "Kicker-C, else LM if present, else Probe/DM",
+   "prestige": "OrbitalSatellite (0) only for the orbital probe (ID P0)"
   },
-
-  "launch_pads": {"count": 3, "construction_cost_mb": 20, "status": "-1 not built, 1 operational, >=2 = repair cost in MB (>=20 destroyed)", "repair": "pay the stored cost in the Administration building", "_source": "src/game/data.h:610-616; src/game/admin.cpp:1398-1430; src/game/game_main.cpp:840-849 DestroyPad"},
-
-  "hardware_turn": {"delay_countdown": "Delay-- each turn", "seasons_in_service": "Seas++ for programs with units", "safety_bounds": "Safety clamped to [Base, MaxSafety] every turn and after failures", "_source": "src/game/start.cpp:892-920 UpdateHardTurn; src/game/game_main.cpp:935-962 VerifySafety"},
-
-  "random_hardware_model": {"max_safety": [80, 98], "max_rd": "MaxSafety - (2..10)", "costs": "loosely based on the Basic model", "_source": "src/game/randomize.cpp:28-35 header comment"},
-
-  "ai_strategy_knobs": {
-    "slots": {"AI_ORBITAL_SATELLITE": 0, "AI_END_STAGE_LOCATION": 1, "AI_LUNAR_MODULE": 2, "AI_STRATEGY": 3, "AI_BEGINNING_STRATEGY": 4, "AI_LARGER_ROCKET_STRATEGY": 5},
-    "other_fields": ["AILunar (route to the moon)", "AIPrim (primary program)", "AISec (secondary program)"],
-    "difficulty_cash_bonus_mb": 25,
-    "ai_die_range": [1, 98],
-    "_source": "src/game/data.h:444-451 enum AI_Tracking; src/game/aimast.cpp:40-48, :69-71, :264-279; src/game/mc2.cpp:496"
+  "D": {
+   "loc": 3,
+   "name": "REENTRY",
+   "class": "Capsule (Kicker-C if fitted)",
+   "prestige": "MannedSpaceMission (27)"
   },
-
-  "options_affecting_rules": {
-    "defaults": {"feat_compat_nauts": 10, "feat_use_endurance": 1, "feat_show_recruit_stats": 1, "feat_shorter_advanced_training": 0, "feat_no_backup": 1, "feat_no_cTraining": 1, "boosterSafety": 0, "cheat_addMaxS": 1, "feat_female_nauts": 0, "feat_random_nauts": 0, "feat_random_eq": 0},
-    "classic_preset": {"boosterSafety": 2, "feat_no_backup": 0, "feat_no_cTraining": 0, "feat_show_recruit_stats": 0, "feat_use_endurance": 0},
-    "_source": "src/game/options.cpp:472-497, :505-521"
-  }
+  "E": {
+   "loc": 4,
+   "name": "RECOVERY/LANDING",
+   "class": "Capsule"
+  },
+  "F": {
+   "loc": 5,
+   "name": "EARTH ORBITAL ACTIVITIES",
+   "class": "Capsule"
+  },
+  "G": {
+   "loc": 6,
+   "name": "EARTH DE-ORBIT BURN",
+   "class": "Capsule"
+  },
+  "H": {
+   "loc": 7,
+   "name": "ORBITAL EVA",
+   "class": "EVA suits",
+   "prestige": "Spacewalk (26)"
+  },
+  "I": {
+   "loc": 8,
+   "name": "DOCKING",
+   "class": "Probe/DM slot (docking module)",
+   "prestige": "MannedDocking (24) if manned"
+  },
+  "J": {
+   "loc": 9,
+   "name": "TRANS-LUNAR INJECTION",
+   "class": "as B"
+  },
+  "K": {
+   "loc": 10,
+   "name": "TRANS-EARTH INJECTION",
+   "class": "Capsule"
+  },
+  "L": {
+   "loc": 11,
+   "name": "LUNAR ORBITAL INS. BURN",
+   "class": "as B",
+   "prestige": "MannedLunarOrbit (20) if a capsule flies"
+  },
+  "M": {
+   "loc": 12,
+   "name": "LUNAR ORBITAL ACTIVITIES",
+   "class": "Capsule"
+  },
+  "N": {
+   "loc": 13,
+   "name": "EARTH MID-COURSE ACT.",
+   "class": "Capsule"
+  },
+  "O": {
+   "loc": 14,
+   "name": "LUNAR MID-COURSE ACT.",
+   "class": "Capsule",
+   "prestige": "MannedLunarPass (19)"
+  },
+  "P": {
+   "loc": 15,
+   "name": "LUNAR EVA",
+   "class": "EVA suits",
+   "prestige": "Spacewalk (26)"
+  },
+  "Q": {
+   "loc": 16,
+   "name": "LEM ACTIVITIES",
+   "class": "Kicker-C, else LM, else Capsule, else Probe/DM"
+  },
+  "R": {
+   "loc": 17,
+   "name": "LUNAR DE-ORBIT BURN",
+   "class": "as Q"
+  },
+  "S": {
+   "loc": 18,
+   "name": "LUNAR LANDING",
+   "class": "as Q",
+   "prestige": "LunarProbeLanding (7) for the lunar probe (ID P2)"
+  },
+  "T": {
+   "loc": 19,
+   "name": "LUNAR LIFTOFF",
+   "class": "as Q",
+   "prestige": "MannedLunarLanding (22)"
+  },
+  "U": {
+   "loc": 20,
+   "name": "PHOTO RECONNAISSANCE",
+   "class": "Photo recon"
+  },
+  "V": {
+   "loc": 21,
+   "name": "PLANET ORBIT BURN",
+   "class": "Probe/DM"
+  },
+  "W": {
+   "loc": 22,
+   "name": "PLANETARY ACTIVITIES",
+   "class": "Probe/DM",
+   "prestige": "LunarFlyby (1) / Mercury 2 / Venus 3 / Mars 4 / Jupiter 5 / Saturn 6 by mission"
+  },
+  "X": {
+   "loc": 23,
+   "name": "EARTH RENDEZVOUS",
+   "class": "Capsule"
+  },
+  "Y": {
+   "loc": 24,
+   "name": "LUNAR RENDEZVOUS",
+   "class": "Capsule"
+  },
+  "Z": {
+   "loc": 25,
+   "name": "TRANS-PLANETARY INJ.",
+   "class": "Probe/DM"
+  },
+  "a": {
+   "loc": 26,
+   "name": "LEM THRUST TEST",
+   "class": "LM",
+   "note": "each success = 1 LM point"
+  },
+  "b": {
+   "loc": 27,
+   "name": "DURATION",
+   "class": "Capsule (crew Endurance as skill)"
+  },
+  "c": {
+   "loc": 28,
+   "name": "JOINT DURATION",
+   "class": "Capsule (average of both)"
+  },
+  "d": {
+   "loc": 29,
+   "name": "REENTRY CORRIDOR (alt-path marker)",
+   "class": "none"
+  },
+  "e": {
+   "loc": 30,
+   "name": "MID-COURSE CORR. BURN",
+   "class": "Probe/DM"
+  },
+  "f": {
+   "loc": 31,
+   "name": "MID-COURSE CORR. BURN",
+   "class": "Capsule"
+  },
+  "g": {
+   "loc": 32,
+   "name": "EARTH ORBITAL INS. BURN",
+   "class": "Capsule",
+   "note": "loc becomes 29 when mission.Lun is set"
+  },
+  "_source": "src/game/game_main.cpp:106-140 S_Name[]; src/game/mc2.cpp:188-290 MissionSteps (class), :292-400 (prestige), :571-585 (loc)"
+ },
+ "missSteps_json": {
+  "meaning": "Future Missions diagram drawing commands (letters A-K with numeric parameters, terminated by Z). Pure graphics; no rules.",
+  "_source": "src/game/futbub.cpp:145-240 MissionPath"
+ },
+ "failure_codes": {
+  "fields": {
+   "MissionStep": "F-code matched against the step's FName (4 chars)",
+   "percentage": "manned: upper bound of the 0-10000 band (rows scanned in file order, first with percentage > rnum wins); unmanned: -1..-5 exact match",
+   "code": "outcome handler in FailEval (below)",
+   "val": "handler parameter (safety cut %, injury/survival %, flag bits, pad repair MB)",
+   "xtra": "second handler parameter (death %, pad repair MB)",
+   "fail": "two-digit animation suffix appended to the step name to pick the fseq.json failure clip; NOT an outcome",
+   "text": "failure report text"
+  },
+  "unmanned_rule": "any failure on a fully unmanned mission ends the mission (StepInfo 1003); code 12 also destroys the pad for 20 MB",
+  "code": {
+   "0": {
+    "effect": "no effect, continue",
+    "stepinfo": 50
+   },
+   "1": {
+    "effect": "no effect (default group)",
+    "stepinfo": 50
+   },
+   "2": {
+    "effect": "mission ends, hardware fails",
+    "stepinfo": "1000+loc"
+   },
+   "3": {
+    "effect": "kill all crew on this launch, mission ends",
+    "stepinfo": "4600+loc"
+   },
+   "4": {
+    "effect": "branch to alternate step (fgoto); end if none; prestige on this step invalidated",
+    "stepinfo": "1900+loc"
+   },
+   "5": {
+    "effect": "stranded: treated as code 3",
+    "stepinfo": "4600+loc"
+   },
+   "6": {
+    "effect": "MisSaf -= val (temporary, floor 1), continue",
+    "stepinfo": "900+loc"
+   },
+   "7": {
+    "effect": "flagged permanent safety cut; code only sets StepInfo and continues (no Safety change found)",
+    "stepinfo": "1700+loc"
+   },
+   "8": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "9": {
+    "effect": "recheck the same step with new dice",
+    "stepinfo": 9
+   },
+   "10": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "11": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "12": {
+    "effect": "MisSaf -= val, launch pad destroyed (repair cost = xtra MB), mission ends",
+    "stepinfo": "1600+loc"
+   },
+   "13": {
+    "effect": "kill all crew, pad destroyed (repair = val, or xtra if val==0), mission ends",
+    "stepinfo": "4500+loc"
+   },
+   "14": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "15": {
+    "effect": "MisSaf -= rand(1..20); player may scrub (abort to alternate) or continue",
+    "stepinfo": "15 (+1000 if scrubbed)"
+   },
+   "16": {
+    "effect": "per crew member: val% chance of harm; of those, xtra% die else injured; then branch if anyone alive",
+    "stepinfo": "1100/2100/3100+loc"
+   },
+   "17": {
+    "effect": "per crew member: xtra% retire; then each survives with val% else dies; branch if alive",
+    "stepinfo": "1300/2300/3300+loc"
+   },
+   "18": {
+    "effect": "set mission flag bits val; if already set, branch to alternate (prestige invalidated)",
+    "stepinfo": "18 / 1800+loc"
+   },
+   "19": {
+    "effect": "set flag bits val and recheck the step",
+    "stepinfo": "19 / 1200+loc"
+   },
+   "20": {
+    "effect": "no effect (skips crew experience test)",
+    "stepinfo": 50
+   },
+   "21": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "22": {
+    "effect": "EVA specialist survives with val% else dies; branch to alternate",
+    "stepinfo": "19 / 3200+loc"
+   },
+   "23": {
+    "effect": "per crew member val% retire; branch to alternate",
+    "stepinfo": "23+loc / 2400+loc"
+   },
+   "24": {
+    "effect": "hardware recovered: Safety -= rand(0..9) permanently, mission ends",
+    "stepinfo": "800+loc"
+   },
+   "25": {
+    "effect": "mission ends, minishuttle recovered",
+    "stepinfo": 700
+   },
+   "26": {
+    "effect": "Safety -= rand(0..9) permanently and branch to alternate",
+    "stepinfo": 1926
+   },
+   "27": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "28": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "29": {
+    "effect": "no effect",
+    "stepinfo": 50
+   },
+   "30": {
+    "effect": "duration failure: Duration reset to 1 (A), stop duration loop, continue",
+    "stepinfo": 1950
+   },
+   "31": {
+    "effect": "kill the LM crew (all crew on direct ascent / Soyuz LL); branch via death goto",
+    "stepinfo": "3100+step"
+   },
+   "33": {
+    "effect": "kill crews on both capsules (docking), mission ends",
+    "stepinfo": "4600+loc"
+   },
+   "40": {
+    "effect": "minor docking failure: continue unless a later step needs docking (TLI 9, LEM thrust 26, joint duration 28)",
+    "stepinfo": 1951
+   }
+  },
+  "stepinfo_classes": {
+   "1": "success",
+   "50": "harmless failure",
+   "1000-2999": "mission-ending or branching failure",
+   "3000+": "death (catastrophic for prestige)",
+   "4xxx": "whole crew killed (4197/4198/4199 = first/second/both launches in joint missions)",
+   "1999": "scrubbed before flight",
+   "5000": "lost interplanetary probe"
+  },
+  "fail_ids": "35 distinct values: 0,5,10,11,12,13,15,16,17,20,21,25,30,31,32,40,41,50,51,55,60,61,62,63,64,70,71,80,81,90,91,96,97,98,99. Dominant codes in data: 96 => 0 (harmless), 97 => 4/15 (abort/scrub), 10/20/25/30 => 2 (mission ends), 60/61/63/91/99 => 3 (crew lost); see spec for full table",
+  "_source": "src/game/mis_m.cpp:65-120 GetFailStat, :365-385, :782-1200 FailEval, :706-780 F_KillCrew/F_IRCrew; src/game/mc.cpp:519-545 spResult; src/game/mis_c.cpp:126"
+ },
+ "crew": {
+  "capacity_per_program": {
+   "0": 0,
+   "1": 1,
+   "2": 2,
+   "3": 3,
+   "4": 3,
+   "5": 4,
+   "_note": "program index 1-5 = one/two/three-man capsule, minishuttle, four-man"
+  },
+  "capacity_by_hardware": {
+   "one_man_capsule": 1,
+   "two_man_capsule": 2,
+   "three_man_capsule": 3,
+   "minishuttle": 3,
+   "four_man_capsule": 4,
+   "two_man_lm": 2,
+   "one_man_lm": 1
+  },
+  "mission_mCrew_field": "mission.json mCrew: 0 unmanned, 1 unmanned with capsule/minishuttle, 2 single-pad manned, 3 joint with one manned launch, 4 joint with two manned launches, 5 joint with unmanned capsule",
+  "role_slots_by_crew_size": {
+   "1": {
+    "cap": 0,
+    "lm": 0,
+    "eva": 0,
+    "dock": null
+   },
+   "2": {
+    "cap": 0,
+    "dock": 0,
+    "lm": 1,
+    "eva": 1
+   },
+   "3": {
+    "cap": 0,
+    "lm": 1,
+    "eva": 1,
+    "dock": 2
+   },
+   "4": {
+    "cap": 0,
+    "lm": 1,
+    "eva": 2,
+    "dock": 3
+   }
+  },
+  "lm_crew": "one-person LM: the LM specialist; two-person LM: LM specialist + commander",
+  "no_crew_scrubs": "a manned mission whose primary and backup crews are gone is scrubbed (prestige -20 marker)",
+  "max_crews_per_program": 8,
+  "max_flight_crew": 4,
+  "max_pool": 65,
+  "_source": "src/game/ast4.cpp:58; src/game/hardware.cpp:34-68 CrewSize; src/game/mission_util.cpp:160-185 IsManned; src/game/mc.cpp:195-226; src/game/mis_m.cpp:1226-1262 LMCrew; src/game/news_suq.cpp:50-80; src/game/data.h:116-120"
+ },
+ "astronauts": {
+  "_source": "src/game/ast1.cpp, ast2.cpp, ast3.cpp, start.cpp AstroTurn, astros.cpp; per-rule sources inline below",
+  "recruitment": {
+   "group_cost_mb": {
+    "first_group": 20,
+    "later_groups": 15
+   },
+   "delay_seasons_after_group": [
+    6,
+    4,
+    4,
+    8,
+    99
+   ],
+   "recruit_losses": "60% chance to lose 1 point from Endurance or Capsule (50/50); then 3 points removed at random from LM/EVA/Docking (may go negative; raised to 0 after basic training)",
+   "starting_mood": "85 + 5*rand(0..3) => 85-100",
+   "compat": "Compat = 1..10, CL = 1..2, CR = 1..2",
+   "random_roster_stats": "each skill rand(0..4) (feat_random_nauts)",
+   "_source": "src/game/ast1.cpp:556-627 Recruit, :636 cost, :1189 DelayTable, :530-539; src/game/roster_entry.cpp:62-102"
+  },
+  "skills": {
+   "range": [
+    0,
+    4
+   ],
+   "list": [
+    "Cap",
+    "LM",
+    "EVA",
+    "Docking",
+    "Endurance"
+   ]
+  },
+  "basic_training": {
+   "seasons": 3,
+   "cost": "included in recruitment",
+   "gain_per_season": "one random skill below 4 gains +1 (70%) or +2 (30%)",
+   "washout": "each season 5% chance of an incident: of those 75% (minus 10% per Endurance point) injured 2 seasons, else retired",
+   "_source": "src/game/start.cpp:166-205, :432-480"
+  },
+  "advanced_training": {
+   "seasons": 4,
+   "seasons_short_option": 3,
+   "cost_mb": 3,
+   "cost_if_skill_already_3": 2,
+   "entry_blocked_if_skill_4": true,
+   "gain": "+1 to the focus skill at season 2 and at completion (+2 total)",
+   "mood_per_season": "+6 - (Ast level + 1)",
+   "refund_on_withdrawal": {
+    "after_season_1": 3,
+    "after_season_2": 2,
+    "after_season_3": 1
+   },
+   "_source": "src/game/ast2.cpp:587-606; src/game/ast3.cpp:515-527; src/game/start.cpp:218-258"
+  },
+  "mood": {
+   "range": [
+    0,
+    100
+   ],
+   "moved_to_better_program": 5,
+   "program_first_this_turn": 5,
+   "own_mission_failure_but_program_first": 20,
+   "mission_success": "+30 (easy astronaut level: +35), see difficulty",
+   "random_fall_bonus": "5% chance of +5 in season 1",
+   "hero_in_crew": 5,
+   "in_mercury_program_6plus_seasons": -4,
+   "not_moved_this_turn": -4,
+   "not_in_a_crew (Prime 0)": -6,
+   "in_a_crew (Prime > 0)": -3,
+   "scrubbed_mission": -5,
+   "injured": -4,
+   "catastrophic_death_bit1": -5,
+   "card_death_bit2": "-(1..2)",
+   "crew_conflict": "-3 per incompatible crewmate (-2 in minishuttle/four-man programs)",
+   "_source": "src/game/start.cpp:138-141, :495-585, :318-324 AstroConflictsMod"
+  },
+  "compatibility": {
+   "rule": "ast likes peer if peer.Compat in [ast.Compat - CL, ast.Compat + CR] on a ring of 10; not symmetric",
+   "_source": "src/game/astros.cpp:102-125 Compatible"
+  },
+  "retirement": {
+   "unhappy_threshold": 20,
+   "unhappy_rule": "Mood < 20 and active: USA retires in 2 seasons (delay 2), USSR retires immediately; reason 13",
+   "mustering_out": "every even season once Active >= 8: 10% chance; USA delay 3, USSR delay 2; reason 1-6",
+   "scared_after_death": "bit 1 of MissionCatastrophicFailureOnTurn: USA 20% / USSR 10% chance, capped at 40% of active roster; but bit 1 is never set in the RIS code (only |=4 and =2 exist) so this is dead",
+   "injury_resolution": "InjuryDelay counts down each season; mission injury = 3 seasons (reason 'Injured for a year')",
+   "death": "Status DEAD, reason 8; counted in tMen",
+   "_source": "src/game/start.cpp:345-366, :369-426, :482-493, :589-603; src/game/mis_m.cpp:731-775"
+  },
+  "hero": "crew of a first on MannedSpaceMission, WomanInSpace, MannedOrbital, MannedLunarPass, MannedLunarLanding; the EVA specialist for Spacewalk / Lunar EVA firsts",
+  "hero_source": "src/game/prest.cpp:297-316 HeroCheck; src/game/mc.cpp:471-476"
+ },
+ "calendar": {
+  "start": {
+   "year": 57,
+   "season": 0
+  },
+  "seasons_per_year": 2,
+  "season_names": {
+   "0": "spring (months 0-5)",
+   "1": "fall (months 6-11)"
+  },
+  "month_abbr": [
+   "JAN",
+   "FEB",
+   "MAR",
+   "APR",
+   "MAY",
+   "JUN",
+   "JUL",
+   "AUG",
+   "SEP",
+   "OCT",
+   "NOV",
+   "DEC"
+  ],
+  "days_in_month": [
+   31,
+   28,
+   31,
+   30,
+   31,
+   30,
+   31,
+   31,
+   30,
+   31,
+   30,
+   31
+  ],
+  "no_winner_end": {
+   "year": 77,
+   "season": 1
+  },
+  "win_condition": "first successful Manned Lunar Landing (Prestige row 22 Place set) ends the game after that launch sequence",
+  "annual_review": "computed at the start of every spring (season 0) except 1957 from the last two seasons' prestige; review index 1-16; 16 = fired",
+  "review_delta": "val = sum of the two seasons (or max/2+min if signs differ): val<0 and idx<4 => +1; 2..10 => -1; 11..20 => -1 (idx<4) else -2; >=21 => -1 (idx<4) else -3; -9..0 => +1; <=-10 => +1 (+level, see bug); then +1 if your index is above the opponent's; clamp 1..16",
+  "mission_month_slots": {
+   "1_mission": [
+    4
+   ],
+   "2_missions": [
+    3,
+    5
+   ],
+   "3_missions": [
+    2,
+    3,
+    4
+   ],
+   "note": "month index + 6*season; rushing moves earlier"
+  },
+  "planet_windows": {
+   "mars": "spring 60,62,64,66; fall 69,71,73",
+   "jupiter": "any season of 60,64,68,72,73,77",
+   "saturn": "any season of 61,66,72"
+  },
+  "interplanetary_resolution": "Mars/Jupiter/Saturn flybys resolve Event seasons later (2/4/7) with a yearly brandom(100) > Saf failure test",
+  "patch_index": "records.cpp:62 Pict[56] is a museum image index table, not a rule",
+  "_source": "data/gamedata/urast.json Year/Season; src/game/game_main.cpp:731, :527-530, :769-786; src/game/review.cpp:326-365 CalcPresRev; src/game/rush.cpp:55, :558-565; src/game/newmis.cpp:45; src/game/mis_c.cpp:97; src/game/mission_util.cpp:330-370; src/game/mc.cpp:377-385; src/game/start.cpp:803-830"
+ },
+ "launch_pads": {
+  "count": 3,
+  "construction_cost_mb": 20,
+  "status": "-1 not built, 1 operational, >=2 = repair cost in MB (>=20 destroyed)",
+  "repair": "pay the stored cost in the Administration building",
+  "_source": "src/game/data.h:610-616; src/game/admin.cpp:1398-1430; src/game/game_main.cpp:840-849 DestroyPad"
+ },
+ "hardware_turn": {
+  "delay_countdown": "Delay-- each turn",
+  "seasons_in_service": "Seas++ for programs with units",
+  "safety_bounds": "Safety clamped to [Base, MaxSafety] every turn and after failures",
+  "_source": "src/game/start.cpp:892-920 UpdateHardTurn; src/game/game_main.cpp:935-962 VerifySafety"
+ },
+ "random_hardware_model": {
+  "max_safety": [
+   80,
+   98
+  ],
+  "max_rd": "MaxSafety - (2..10)",
+  "costs": "loosely based on the Basic model",
+  "_source": "src/game/randomize.cpp:28-35 header comment"
+ },
+ "ai_strategy_knobs": {
+  "slots": {
+   "AI_ORBITAL_SATELLITE": 0,
+   "AI_END_STAGE_LOCATION": 1,
+   "AI_LUNAR_MODULE": 2,
+   "AI_STRATEGY": 3,
+   "AI_BEGINNING_STRATEGY": 4,
+   "AI_LARGER_ROCKET_STRATEGY": 5
+  },
+  "other_fields": [
+   "AILunar (route to the moon)",
+   "AIPrim (primary program)",
+   "AISec (secondary program)"
+  ],
+  "difficulty_cash_bonus_mb": 25,
+  "ai_die_range": [
+   1,
+   98
+  ],
+  "_source": "src/game/data.h:444-451 enum AI_Tracking; src/game/aimast.cpp:40-48, :69-71, :264-279; src/game/mc2.cpp:496"
+ },
+ "options_affecting_rules": {
+  "defaults": {
+   "feat_compat_nauts": 10,
+   "feat_use_endurance": 1,
+   "feat_show_recruit_stats": 1,
+   "feat_shorter_advanced_training": 0,
+   "feat_no_backup": 1,
+   "feat_no_cTraining": 1,
+   "boosterSafety": 0,
+   "cheat_addMaxS": 1,
+   "feat_female_nauts": 0,
+   "feat_random_nauts": 0,
+   "feat_random_eq": 0
+  },
+  "classic_preset": {
+   "boosterSafety": 2,
+   "feat_no_backup": 0,
+   "feat_no_cTraining": 0,
+   "feat_show_recruit_stats": 0,
+   "feat_use_endurance": 0
+  },
+  "_source": "src/game/options.cpp:472-497, :505-521"
+ }
 }

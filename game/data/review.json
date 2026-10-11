@@ -1,0 +1,312 @@
+{
+  "_source": {
+    "project": "raceintospace/raceintospace (GPL-2.0-or-later)",
+    "revision": "e1fbccc",
+    "files": [
+      "src/game/review.cpp:51-258 DrawReview (text/portrait/chart, fired variants), :261-280 Review, :325-365 CalcPresRev, :370-413 DrawReviewText",
+      "src/game/game_main.cpp:453-462 InitData (PresRev = 8), :527-530 CalcPresRev call, :545-583 firing / idle end, :586-602 mail-game end checks, :630 IDLE++, :677 IDLE reset, :693-707 landing end, :731-736 no-winner end, :756-767 tempPrestige accumulation",
+      "src/game/port.cpp:1201-1205 Capitol -> Review(plr)",
+      "src/game/prest.cpp:1111-1133 Update_Prestige_Data (season Prestige accumulation)",
+      "src/game/mc.cpp:444 History.Prestige floor",
+      "src/game/hardef.cpp:1383-1456 RankMe, :1460-1581 DrawRank (graph, LEVEL, SCORE), :1594-1667 CalcScore",
+      "src/game/museum.cpp:144,:181 Museum 'DIRECTOR RANKING' entry",
+      "src/game/aipur.cpp:68-157 DrawStatistics, :160-200 Stat (end-game STATISTICS screen, director-ranking button -> RankMe)",
+      "src/game/records.cpp:114,:1651-1668 'HIGHEST DIRECTOR RATING' record (record type 42)",
+      "src/game/endgame.cpp:118-370 EndGame, :424-582 NewEnd, :586-805 FakeWin, :807-825 FakeHistory, :827-840 HistFile, :875-893 AltHistory, :895-945 SpecialEnd",
+      "data/gamedata/p_rev.json (36 lines -> game/data/text/reviews.json), data/gamedata/endgame.json (12 lines -> game/data/text/endgame.json)",
+      "data/gamedata/help.json I030 'DIRECTOR RATING' help text"
+    ],
+    "transcribed": "2026-10-11, by hand from the upstream C++ (read-only); line numbers refer to revision e1fbccc"
+  },
+  "review_index": {
+    "inputs": "Two numbers per player: tempPrestige[0] (last spring) and tempPrestige[1] (last fall). Each is the player's Data->P[plr].Prestige at the end of that season (game_main.cpp:762), i.e. the sum of the total prestige of every mission flown that season (AllotPrest/U_AllotPrest minus 3 per negative-prestige flag, prest.cpp:1118-1132; the per-mission History value is floored at -10 at mc.cpp:444 but the season sum is not). NOT the running prestige total, NOT the 5-year PrestHist, and NOT compared to the opponent's prestige. The third input is the player's own review index from the previous year (PresRev[0], initialised to 8 for both sides at game start, game_main.cpp:460): the review is a running value that each spring moves up or down by the last year's result. The only cross-player input is the opponent's review index (review.cpp:363).",
+    "when": "game_main.cpp:527-530: on a new turn with Season == 0 (spring), CalcPresRev() runs for BOTH players (AI included) before either plays; it returns immediately in spring 1957 (review.cpp:327).",
+    "formula": "For each player plr in order 0 (USA) then 1 (USSR):\n  history: PresRev[4]=PresRev[3] ... PresRev[1]=PresRev[0]  (PresRev[0] keeps last year's value and is edited in place)\n  Prestige[0] = Prestige[1] = 0  (redundant; game_main.cpp:767 already zeroed it)\n  max = max(tempPrestige[0], tempPrestige[1]); min = min(...)\n  val = (both >= 0 or both <= 0) ? max + min : max / 2 + min      # C integer division, truncates toward zero\n  ip  = PresRev[0]   # lower is better\n  if      val < 0   and ip < 4:    ip += 1\n  elif    2 <= val <= 10:          ip -= 1\n  elif   11 <= val <= 20:          ip -= (ip < 4) ? 1 : 2\n  elif   val >= 21:                ip -= (ip < 4) ? 1 : 3\n  elif   -9 <= val <= 0:           ip += 1        # note val == 0 is a step WORSE; val == 1 is the only no-op\n  elif   val <= -10:               ip += 1 + (plr==0)?Def.Lev1 : Def.Lev2   # AS WRITTEN (bug, review.cpp:356)\n  clamp ip to 1..16\n  tempPrestige[0] = tempPrestige[1] = 0\n  if PresRev[0] > PresRev[0] of the other player: PresRev[0] += 1   # applied AFTER the clamp, so 17 is reachable\n\nreview.cpp:356 precedence bug: C parses `1 + (plr==0) ? Lev1 : Lev2` as `(1 + (plr==0)) ? Lev1 : Lev2`. The condition is 2 for the USA and 1 for the USSR, both non-zero, so the statement is `ip += Def.Lev1` for BOTH players: the +1 is never added and the USSR uses the USA side's difficulty. On a game where Lev1 == 0 (USA easy) a <= -10 year with ip >= 4 changes nothing at all. (A <= -10 year with ip < 4 is caught by the first branch and is +1.) The intended rule is `ip += 1 + (plr == 0 ? Def.Lev1 : Def.Lev2)` = +2 easy / +3 medium / +4 hard using the player's OWN level. Note game/data/constants.json difficulty.effects_game_level describes the bug as 'adds Lev1 for USA, Lev2 for USSR'; that is wrong, it is Lev1 for both.\n\nOpponent bump ordering: player 0 is processed first, so the USA compares its NEW index with the USSR's index from the PREVIOUS year (the USSR's own update has not run yet); the USSR then compares its new index with the USA's new index. The upstream comment at review.cpp:363 flags this ('US looks at last year SV review??'). The intended rule is presumably to compare both new indices.\n\nThe +1 bump is not re-clamped; DrawReview (review.cpp:123-127) clamps displayed history bars to 16, and game_main.cpp:567 treats any value >= 16 as fireable.",
+    "intended_rule_summary": "val = last year's prestige (spring + fall; if the two seasons have opposite signs the better one counts half). Big year (>= 21): -3 steps (only -1 if already at 1..3); good year (11..20): -2 (-1 if at 1..3); mild year (2..10): -1; flat/bad year (-9..0): +1; terrible year (<= -10): +1 + own difficulty level, but only +1 if already at 1..3. Then +1 if still worse than the opponent. 1 = best, 16 = fired.",
+    "text_index_formula": "text/reviews.json 'review'[18 * side + index], side 0 = USA, 1 = USSR (review.cpp:385). Lines 0 and 18 ('deeply concerned' / 'very irritated') are unreachable: the index is clamped to >= 1 before any display.",
+    "portrait_rule": "review.cpp:172-251: USA shows the President for index <= 4 or >= 11 and the Vice President for 5..10; USSR shows the General Secretary for index <= 4 or >= 12 and the Politburo for 5..11. Portrait image also varies by year (USA: <=60, 61-63, 64-68, 69-73, 74-76, >=77; USSR: <61, 61-64, >=65).",
+    "chart_rule": "review.cpp:93-153: 5 bars for the last 5 years (PresRev[0..4], labelled Year-1 .. Year-5) on a GOOD/FAIR/POOR gauge with baseline y=75; index <= 8 draws upward in the 'good' colour, > 8 downward in the 'poor' colour. chart_bar_top_y below gives the upstream bar end for each index (index 7 and 8 both land on 73, 9 on 77).",
+    "table": [
+      {
+        "index": 1,
+        "condition": "running review index == 1 after this spring's adjustment (chart band: good; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 1,
+          "ussr": 19
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 45,
+        "chart_colour": "good"
+      },
+      {
+        "index": 2,
+        "condition": "running review index == 2 after this spring's adjustment (chart band: good; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 2,
+          "ussr": 20
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 50,
+        "chart_colour": "good"
+      },
+      {
+        "index": 3,
+        "condition": "running review index == 3 after this spring's adjustment (chart band: good; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 3,
+          "ussr": 21
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 55,
+        "chart_colour": "good"
+      },
+      {
+        "index": 4,
+        "condition": "running review index == 4 after this spring's adjustment (chart band: good; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 4,
+          "ussr": 22
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 60,
+        "chart_colour": "good"
+      },
+      {
+        "index": 5,
+        "condition": "running review index == 5 after this spring's adjustment (chart band: good; USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 5,
+          "ussr": 23
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 65,
+        "chart_colour": "good"
+      },
+      {
+        "index": 6,
+        "condition": "running review index == 6 after this spring's adjustment (chart band: good; USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 6,
+          "ussr": 24
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 70,
+        "chart_colour": "good"
+      },
+      {
+        "index": 7,
+        "condition": "running review index == 7 after this spring's adjustment (chart band: good; USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 7,
+          "ussr": 25
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 73,
+        "chart_colour": "good"
+      },
+      {
+        "index": 8,
+        "condition": "running review index == 8 after this spring's adjustment (chart band: fair (baseline); USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 8,
+          "ussr": 26
+        },
+        "consequence": "none",
+        "chart_bar_top_y": 73,
+        "chart_colour": "good"
+      },
+      {
+        "index": 9,
+        "condition": "running review index == 9 after this spring's adjustment (chart band: poor; USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 9,
+          "ussr": 27
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 77,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 10,
+        "condition": "running review index == 10 after this spring's adjustment (chart band: poor; USA portrait: Vice President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 10,
+          "ussr": 28
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 80,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 11,
+        "condition": "running review index == 11 after this spring's adjustment (chart band: poor; USA portrait: President; USSR portrait: Politburo)",
+        "text_index": {
+          "usa": 11,
+          "ussr": 29
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 85,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 12,
+        "condition": "running review index == 12 after this spring's adjustment (chart band: poor; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 12,
+          "ussr": 30
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 90,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 13,
+        "condition": "running review index == 13 after this spring's adjustment (chart band: poor; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 13,
+          "ussr": 31
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 95,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 14,
+        "condition": "running review index == 14 after this spring's adjustment (chart band: poor; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 14,
+          "ussr": 32
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 100,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 15,
+        "condition": "running review index == 15 after this spring's adjustment (chart band: poor; USA portrait: President; USSR portrait: General Secretary)",
+        "text_index": {
+          "usa": 15,
+          "ussr": 33
+        },
+        "consequence": "warning",
+        "chart_bar_top_y": 105,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 16,
+        "condition": "review index >= 16 after the adjustment and opponent bump (17 is possible), and game_main.cpp:558-569 fires the player (see dismissal); the player has fewer than 2 dead astronauts/cosmonauts. If the dismissal conditions do not hold, an index of 16 is drawn as line 15's text instead (review.cpp:64-67, :253-255) and stays 16",
+        "text_index": {
+          "usa": 16,
+          "ussr": 34
+        },
+        "consequence": "fired",
+        "chart_bar_top_y": 110,
+        "chart_colour": "poor"
+      },
+      {
+        "index": 17,
+        "condition": "same as 16 but the fired player has 2 or more Pool entries with Status == AST_ST_DEAD (review.cpp:155-164); stored value is 16, the 17 is only the text selector",
+        "text_index": {
+          "usa": 17,
+          "ussr": 35
+        },
+        "consequence": "fired",
+        "chart_bar_top_y": 110,
+        "chart_colour": "poor"
+      }
+    ]
+  },
+  "dismissal": {
+    "when": "game_main.cpp:545-583, inside the per-player turn loop, in the iteration of player i where AI[i] is true (i.e. at the start of the computer's turn), every season: if the OTHER player is human (plr[other(i)] < NUM_PLAYERS), that human's own difficulty is not easy (Def.Lev1 != 0 for a USA human, Def.Lev2 != 0 for a USSR human), and Data->P[human].PresRev[0] >= 16, then: PresRev[0] = 0x7F (fired marker), Review(human) is shown with the fired text (line 16/34, or 17/35 if >= 2 astronauts are dead), FakeWin(AI side) shows the AI's alternate-history landing (random mission type, random year: Year<=65 -> 65+rand(5), <=70 -> 70+rand(3), else Year; text from endgame.json via FakeHistory by that fake year), then QUIT. In practice this happens in the spring the index reaches 16, right after CalcPresRev.",
+    "turn_order_quirk": "The check runs in the AI's loop slot. A human USA (i=0) vs AI USSR (i=1) plays the whole spring turn first and is fired when the AI's slot comes up; a human USSR (i=1) vs AI USA (i=0) is fired before playing the spring turn. Nothing done in that extra turn can save the USA player because PresRev is not recomputed until next spring.",
+    "vs_ai_only": true,
+    "not_on_easy": true,
+    "ai_never_fired": true,
+    "human_vs_human": "Never fired (the check requires AI[i]). An index of 16 or 17 is displayed with line 15's text (review.cpp:64-67 Reset_Flag) and stored back as exactly 16 (review.cpp:253-255); next spring it continues from 16, so a good year brings it to 15 or lower. The same applies to a human on easy and to the AI side.",
+    "idle_end": "Independent of the review: IDLE[plr] (game_main.cpp:474) counts a human's consecutive turns and is reset to 0 whenever any human launches a mission (game_main.cpp:677). If either human's count exceeds 12 (13 idle seasons) the same block runs SpecialEnd() ('FAILED OBJECTIVE', no winner) and quits (game_main.cpp:558,566,572-573) - this clause is not gated on AI or difficulty.",
+    "other_effects_of_index": "None. PresRev is read only by review.cpp and game_main.cpp:567; it does not touch budget, which is driven directly by the season's Prestige (game_main.cpp:738-746)."
+  },
+  "director_rating": {
+    "where_shown": [
+      "Museum -> 'DIRECTOR RANKING' (museum.cpp:144,181 -> RankMe hardef.cpp:1383): a 1957-1979 graph of each side's cumulative mission prestige (DrawRank hardef.cpp:1460-1553), plus 'LEVEL: n' (Def.Lev + 1) and 'SCORE: n' (CalcScore) for each side",
+      "End-game 'STATS' -> STATISTICS screen -> director-ranking button (aipur.cpp:68-100,189: RankMe(Win))",
+      "Records -> 'HIGHEST DIRECTOR RATING' (records.cpp:114, record type 42 at :1651-1668, computed with CalcScore)",
+      "Help I030: 'THIS SCREEN DISPLAYS YOUR PRESTIGE POINT TOTALS AND COMPARES THEM WITH THE OTHER PLAYER'S.'"
+    ],
+    "formula": "CalcScore(plr, lvA, lvB) hardef.cpp:1594-1667, with lvA = own Def.Lev + 1 and lvB = opponent Def.Lev + 1 (1 easy, 2 medium, 3 hard):\n  total = 0\n  for each entry in History[0 .. PastMissionCount): p = entry.Prestige; skip if p <= 0\n    lvA == 1: total += p\n    lvA == 2: lvB == 1 -> total += 2*p + p/3;  lvB == 3 -> total += p + (2*p)/3;  else (lvB == 2) -> total += 2*p\n    lvA == 3: lvB == 1 -> total += 3*p + (2*p)/3;  lvB == 2 -> total += 3*p + p/3;  else (lvB == 3) -> total += 3*p\n    (all divisions are C integer division per mission, not on the sum)\n  if plr != Prestige[Prestige_MannedLunarLanding].Place: return total     # only the side that made the manned lunar landing gets the bonus\n  landing bonus by Data->Year at the time of the call and own level:\n    lvA == 1: Year <= 67 -> +50;  Year <= 69 -> +25;  else +0\n    lvA == 2: Year <= 67 -> +75;  Year <= 69 -> +50;  Year <= 73 -> +25;  else +0\n    lvA == 3: Year <= 67 -> +150; Year <= 69 -> +75;  Year <= 73 -> +50;  else +0\n  return total",
+    "levels": [
+      {
+        "own_level": 1,
+        "name": "easy",
+        "multiplier": {
+          "vs_easy": "1",
+          "vs_medium": "1",
+          "vs_hard": "1"
+        },
+        "landing_bonus": {
+          "year_le_67": 50,
+          "year_le_69": 25,
+          "year_le_73": 0,
+          "later": 0
+        }
+      },
+      {
+        "own_level": 2,
+        "name": "medium",
+        "multiplier": {
+          "vs_easy": "2 + 1/3",
+          "vs_medium": "2",
+          "vs_hard": "1 + 2/3"
+        },
+        "landing_bonus": {
+          "year_le_67": 75,
+          "year_le_69": 50,
+          "year_le_73": 25,
+          "later": 0
+        }
+      },
+      {
+        "own_level": 3,
+        "name": "hard",
+        "multiplier": {
+          "vs_easy": "3 + 2/3",
+          "vs_medium": "3 + 1/3",
+          "vs_hard": "3"
+        },
+        "landing_bonus": {
+          "year_le_67": 150,
+          "year_le_69": 75,
+          "year_le_73": 50,
+          "later": 0
+        }
+      }
+    ],
+    "graph": "DrawRank hardef.cpp:1471-1553: for each side, a line from (1957, 0) stepping by each History entry's Prestige at x = (MissionYear - 57) * 12 + Month; y-scale OffSet = max(MaxPz/80 + 1, MaxNg == 0 ? 0 : (-MaxNg)/20 + 1) * 20 where MaxPz/MaxNg are the extreme cumulative totals of either side; the plot uses raw (including negative) prestige, unlike the score.",
+    "upstream_bugs": [
+      "hardef.cpp:1578 calls CalcScore(0, lev1, lev2) for BOTH boxes (plr hard-coded to 0 after swapping the levels), so the USSR 'SCORE:' on the Director Ranking screen is the USA's mission history scored with the USSR's multipliers. records.cpp:1660-1662 calls it correctly per side; treat the records.cpp form as the rule.",
+      "hardef.cpp:1478-1480 (DrawRank) overwrites any History[i].Prestige < -15 with 0 inside a draw routine, mutating saved data. Unreachable for missions resolved by this engine (mc.cpp:444 floors History.Prestige at -10) except legacy saves."
+    ],
+    "no_level_table": "There is no named rank/title ladder anywhere in the engine or data; the 'rating' is the integer score plus the graph. The 1990s manual's 'Director Rating of N pts' is this CalcScore value."
+  },
+  "end_game_no_landing": {
+    "winner_rule": "No winner. After the fall 1977 launches (Data->Year == 77 && Season == 1) with Prestige[Prestige_MannedLunarLanding].Place == -1, SpecialEnd() (endgame.cpp:895) shows 'FAILED OBJECTIVE' with the moonrise 'loser' picture and prints text/endgame.json line 10 under UNITED STATES and line 11 under SOVIET UNION, for both players regardless of prestige; then the game ends (game_main.cpp:731-736; mail games game_main.cpp:598-602). No score, ranking or Statistics screen is shown and no tiebreak on prestige exists upstream. The idle ending (IDLE > 12) uses the same screen.",
+    "score_formula": "CalcScore as in director_rating with no landing bonus for either side (Place == -1): sum over positive-prestige missions of prestige x level multiplier. Viewable only through the Museum/Records before the end.",
+    "landing_ending_text": "For completeness: when a side lands, EndGame -> AltHistory(win) prints endgame.json[band * 2 + win] with band 0 for Year <= 65, 1 for 66-67, 2 for 68-69, 3 for 70-71, 4 for >= 72 (endgame.cpp:875-893); FakeWin (dismissal/idle wins for the AI) uses the same table with its fabricated year (endgame.cpp:807-825). Lines 10/11 are the no-landing texts."
+  },
+  "notes": [
+    "Schema deviation: text_index is an object {usa, ussr} rather than one integer, because the text line depends on the side (18 * side + index).",
+    "The review index is a running value (starts at 8 for both sides), not a function of a single year's prestige; a 'condition' per row therefore describes the state, not a threshold. The step rule is in review_index.formula.",
+    "val arithmetic quirks: val == 0 steps the index WORSE (+1); val == 1 is the only no-change value; with opposite-sign seasons the larger (positive) season is halved with truncating division, so e.g. spring +15 / fall -7 gives val 0 (+1 worse).",
+    "A <= -10 year with the index already at 1..3 is only +1 (first branch), regardless of difficulty.",
+    "The USA's opponent comparison uses the USSR's previous-year index because players are processed in order (review.cpp:363 comment). The bump is applied after the 1..16 clamp, so 17 occurs; it is displayed as 16 and fires like 16.",
+    "Fired text variant: line 17 (USA) / 35 (USSR) is used when the fired player has 2 or more astronauts with Status == AST_ST_DEAD at that moment, from any cause and any year; the stored index is 16 either way.",
+    "Lines 0 and 18 of reviews.json are never shown by the upstream engine.",
+    "Dismissal only exists for a human playing the computer above easy, judged by the HUMAN's own difficulty setting (Def.Lev1 for the USA seat, Def.Lev2 for the USSR seat). In human-vs-human, easy, or for the AI, 16 is a warning drawn with line 15's text and the index sticks at 16.",
+    "A fired player's game ends with the AI declared winner via FakeWin (an invented landing), not via the normal NewEnd landing screen.",
+    "constants.json 'difficulty.effects_game_level' review entry says the bug adds 'Lev1 for USA, Lev2 for USSR'; the C precedence actually yields Def.Lev1 for both sides. Not changed here (out of scope); flagged for the caller.",
+    "game/scripts/sim/sim_review.gd currently uses a provisional rule (index from the prestige difference vs the rival, dismissal after 3 consecutive 'bad' reviews) and sim_game.gd:_end_without_landing picks a winner by prestige_total. Neither matches upstream: the index is a running value moved by the player's own last-year prestige, dismissal is immediate at >= 16, and the no-landing ending has no winner.",
+    "CalcScore excludes missions with prestige <= 0 entirely (they neither add nor subtract); only the graph shows negatives.",
+    "hardef.cpp:1578 score display bug and DrawRank data mutation are listed under director_rating.upstream_bugs; the Godot port should use the records.cpp per-side form.",
+    "In play-by-mail games (MAIL != -1) the review is computed the same way but the end checks at game_main.cpp:586-602 run on the human's turn instead of after launches; not transcribed in detail."
+  ]
+}
