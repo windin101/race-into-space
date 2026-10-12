@@ -1,8 +1,9 @@
 extends ScreenPanel
-## Astronaut Complex: the roster (filterable, sortable), a detail column for the selected
-## astronaut (card, mission history, compatibility with crewmates, program assignment)
-## and a crew editor that builds, inspects and clears the crews of a capsule program.
-## Commands go through SimPersonnel and are followed by Session.notify_change().
+## Astronaut Complex, laid out as a dossier: the selected astronaut's name banner, big
+## portrait, ratings and record on the left; the roster list in the middle; and on the
+## right "Transfer to location", a board of capsule-program and training buttons, with
+## the crew editor beneath it. Commands go through SimPersonnel and are followed by
+## Session.notify_change().
 
 const FILTERS := ["all", "active", "training", "injured", "retired", "dead"]
 const FILTER_TITLES := {"all": "All", "active": "Active", "training": "Training", "injured": "Injured", "retired": "Retired", "dead": "Dead"}
@@ -11,19 +12,29 @@ const SKILL_SHORT := {"capsule": "Cap", "lm": "LM", "eva": "EVA", "docking": "Do
 const ROLE_TITLES := {"cap": "Capsule", "lm": "LM", "eva": "EVA", "dock": "Docking"}
 const ROLE_ORDER := ["cap", "lm", "eva", "dock"]
 const DEFAULT_HELP := "I020"
+const TRAINING := "res://scenes/astronauts/training.tscn"
+const STATUS_COLORS := {
+	SimAstronaut.Status.ACTIVE: UiPalette.TEXT, SimAstronaut.Status.BASIC_TRAINING: UiPalette.INFO,
+	SimAstronaut.Status.ADVANCED_TRAINING: UiPalette.INFO, SimAstronaut.Status.INJURED: UiPalette.WARN,
+	SimAstronaut.Status.RETIRED: UiPalette.TEXT_MUTED, SimAstronaut.Status.DEAD: UiPalette.DANGER,
+}
 
 var _filter := "all"
 var _filter_buttons: Dictionary = {}
 var _table: DataTable
 var _selected: SimAstronaut
 
-# detail column
-var _card: AstronautCard
-var _detail_title: Label
+# dossier column
+var _banner: Label
+var _portrait: Control
+var _ratings: Dictionary = {}       ## key -> value Label
+var _tenure: Label
 var _history: Label
 var _compat: Label
-var _program_opt: OptionButton
-var _assign: Button
+
+# transfer board
+var _program_box: VBoxContainer
+var _program_buttons: Dictionary = {}  ## slot -> Button
 var _unassign: Button
 
 # crew editor
@@ -77,24 +88,20 @@ func _ready() -> void:
 
 	_table = DataTable.new()
 	_table.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_table.size_flags_stretch_ratio = 2.2
+	_table.size_flags_stretch_ratio = 1.0
+	_table.custom_minimum_size.x = 420
 	var cols: Array = [
-		{"key": "name", "title": "Name", "stretch": 1.6},
+		{"key": "name", "title": "Name", "stretch": 1.5, "color": func(r): return STATUS_COLORS.get(r["_astronaut"].status, UiPalette.TEXT)},
 		{"key": "status", "title": "Status", "stretch": 1.3},
-		{"key": "program", "title": "Program", "stretch": 1.3},
-		{"key": "crew", "title": "Crew", "stretch": 1.2},
-		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.7, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
+		{"key": "program", "title": "Program", "stretch": 1.2},
+		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.6, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
+		{"key": "missions_flown", "title": "Flts", "numeric": true, "stretch": 0.5},
 	]
-	for s in SimAstronaut.SKILLS:
-		cols.append({"key": s, "title": SKILL_SHORT[s], "numeric": true, "stretch": 0.6})
-	cols.append({"key": "missions_flown", "title": "Flts", "numeric": true, "stretch": 0.6})
-	cols.append({"key": "hero", "title": "Hero", "stretch": 0.6, "color": UiPalette.GOLD})
 	_table.set_columns(cols)
 	_table.row_selected.connect(_on_row)
+	split.add_child(_build_dossier_column())
 	split.add_child(_table)
-
-	split.add_child(_build_detail_column())
-	split.add_child(_build_crew_column())
+	split.add_child(_build_operations_column())
 
 	_summary = Label.new()
 	_summary.theme_type_variation = "Dim"
@@ -105,62 +112,134 @@ func _ready() -> void:
 	_set_filter(_filter)
 
 
-func _build_detail_column() -> Control:
-	var scroll := ScrollContainer.new()
-	scroll.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	scroll.size_flags_stretch_ratio = 1.0
-	scroll.custom_minimum_size.x = 320
-	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+func _build_dossier_column() -> Control:
 	var side := VBoxContainer.new()
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.size_flags_stretch_ratio = 0.9
+	side.custom_minimum_size.x = 340
 	side.add_theme_constant_override("separation", 8)
-	scroll.add_child(side)
+	var banner_panel := PanelContainer.new()
+	banner_panel.theme_type_variation = "Sunken"
+	side.add_child(banner_panel)
+	_banner = Label.new()
+	_banner.theme_type_variation = "Heading"
+	_banner.add_theme_color_override("font_color", UiPalette.OK)
+	_banner.clip_text = true
+	_banner.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	banner_panel.add_child(_banner)
 
-	_detail_title = Label.new()
-	_detail_title.theme_type_variation = "Subheading"
-	_detail_title.text = "Selected astronaut"
-	side.add_child(_detail_title)
-	_card = AstronautCard.new()
-	_card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	side.add_child(_card)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 14)
+	side.add_child(body)
+	var frame := PanelContainer.new()
+	frame.theme_type_variation = "Sunken"
+	body.add_child(frame)
+	_portrait = Control.new()
+	_portrait.custom_minimum_size = Vector2(210, 250)
+	_portrait.draw.connect(_draw_portrait)
+	frame.add_child(_portrait)
+	var ratings := GridContainer.new()
+	ratings.columns = 2
+	ratings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	ratings.add_theme_constant_override("h_separation", 14)
+	ratings.add_theme_constant_override("v_separation", 6)
+	body.add_child(ratings)
+	for key in ["mood", "capsule", "lm", "eva", "docking", "endurance"]:
+		var k := Label.new()
+		k.text = ("Mood" if key == "mood" else SKILL_SHORT[key]).to_upper() + ":"
+		k.theme_type_variation = "Dim"
+		ratings.add_child(k)
+		var v := Label.new()
+		v.theme_type_variation = "Subheading"
+		v.add_theme_color_override("font_color", UiPalette.GOLD)
+		ratings.add_child(v)
+		_ratings[key] = v
+	_tenure = Label.new()
+	_tenure.theme_type_variation = "Dim"
+	_tenure.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	side.add_child(_tenure)
 
-	side.add_child(_heading("Assignment"))
-	var assign_row := HBoxContainer.new()
-	side.add_child(assign_row)
-	_program_opt = OptionButton.new()
-	_program_opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_program_opt.clip_text = true
-	_program_opt.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	assign_row.add_child(_program_opt)
-	_assign = Button.new()
-	_assign.text = "Assign"
-	_assign.theme_type_variation = "Accent"
-	_assign.pressed.connect(_on_assign)
-	assign_row.add_child(_assign)
-	_unassign = Button.new()
-	_unassign.text = "Unassign"
-	_unassign.pressed.connect(_on_unassign)
-	assign_row.add_child(_unassign)
-
-	side.add_child(_heading("Compatibility with crewmates"))
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	side.add_child(scroll)
+	var notes := VBoxContainer.new()
+	notes.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	notes.add_theme_constant_override("separation", 6)
+	scroll.add_child(notes)
+	notes.add_child(_heading("Compatibility with crewmates"))
 	_compat = Label.new()
 	_compat.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_compat.theme_type_variation = "Small"
-	side.add_child(_compat)
-
-	side.add_child(_heading("Mission history"))
+	notes.add_child(_compat)
+	notes.add_child(_heading("Mission history"))
 	_history = Label.new()
 	_history.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_history.theme_type_variation = "Small"
-	side.add_child(_history)
-	return scroll
+	notes.add_child(_history)
+	return side
+
+
+func _draw_portrait() -> void:
+	var size := _portrait.size
+	_portrait.draw_rect(Rect2(Vector2.ZERO, size), Color("0a1424"))
+	if _selected == null:
+		return
+	var side := Session.human_side if Session.has_game() else "usa"
+	PortraitArt.paint(_portrait, Rect2(Vector2.ZERO, size), _selected.name, _selected.female, side, _selected.status_name())
+	# Status band along the bottom, coloured like the roster.
+	var col: Color = STATUS_COLORS.get(_selected.status, UiPalette.TEXT)
+	_portrait.draw_rect(Rect2(0, size.y - 26, size.x, 26), Color(0, 0, 0, 0.55))
+	_portrait.draw_string(get_theme_default_font(), Vector2(0, size.y - 8), status_title(_selected).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SMALL, col)
+
+
+func _build_operations_column() -> Control:
+	var side := VBoxContainer.new()
+	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side.size_flags_stretch_ratio = 1.2
+	side.custom_minimum_size.x = 380
+	side.add_theme_constant_override("separation", 8)
+
+	var board := PanelContainer.new()
+	board.theme_type_variation = "Card"
+	side.add_child(board)
+	var board_box := VBoxContainer.new()
+	board_box.add_theme_constant_override("separation", 6)
+	board.add_child(board_box)
+	var board_title := Label.new()
+	board_title.text = "TRANSFER TO LOCATION"
+	board_title.theme_type_variation = "Subheading"
+	board_title.add_theme_color_override("font_color", UiPalette.GOLD)
+	board_box.add_child(board_title)
+	var columns := HBoxContainer.new()
+	columns.add_theme_constant_override("separation", 10)
+	board_box.add_child(columns)
+	_program_box = VBoxContainer.new()
+	_program_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_program_box.add_theme_constant_override("separation", 4)
+	columns.add_child(_program_box)
+	var training_box := VBoxContainer.new()
+	training_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	training_box.add_theme_constant_override("separation", 4)
+	columns.add_child(training_box)
+	for key in SimAstronaut.SKILLS:
+		var tb := Button.new()
+		tb.text = "%s training" % SKILL_TITLES[key]
+		tb.pressed.connect(func(): Screens.push(load(TRAINING), {"id": "training", "title": "Training Centre", "help": "I120", "skill": key}))
+		training_box.add_child(tb)
+	_unassign = Button.new()
+	_unassign.text = "Release from program"
+	_unassign.pressed.connect(_on_unassign)
+	board_box.add_child(_unassign)
+
+	side.add_child(_build_crew_column())
+	return side
 
 
 func _build_crew_column() -> Control:
 	var side := VBoxContainer.new()
 	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	side.size_flags_stretch_ratio = 1.1
-	side.custom_minimum_size.x = 360
+	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	side.add_theme_constant_override("separation", 8)
 
 	var head := HBoxContainer.new()
@@ -415,25 +494,43 @@ func _on_row(row: Dictionary) -> void:
 func _refresh_detail() -> void:
 	var p := Session.me()
 	var a := _selected
-	_card.visible = a != null
-	_program_opt.clear()
+	_portrait.queue_redraw()
+	for c in _program_box.get_children():
+		c.queue_free()
+	_program_buttons.clear()
 	if a == null:
-		_detail_title.text = "No astronaut selected"
+		_banner.text = "NAME: -"
+		for key in _ratings:
+			_ratings[key].text = "-"
+		_tenure.text = ""
 		_history.text = ""
 		_compat.text = ""
-		_assign.disabled = true
 		_unassign.disabled = true
 		return
-	_detail_title.text = a.name.capitalize()
-	_card.set_astronaut(a)
+	_banner.text = "NAME: %s" % a.name.to_upper()
+	_ratings["mood"].text = str(a.mood)
+	_ratings["mood"].add_theme_color_override("font_color", UiPalette.mood_color(a.mood))
+	for key in SimAstronaut.SKILLS:
+		_ratings[key].text = str(a.skill(key))
+	_tenure.text = "%s.  %d season%s active, %d mission%s flown%s." % [status_title(a), a.seasons_active, "" if a.seasons_active == 1 else "s",
+		a.missions_flown, "" if a.missions_flown == 1 else "s", ", decorated hero" if a.hero else ""]
 	var programs := SimPersonnel.capsule_programs(p)
+	var can_assign := a.status == SimAstronaut.Status.ACTIVE and a.program_slot < 0
 	for prog in programs:
-		_program_opt.add_item(prog.display_name().capitalize(), prog.slot)
-	if a.program_slot >= 0:
-		var i := _program_opt.get_item_index(a.program_slot)
-		if i >= 0:
-			_program_opt.select(i)
-	_assign.disabled = programs.is_empty() or a.status != SimAstronaut.Status.ACTIVE or a.program_slot >= 0
+		var b := Button.new()
+		b.text = "%s program" % prog.display_name().capitalize()
+		b.toggle_mode = true
+		b.button_pressed = a.program_slot == prog.slot
+		b.disabled = not can_assign and a.program_slot != prog.slot
+		b.pressed.connect(_on_assign_slot.bind(prog.slot))
+		_program_box.add_child(b)
+		_program_buttons[prog.slot] = b
+	if programs.is_empty():
+		var none := Label.new()
+		none.text = "No capsule program open."
+		none.theme_type_variation = "Small"
+		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		_program_box.add_child(none)
 	_unassign.disabled = a.program_slot < 0
 	if a.in_crew():
 		var mates := SimPersonnel.crew(p, a.program_slot, a.crew_index)
@@ -445,13 +542,17 @@ func _refresh_detail() -> void:
 	_history.text = "\n".join(hist) if not hist.is_empty() else "No missions yet."
 
 
-func _on_assign() -> void:
-	if _selected == null or _program_opt.selected < 0:
+func _on_assign_slot(slot: int) -> void:
+	if _selected == null:
 		return
-	var slot := _program_opt.get_item_id(_program_opt.selected)
+	if _selected.program_slot == slot:
+		_refresh_detail()
+		return
 	if SimPersonnel.assign_to_program(Session.me(), _selected, slot):
 		Session.notify_change()
 		_refresh()
+	else:
+		_refresh_detail()
 
 
 func _on_unassign() -> void:
@@ -537,7 +638,7 @@ func _refresh_crew_editor() -> void:
 		_pool_checks.append(cb)
 	if candidates == 0:
 		var none := Label.new()
-		none.text = "Nobody is assigned and free. Use Assign in the detail column."
+		none.text = "Nobody is assigned and free. Transfer an astronaut to this program with the buttons above."
 		none.theme_type_variation = "Small"
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_pool_box.add_child(none)
