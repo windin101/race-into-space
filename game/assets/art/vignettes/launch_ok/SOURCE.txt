@@ -1,6 +1,5 @@
-source: apollo11_launch_255-s-4655.mp4
-url: https://archive.org/details/255-s-4655
-licence: Public domain (NASA/NARA 255-S-4655)
-start: 00:04:14
-duration: 4.0
-fps: 12
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 1180566714
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. A tall white rocket lifting off a launch pad at dawn, bright exhaust flame and billowing white smoke, gantry tower beside it. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the rocket rises slowly off the pad on a column of flame, smoke billows outward, the tower falls away below. No text.
+Licence: CC0 (AI output)

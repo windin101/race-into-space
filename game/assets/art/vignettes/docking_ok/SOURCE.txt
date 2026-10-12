@@ -1,6 +1,5 @@
-source: nasa_resource_reel_1_medium.mp4
-url: https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201
-licence: Public domain (NASA resource reel HD 049)
-start: 00:40:10
-duration: 3.0
-fps: 12
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 1261107642
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. Two spacecraft approaching nose to nose in orbit over a blue Earth, a cone-shaped capsule and a cylindrical target vehicle. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the two craft close the gap slowly and join with a gentle contact, aligned perfectly. No text.
+Licence: CC0 (AI output)

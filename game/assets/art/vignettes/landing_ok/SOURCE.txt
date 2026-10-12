@@ -1,6 +1,5 @@
-source: nasa_resource_reel_1_medium.mp4
-url: https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201
-licence: Public domain (NASA resource reel HD 049)
-start: 00:29:20
-duration: 4.0
-fps: 12
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 2104625124
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. A cone-shaped capsule under three big red-and-white parachutes descending toward a calm blue ocean, a recovery ship nearby. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the capsule drifts down gently under the parachutes and splashes into the sea, water spraying up. No text.
+Licence: CC0 (AI output)

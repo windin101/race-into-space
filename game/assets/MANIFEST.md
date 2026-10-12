@@ -28,14 +28,6 @@ also carries a `SOURCE.txt` with the clip, timecode and licence.
 
 Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio`.
 `test_assets.gd` fails if a file under `assets/` is missing from this table.
-| art/vignettes/launch_ok/frame_*.webp | launch vignette (ok), 48 frames | https://archive.org/details/255-s-4655 | Public domain (NASA/NARA 255-S-4655) |
-| art/vignettes/insertion_ok/frame_*.webp | insertion vignette (ok), 36 frames | https://archive.org/details/255-s-4655 | Public domain (NASA/NARA 255-S-4655) |
-| art/vignettes/landing_ok/frame_*.webp | landing vignette (ok), 48 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
-| art/vignettes/eva_ok/frame_*.webp | eva vignette (ok), 42 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
-| art/vignettes/orbit_ok/frame_*.webp | orbit vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
-| art/vignettes/docking_ok/frame_*.webp | docking vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
-| art/vignettes/duration_ok/frame_*.webp | duration vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
-| art/vignettes/lm_ops_ok/frame_*.webp | lm_ops vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
 | art/portraits/*.png | 230 astronaut and cosmonaut portraits, 336x400 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from reference/art_source/portrait_features.json; seed = crc32(name), IVANOVA and PONOMARYOVA +1 | CC0 (AI output) |
 | art/hardware/usa/*.png | US hardware icons, 512x512, green-screen keyed to alpha | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from the descriptions in tools/comfy_style.json; seed = crc32(side/group_slot), Ranger, Titan and Eagle +1, Saturn and Kicker-B +2 | CC0 (AI output) |
 | art/hardware/ussr/*.png | Soviet hardware icons, 512x512, green-screen keyed to alpha | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from the descriptions in tools/comfy_style.json; seed = crc32(side/group_slot), Luna and UR-700 +1, Kicker-A +3 | CC0 (AI output) |
@@ -47,3 +39,4 @@ Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio
 | art/icons/*.png | fictional programme and agency emblems, app icon, 512x512 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py icons; seed = crc32(name) | CC0 (AI output) |
 | art/patches/usa/*.png | one 256x256 mission patch per mission, US colours | Qwen-Image (Apache 2.0) via tools/comfy_batch.py patches, motif from the mission name; seed = crc32(patch/side/index), missions 3, 9, 55, 60, 61 +1 | CC0 (AI output) |
 | art/patches/ussr/*.png | the same in Soviet colours | as above, missions 8, 10, 11, 31, 54, 57, 61 +1 | CC0 (AI output) |
+| art/vignettes/*/frame_*.webp | animated mission vignettes, every step family and outcome, 60 frames at 1920x1080 | Qwen-Image keyframe animated by Wan 2.2 image-to-video (both Apache 2.0) via tools/comfy_video.py; seed = crc32(vignette/<family>_<outcome>); each folder's SOURCE.txt holds the prompts | CC0 (AI output) |

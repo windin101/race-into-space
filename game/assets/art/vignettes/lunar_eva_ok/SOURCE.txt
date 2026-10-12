@@ -1,0 +1,5 @@
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 1685267682
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. An astronaut in a white spacesuit standing on the grey lunar surface beside a four-legged lander, planting a flag, Earth in the black sky. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the astronaut bounds slowly in low gravity, dust kicks up and settles, the flag unfurls. No text.
+Licence: CC0 (AI output)

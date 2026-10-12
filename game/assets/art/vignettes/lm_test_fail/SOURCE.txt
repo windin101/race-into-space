@@ -1,0 +1,5 @@
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 268753603
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. A four-legged lunar module in Earth orbit with an engine flame burning ragged and uneven, a panel shaking loose. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the flame cuts out, the panel tears away, the module drifts and tumbles. No text.
+Licence: CC0 (AI output)

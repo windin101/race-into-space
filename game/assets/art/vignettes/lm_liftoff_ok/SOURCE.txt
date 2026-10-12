@@ -1,0 +1,5 @@
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 2129606720
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. The ascent stage of a lunar module just lifting off its descent stage on the grey Moon, a sharp bright flame beneath it, a flag beside the descent stage, Earth in the black sky. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the ascent stage climbs quickly up and out of the top of the frame on its flame, leaving the descent stage and flag behind in a puff of dust. No text.
+Licence: CC0 (AI output)

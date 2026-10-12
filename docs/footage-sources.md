@@ -98,3 +98,11 @@ resource reels, which is the next pull. The 4:3 film is pillarboxed in the 16:9 
 Workflow that worked: download once into `reference/footage/` (gitignored), run
 `tools/footage_sheet.py --every 20` for an overview, then `--every 2` around a window,
 then `footage_import.py` with the chosen in-point.
+
+## Superseded (2026-10-13)
+
+The eight archival clips above were replaced by animated vignettes in the game's flat art
+style (`tools/comfy_video.py`), so every step family and both outcomes now share one look.
+The imported NASA frame sequences are kept under `reference/footage_frames/` (gitignored)
+and in git history at commit aae574d, and `footage_import.py` still works if the archival
+look is ever wanted back for a family.

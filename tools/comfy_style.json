@@ -230,5 +230,204 @@
       "usa": "a small American stars-and-stripes flag",
       "ussr": "a small Soviet red flag with a gold hammer and sickle"
     }
+  },
+  "vignettes": {
+    "_about": "Keyframe still (Qwen-Image) then Wan 2.2 image-to-video. One clip per family and outcome; families with archival footage are skipped unless --force.",
+    "still_prompt": "Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. {scene}. No text, no logos.",
+    "still_negative": "text, letters, caption, logo, watermark, photograph, photorealistic, blurry, frame, border, people's faces, wings, winged, spaceplane, aircraft, jet",
+    "motion_prompt": "Smooth cinematic animation of this illustration, same flat vector style, steady camera, {motion}. No text.",
+    "motion_negative": "text, subtitles, watermark, blurry, jittery, flicker, deformed, extra objects, camera shake, people's faces, color shift",
+    "still_size": [
+      1664,
+      960
+    ],
+    "video_size": [
+      832,
+      480
+    ],
+    "frames": 81,
+    "fps_out": 12,
+    "scenes": {
+      "launch": {
+        "ok": [
+          "A tall white rocket lifting off a launch pad at dawn, bright exhaust flame and billowing white smoke, gantry tower beside it",
+          "the rocket rises slowly off the pad on a column of flame, smoke billows outward, the tower falls away below"
+        ],
+        "fail": [
+          "A tall white rocket a few metres above its launch pad, engines flaring unevenly, the first burst of an orange fireball at its base",
+          "the rocket tips and erupts in a huge orange fireball, debris and black smoke rolling across the pad, the gantry engulfed"
+        ]
+      },
+      "insertion": {
+        "ok": [
+          "A rocket's upper stage high above a curved blue Earth, stage separation, the spent first stage falling away",
+          "the first stage drops away and tumbles, the upper stage engine ignites and climbs toward orbit"
+        ],
+        "fail": [
+          "A rocket upper stage high over a curved Earth, its engine sputtering with ragged flame, the vehicle starting to tumble",
+          "the stage tumbles end over end, fragments break off, it falls back toward the Earth below"
+        ]
+      },
+      "power_on": {
+        "ok": [
+          "A small spacecraft in orbit over a blue Earth, solar panels unfolding, an antenna extending",
+          "the panels unfold smoothly, a light blinks on, the craft turns gently to face the Sun"
+        ],
+        "fail": [
+          "A small spacecraft in orbit over a blue Earth, one solar panel jammed half open, a puff of vapour from its side",
+          "the jammed panel shudders, sparks and vapour vent, the craft begins to tumble slowly and goes dark"
+        ]
+      },
+      "reentry": {
+        "ok": [
+          "A cone-shaped capsule entering the atmosphere heat shield first, wrapped in an orange-pink plasma glow, Earth's curved horizon below",
+          "the plasma glow brightens then fades, the capsule steadies and the glow dies away as it slows"
+        ],
+        "fail": [
+          "A cone-shaped capsule entering the atmosphere at a bad angle, plasma streaming unevenly from one side of the heat shield",
+          "the glow turns violent, the capsule tumbles, pieces tear away in streaks of fire"
+        ]
+      },
+      "landing": {
+        "ok": [
+          "A cone-shaped capsule under three big red-and-white parachutes descending toward a calm blue ocean, a recovery ship nearby",
+          "the capsule drifts down gently under the parachutes and splashes into the sea, water spraying up"
+        ],
+        "fail": [
+          "A cone-shaped capsule falling fast over the ocean, one parachute streaming tangled, two others only partly open",
+          "the tangled parachute flails, the capsule swings wildly and hits the water hard in a huge splash"
+        ]
+      },
+      "orbit": {
+        "ok": [
+          "A cone-shaped capsule with a cylindrical service module orbiting over a blue Earth with white clouds, stars beyond",
+          "the capsule drifts slowly across the frame as the Earth turns gently below"
+        ],
+        "fail": [
+          "A blunt Gemini-style two-man capsule, a short rounded cone with a flat heat shield and a white cylindrical adapter, drifting in orbit above a blue Earth with a plume of vapour jetting from the adapter",
+          "vapour sprays out and the capsule slowly spins, lights flicker and go dark"
+        ]
+      },
+      "lunar_pass": {
+        "ok": [
+          "View from deep space: the curved grey cratered edge of the Moon fills only the bottom of the frame, and a small blunt cone-shaped capsule with a cylindrical service module floats high in the black starry sky above it, far from the surface, Earth small and blue in the distance",
+          "the capsule glides slowly across the black sky while the lunar horizon drifts beneath it, staying high above the surface"
+        ],
+        "fail": [
+          "A cone-shaped capsule near the Moon with its engine bell dark and a thin trail of vapour, drifting off course",
+          "the capsule drifts away from the Moon, slowly tumbling, as the Moon shrinks behind it"
+        ]
+      },
+      "eva": {
+        "ok": [
+          "An astronaut in a white spacesuit floating on a tether outside a capsule, blue Earth filling the background",
+          "the astronaut drifts gently on the tether, turning slowly, the Earth rolling slowly below"
+        ],
+        "fail": [
+          "An astronaut in a white spacesuit at a capsule hatch, struggling, suit visibly stiff, a tether tangled",
+          "the astronaut strains at the hatch, the tether snags, the figure is pulled awkwardly back inside"
+        ]
+      },
+      "lunar_eva": {
+        "ok": [
+          "An astronaut in a white spacesuit standing on the grey lunar surface beside a four-legged lander, planting a flag, Earth in the black sky",
+          "the astronaut bounds slowly in low gravity, dust kicks up and settles, the flag unfurls"
+        ],
+        "fail": [
+          "An astronaut on the grey lunar surface stumbling beside a four-legged lander, kicking up dust, a warning light on the suit's chest pack",
+          "the astronaut falls slowly into the dust and struggles to rise, the warning light blinking"
+        ]
+      },
+      "docking": {
+        "ok": [
+          "Two spacecraft approaching nose to nose in orbit over a blue Earth, a cone-shaped capsule and a cylindrical target vehicle",
+          "the two craft close the gap slowly and join with a gentle contact, aligned perfectly"
+        ],
+        "fail": [
+          "A blunt Gemini-style capsule, a short rounded cone with a white cylindrical adapter, approaching a cylindrical Agena target vehicle too fast at a bad angle in orbit over a blue Earth",
+          "the capsule bumps the target vehicle, both rebound and tumble apart, a panel breaking loose"
+        ]
+      },
+      "lm_ops": {
+        "ok": [
+          "A four-legged lunar module separating from a cone-shaped command module in orbit around the Moon, grey cratered surface below",
+          "the lunar module backs away slowly, its legs unfolding, the two craft drifting apart over the craters"
+        ],
+        "fail": [
+          "A four-legged lunar module floating in orbit high above the Moon, black starry sky, the cratered surface far below, one landing leg bent and vapour leaking from its descent stage",
+          "the leg buckles, vapour streams out, the module wobbles and drifts away, tumbling slowly in space"
+        ]
+      },
+      "lm_descent": {
+        "ok": [
+          "A four-legged lunar module descending toward the grey cratered lunar surface on a bright engine flame, Earth in the black sky",
+          "the module descends steadily, craters growing larger below, dust beginning to lift"
+        ],
+        "fail": [
+          "A four-legged lunar module descending toward the Moon with a sputtering engine flame, tilted, coming down too fast",
+          "the engine flame dies, the module drops and tilts further, the surface rushes up"
+        ]
+      },
+      "lm_landing": {
+        "ok": [
+          "A four-legged lunar module touching down on the grey lunar surface, engine flame fading, dust spraying outward",
+          "the engine cuts, dust sprays out and settles, the module rests still on its four legs"
+        ],
+        "fail": [
+          "A four-legged lunar module hitting the lunar surface hard and tilting over, a leg crumpled, dust exploding outward",
+          "the module topples slowly onto its side in a great cloud of dust"
+        ]
+      },
+      "lm_liftoff": {
+        "ok": [
+          "The ascent stage of a lunar module just lifting off its descent stage on the grey Moon, a sharp bright flame beneath it, a flag beside the descent stage, Earth in the black sky",
+          "the ascent stage climbs quickly up and out of the top of the frame on its flame, leaving the descent stage and flag behind in a puff of dust"
+        ],
+        "fail": [
+          "The ascent stage of a lunar module on the Moon with a weak flickering flame, barely rising, tilting",
+          "the flame sputters out, the stage drops back onto the descent stage and tips in a cloud of dust"
+        ]
+      },
+      "lm_test": {
+        "ok": [
+          "A four-legged lunar module firing its descent engine in Earth orbit, blue Earth below, a command module nearby",
+          "the engine flame burns steady, the module moves smoothly away then back toward the command module"
+        ],
+        "fail": [
+          "A four-legged lunar module in Earth orbit with an engine flame burning ragged and uneven, a panel shaking loose",
+          "the flame cuts out, the panel tears away, the module drifts and tumbles"
+        ]
+      },
+      "photo": {
+        "ok": [
+          "A cylindrical reconnaissance satellite over a blue Earth, a camera lens aimed down, a strip of coastline far below",
+          "the satellite glides across the frame, its lens tracking the coastline below"
+        ],
+        "fail": [
+          "A cylindrical reconnaissance satellite over Earth, its camera door jammed shut, a solar panel bent",
+          "the satellite tumbles slowly, the bent panel glinting, the lens pointing uselessly at space"
+        ]
+      },
+      "planetary": {
+        "ok": [
+          "A small space probe with a dish antenna cruising past a large planet, deep black space and stars",
+          "the probe sweeps past the planet in a slow arc, the planet rotating gently"
+        ],
+        "fail": [
+          "A small space probe with a dish antenna drifting in deep space, its antenna pointing away from a distant planet",
+          "the probe drifts off course, slowly tumbling, the planet sliding out of frame"
+        ]
+      },
+      "duration": {
+        "ok": [
+          "A cone-shaped capsule with a cylindrical service module orbiting a blue Earth, the terminator line between day and night below",
+          "the capsule crosses from day into night as the Earth turns slowly below, lights glowing in the windows"
+        ],
+        "fail": [
+          "A cone-shaped capsule orbiting a blue Earth, frost forming on its windows, a red warning glow inside, a vent leaking vapour",
+          "the vapour trail thickens, the window lights flicker and the capsule goes dark"
+        ]
+      }
+    }
   }
 }

@@ -1,0 +1,5 @@
+Generated for this project: Qwen-Image keyframe + Wan 2.2 image-to-video (Apache 2.0 models) via tools/comfy_video.py.
+seed 1259043229
+still: Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. A small spacecraft in orbit over a blue Earth, solar panels unfolding, an antenna extending. No text, no logos.
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the panels unfold smoothly, a light blinks on, the craft turns gently to face the Sun. No text.
+Licence: CC0 (AI output)

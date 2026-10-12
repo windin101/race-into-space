@@ -189,3 +189,10 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   colours match the programme. Shown by Administration, Intelligence, New Game and the VAB.
   Word choice matters more than negatives: "spidery lander" drew spiders, "capsule" alone drew
   pills; say "four-legged landing module" and "cone-shaped capsule with a heat shield".
+- Vignettes without archival footage (every failure, and the ten families NASA never
+  filmed) are animated: `tools/comfy_video.py` paints a 16:9 keyframe with Qwen-Image in the
+  flat style, then Wan 2.2 image-to-video (14B GGUF, Lightning 4-step LoRAs, 832x480, 81
+  frames) animates it; frames are resampled to 12 fps, scaled to 1920x1080 and saved as
+  WebP. About 3.4 MB and a few minutes per clip. Prompts per family and outcome live in the
+  `vignettes` block of `comfy_style.json`. Archival clips are never overwritten without
+  `--force`.
