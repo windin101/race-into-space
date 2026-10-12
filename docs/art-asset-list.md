@@ -196,3 +196,8 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   WebP. About 3.4 MB and a few minutes per clip. Prompts per family and outcome live in the
   `vignettes` block of `comfy_style.json`. Archival clips are never overwritten without
   `--force`.
+- Mission playback is staged as a control room: `backdrops/mission_control_<side>.png` is
+  the painted room (a wide shot from the back, far wall plain, so the monitor wall drawn by
+  `mission_playback.gd` sits over it). The big screen plays the vignette; the four small
+  monitors show the payload and booster icons, the crew portraits and a ground-track plot,
+  all tinted with scanlines in code. Nothing in the painting needs to line up with a rect.
