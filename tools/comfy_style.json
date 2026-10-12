@@ -7,23 +7,92 @@
     "clip": "qwen_2.5_vl_7b_fp8_scaled.safetensors",
     "vae": "qwen_image_vae.safetensors"
   },
-  "sampling": {"steps": 20, "cfg": 2.5, "sampler": "euler", "scheduler": "simple", "shift": 3.0},
+  "sampling": {
+    "steps": 20,
+    "cfg": 2.5,
+    "sampler": "euler",
+    "scheduler": "simple",
+    "shift": 3.0
+  },
   "style": "flat vector illustration in the style of 1960s space programme press art, clean geometric shapes, limited palette, soft two-tone shading, no outlines, no text, no logos",
-  "negative": "photograph, photorealistic, blurry, noisy, text, watermark, logo, signature, frame, border, 3d render, deformed hands, extra limbs",
+  "negative": "cartoon, childlike, chibi, big round eyes, oversized head, clip art, emoji, space helmet, photograph, photorealistic, blurry, noisy, text, watermark, logo, signature, frame, border, 3d render, deformed hands, extra limbs",
   "portrait": {
-    "prompt": "Repaint this portrait as a {style}. Keep the same person: same face shape, skin tone, hair colour and style, eye colour, expression and glasses if present. Head and shoulders of a {era} {nationality} {role} in a {suit} flight suit, {gender}, looking at the viewer, plain dark navy background.",
+    "prompt": "Repaint image 1 in exactly the art style of image 2: a flat vector illustration like a 1960s magazine portrait, adult proportions, soft two-tone shading, clean shapes, no outlines. Keep the person from image 1: same face shape, skin tone, hair colour and hairstyle, eye colour, moustache or glasses if present, same expression. Head and shoulders of a {era} {nationality} {role}, {gender}, bare head with no helmet, in a {suit} flight suit, looking at the viewer, plain dark navy background.",
     "era": "1960s",
-    "size": [672, 800],
-    "output": [336, 400]
+    "size": [
+      672,
+      800
+    ],
+    "output": [
+      336,
+      400
+    ],
+    "style_ref": "reference/style_refs/portrait_style.png",
+    "mode": "t2i",
+    "t2i_prompt": "Flat vector illustration like a 1960s magazine portrait, soft two-tone cel shading, clean shapes, no outlines, limited muted palette. Head and shoulders of a {age} {nationality} {role}, {gender}, {face} face, {skin} skin, {hair} {hair_style} hair, {eyes} eyes{extras}, calm confident expression, looking at the viewer, wearing a {suit} zip-front flight suit with a dark undershirt, plain dark navy background, centred, adult proportions, no helmet, no text.",
+    "age": "thirty-five year old"
   },
   "hardware": {
     "prompt": "Repaint this spacecraft silhouette as a {style}. Keep exactly the same outline, proportions and orientation. A {name}, {kind}, {nationality} space programme of the 1960s, centred, on a plain solid bright green background #00ff00.",
-    "size": [1024, 1024],
-    "output": [512, 512],
-    "chroma_key": [0, 255, 0]
+    "size": [
+      1024,
+      1024
+    ],
+    "output": [
+      512,
+      512
+    ],
+    "chroma_key": [
+      0,
+      255,
+      0
+    ],
+    "mode": "t2i",
+    "t2i_prompt": "Flat vector illustration like a 1960s magazine technical plate, soft two-tone cel shading, clean geometric shapes, no outlines, limited muted palette. {desc}, a {nationality} {kind} of the 1960s, whole vehicle visible, side view, centred, floating in empty space in front of a plain solid flat bright green chroma key background #00FF00.",
+    "descriptions": {
+      "Explorer": "A small pencil-shaped satellite with four long whip antennae",
+      "Ranger": "A lunar impact probe: hexagonal bus, two flat solar panel wings and a dish antenna, conical top",
+      "Surveyor": "A three-legged lunar lander with a tripod frame, a mast and a tilted solar panel",
+      "Atlas": "A slim silver rocket with a flared base and two side booster engines, a small capsule on top",
+      "Titan": "A tall narrow two-stage rocket with a white and black chequered roll pattern",
+      "Saturn": "The giant white and black Saturn V moon rocket with five huge engine bells, tapering to a slim escape tower",
+      "Nova": "A colossal super-heavy moon rocket, fatter than Saturn V, with a cluster of eight engine bells",
+      "Boosters": "A pair of white strap-on solid rocket boosters with pointed noses and flared nozzles",
+      "Mercury": "A small black bell-shaped one-man capsule with a narrow cylindrical antenna canister on top",
+      "Gemini": "A two-man black conical capsule with a white flared adapter module behind it",
+      "Apollo": "A silver conical command module joined to a cylindrical service module with one engine bell",
+      "Xms-2": "A small three-man winged spaceplane with stubby delta wings and a rounded nose",
+      "Jupiter": "A large conical three-man capsule standing on four landing legs with a rocket engine underneath",
+      "Eagle": "The Apollo lunar module: a boxy gold-foiled descent stage on four legs with a silver ascent cabin on top",
+      "Cricket": "A tiny one-man open-frame lunar lander with a single engine and three thin legs",
+      "Kicker-A": "A small cylindrical upper-stage kick motor with one engine nozzle",
+      "Kicker-B": "A medium cylindrical upper-stage kick motor with a wide engine nozzle and tank bands",
+      "Kicker-C": "A large upper-stage engine module with a big nozzle and two propellant tanks",
+      "Eva Suits": "An empty white spacesuit with a backpack, gold visor helmet and blue gloves, standing upright",
+      "Docking": "A cylindrical docking module with a probe-and-drogue ring at one end and a hatch",
+      "Photo Recon": "A cylindrical reconnaissance satellite with a large camera lens at one end and solar panels",
+      "Sputnik": "A polished metal sphere with four long trailing antennae",
+      "Cosmos": "A small cylindrical satellite with rounded ends and two solar panel wings",
+      "Luna": "A lunar probe: a sphere with an opened set of petals on a conical rocket section",
+      "R-7": "The R-7 rocket: a grey core with four tapered strap-on boosters flaring out at the base",
+      "Proton": "A tall rocket with six slim side tanks clustered around the core stage",
+      "N1": "The giant stepped conical N1 moon rocket with thirty small engines across its wide base",
+      "Ur-700": "A huge Soviet moon rocket made of nine clustered cylindrical boosters",
+      "Vostok": "A spherical capsule sitting on a conical instrument module with a ring of windows",
+      "Voskhod": "A spherical capsule with a tall inflatable airlock tube extending from its side",
+      "Soyuz": "A spacecraft with a spherical orbital module, a bell-shaped descent module and two flat solar panel wings",
+      "Lapot": "A small Soviet lifting-body spaceplane with upturned wingtips and a flat belly",
+      "Lk-700": "A large direct-ascent lunar lander: a conical capsule on a wide landing stage with four legs",
+      "Lkm": "A Soviet lunar lander with a single large engine, a round cabin and four splayed legs",
+      "Lk": "A small single-cosmonaut lunar lander: a round cabin on a four-legged lattice landing frame"
+    },
+    "negative_extra": "ground, floor, shadow, horizon, landscape, launch pad, text, label, number, caption, people"
   },
   "backdrops": {
-    "size": [1920, 1080],
+    "size": [
+      1920,
+      1080
+    ],
     "prompts": {
       "title": "Wide painted key art, {style}: a Saturn-class rocket and an R-7 rocket rising on opposite sides of a night sky over a launch complex, the Moon large above, 1957 to 1977 space race, cinematic but flat, no text",
       "newscast_usa": "Television news studio of 1965, {style}: an empty anchor desk at the left, a world map and clocks behind, broadcast lights, muted colours, no people, no text",

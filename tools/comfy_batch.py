@@ -15,7 +15,7 @@ Outputs land directly where the game's ArtAssets loader expects them:
   game/assets/art/portraits/<NAME>.png        336x400
   game/assets/art/hardware/<side>/<group>_<slot>.png   512x512, green chroma-keyed to alpha
   game/assets/art/backdrops/<name>.png        1920x1080
-and the manifest lines are appended to a file next to them (manifest_pending.md).
+The folders are covered by wildcard lines in game/assets/MANIFEST.md (seed = crc32(name) + --reseed).
 
 Settings and prompts: tools/comfy_style.json. Requires the ComfyUI server running and
 the Qwen weights in its model folders.
@@ -37,6 +37,8 @@ ROOT = Path(__file__).resolve().parent.parent
 GAME = ROOT / "game"
 SOURCE = ROOT / "reference" / "art_source"
 STYLE = json.loads((ROOT / "tools" / "comfy_style.json").read_text())
+_FEAT = SOURCE / "portrait_features.json"
+FEATURES = json.loads(_FEAT.read_text()) if _FEAT.exists() else {}
 SERVER = STYLE["server"]
 CLIENT = str(uuid.uuid4())
 
@@ -95,15 +97,21 @@ def seed_for(name: str) -> int:
 
 # ----------------------------------------------------------------- workflows
 
-def edit_graph(image_name: str, prompt: str, seed: int, width: int, height: int) -> dict:
+def edit_graph(image_name: str, prompt: str, seed: int, width: int, height: int, style_name: str | None = None) -> dict:
     m, s = STYLE["models"], STYLE["sampling"]
-    return {
+    positive = {"clip": ["2", 0], "prompt": prompt, "vae": ["3", 0], "image1": ["5", 0]}
+    graph_extra = {}
+    if style_name:
+        graph_extra["14"] = {"class_type": "LoadImage", "inputs": {"image": style_name}}
+        graph_extra["15"] = {"class_type": "ImageScaleToTotalPixels", "inputs": {"image": ["14", 0], "upscale_method": "lanczos", "megapixels": round(width * height / 1e6, 2), "resolution_steps": 16}}
+        positive["image2"] = ["15", 0]
+    return graph_extra | {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": m["edit"], "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": m["clip"], "type": "qwen_image"}},
         "3": {"class_type": "VAELoader", "inputs": {"vae_name": m["vae"]}},
         "4": {"class_type": "LoadImage", "inputs": {"image": image_name}},
         "5": {"class_type": "ImageScaleToTotalPixels", "inputs": {"image": ["4", 0], "upscale_method": "lanczos", "megapixels": round(width * height / 1e6, 2), "resolution_steps": 16}},
-        "6": {"class_type": "TextEncodeQwenImageEditPlus", "inputs": {"clip": ["2", 0], "prompt": prompt, "vae": ["3", 0], "image1": ["5", 0]}},
+        "6": {"class_type": "TextEncodeQwenImageEditPlus", "inputs": positive},
         "7": {"class_type": "TextEncodeQwenImageEditPlus", "inputs": {"clip": ["2", 0], "prompt": STYLE["negative"], "vae": ["3", 0], "image1": ["5", 0]}},
         "8": {"class_type": "VAEEncode", "inputs": {"pixels": ["5", 0], "vae": ["3", 0]}},
         "9": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": s["shift"]}},
@@ -114,14 +122,14 @@ def edit_graph(image_name: str, prompt: str, seed: int, width: int, height: int)
     }
 
 
-def t2i_graph(prompt: str, seed: int, width: int, height: int) -> dict:
+def t2i_graph(prompt: str, seed: int, width: int, height: int, negative_extra: str = "") -> dict:
     m, s = STYLE["models"], STYLE["sampling"]
     return {
         "1": {"class_type": "UNETLoader", "inputs": {"unet_name": m["t2i"], "weight_dtype": "default"}},
         "2": {"class_type": "CLIPLoader", "inputs": {"clip_name": m["clip"], "type": "qwen_image"}},
         "3": {"class_type": "VAELoader", "inputs": {"vae_name": m["vae"]}},
         "4": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": prompt}},
-        "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": STYLE["negative"]}},
+        "5": {"class_type": "CLIPTextEncode", "inputs": {"clip": ["2", 0], "text": STYLE["negative"] + (", " + negative_extra if negative_extra else "")}},
         "6": {"class_type": "EmptySD3LatentImage", "inputs": {"width": width, "height": height, "batch_size": 1}},
         "7": {"class_type": "ModelSamplingAuraFlow", "inputs": {"model": ["1", 0], "shift": 3.1}},
         "8": {"class_type": "KSampler", "inputs": {"model": ["7", 0], "seed": seed, "steps": s["steps"], "cfg": s["cfg"], "sampler_name": s["sampler"], "scheduler": s["scheduler"], "positive": ["4", 0], "negative": ["5", 0], "latent_image": ["6", 0], "denoise": 1.0}},
@@ -151,8 +159,34 @@ def hardware_entries() -> list[dict]:
         for group in ("probe", "rocket", "manned", "misc"):
             for slot, spec in enumerate(hw[side][group]):
                 if spec:
-                    out.append({"side": side, "group": group, "slot": slot, "name": spec["name"].title()})
+                    out.append({"side": side, "group": group, "slot": slot, "name": spec["name"].title(),
+                                "seed_key": f"{side}/{group}_{slot}"})
     return out
+
+
+def trim_frame(img: Image.Image, max_frac: float = 0.1, bright: int = 170) -> Image.Image:
+    """Crop away a pale frame the model sometimes paints around a portrait."""
+    g = img.convert("L")
+    w, h = g.size
+    px = g.load()
+
+    def line_mean(xs, ys):
+        vals = [px[x, y] for x in xs for y in ys]
+        return sum(vals) / len(vals)
+
+    left = right = top = bottom = 0
+    while left < w * max_frac and line_mean([left], range(h)) > bright:
+        left += 1
+    while right < w * max_frac and line_mean([w - 1 - right], range(h)) > bright:
+        right += 1
+    while top < h * max_frac and line_mean(range(w), [top]) > bright:
+        top += 1
+    while bottom < h * max_frac and line_mean(range(w), [h - 1 - bottom]) > bright:
+        bottom += 1
+    if left + right + top + bottom == 0:
+        return img
+    pad = 3
+    return img.crop((left + pad, top + pad, w - right - pad, h - bottom - pad))
 
 
 def fit_cover(img: Image.Image, size: tuple[int, int]) -> Image.Image:
@@ -165,16 +199,29 @@ def fit_cover(img: Image.Image, size: tuple[int, int]) -> Image.Image:
 
 
 def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90) -> Image.Image:
-    px = img.load()
-    for y in range(img.height):
-        for x in range(img.width):
-            r, g, b, a = px[x, y]
-            d = abs(r - key[0]) + abs(g - key[1]) + abs(b - key[2])
-            if d < tolerance:
-                px[x, y] = (r, g, b, 0)
-            elif d < tolerance * 2:
-                px[x, y] = (r, g, b, int(255 * (d - tolerance) / tolerance))
-    return img
+    """Green-screen removal that copes with the model's imperfect green: any pixel whose green
+    channel dominates both red and blue is cut, partially so near the edge, and the remaining
+    green spill on the subject's rim is neutralised."""
+    import numpy as np
+
+    arr = np.asarray(img.convert("RGBA")).astype(np.float32)
+    r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
+    dominance = g - np.maximum(r, b)  # how green a pixel is
+    alpha = np.clip(1.0 - (dominance - 20.0) / 50.0, 0.0, 1.0)  # >=70 fully cut, <=20 kept
+    arr[..., 3] = alpha * 255.0
+    spill = np.clip(dominance, 0, None) * (alpha > 0)
+    arr[..., 1] = np.minimum(g, np.maximum(r, b) + np.where(spill > 0, 10.0, 255.0))
+    out = Image.fromarray(np.clip(arr, 0, 255).astype(np.uint8), "RGBA")
+    # Drop a floor shadow the model may paint: fully transparent rows below the subject are
+    # already gone; crop the alpha bbox and recentre so the icon fills the tile.
+    bbox = out.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
+    if bbox:
+        sub = out.crop(bbox)
+        scale = min((img.width * 0.9) / sub.width, (img.height * 0.9) / sub.height)
+        sub = sub.resize((max(1, round(sub.width * scale)), max(1, round(sub.height * scale))), Image.LANCZOS)
+        out = Image.new("RGBA", img.size, (0, 0, 0, 0))
+        out.paste(sub, ((img.width - sub.width) // 2, (img.height - sub.height) // 2), sub)
+    return out
 
 
 def main() -> None:
@@ -185,11 +232,10 @@ def main() -> None:
     ap.add_argument("--side", default="", help="usa or ussr")
     ap.add_argument("--only-missing", action="store_true")
     ap.add_argument("--dry-run", action="store_true")
+    ap.add_argument("--reseed", type=int, default=0, help="add N to each seed to get a different draw for the same name")
     a = ap.parse_args()
     wanted = {n.strip().upper() for n in a.names.split(",") if n.strip()}
     style = STYLE["style"]
-    manifest = GAME / "assets" / "art" / "manifest_pending.md"
-    lines = []
 
     if a.kind == "portraits":
         cfg = STYLE["portrait"]
@@ -211,16 +257,33 @@ def main() -> None:
     for j in jobs:
         if a.kind == "portraits":
             out = GAME / "assets" / "art" / "portraits" / f"{j['name']}.png"
-            src = SOURCE / "portraits" / f"{j['name']}.png"
-            prompt = cfg["prompt"].format(style=style, era=cfg["era"], nationality=NATION[j["side"]], role=ROLE[j["side"]],
-                                          suit=SUIT[j["side"]], gender="a woman" if j["female"] else "a man")
-            graph = None if a.dry_run and not src.exists() else None
             size = cfg["size"]
+            if cfg.get("mode", "edit") == "t2i":
+                src = None
+                f = FEATURES.get(j["name"], {})
+                extras = ""
+                if f.get("glasses"):
+                    extras += ", wearing glasses"
+                if f.get("moustache"):
+                    extras += ", with a moustache"
+                prompt = cfg["t2i_prompt"].format(age=cfg.get("age", "thirty-five year old"), nationality=NATION[j["side"]], role=ROLE[j["side"]],
+                                                  gender="a woman" if j["female"] else "a man", face=f.get("face", "oval"), skin=f.get("skin", "fair"),
+                                                  hair=f.get("hair", "brown"), hair_style=f.get("hair_style", "short"), eyes=f.get("eyes", "brown"),
+                                                  extras=extras, suit=SUIT[j["side"]])
+            else:
+                src = SOURCE / "portraits" / f"{j['name']}.png"
+                prompt = cfg["prompt"].format(style=style, era=cfg["era"], nationality=NATION[j["side"]], role=ROLE[j["side"]],
+                                              suit=SUIT[j["side"]], gender="a woman" if j["female"] else "a man")
         elif a.kind == "hardware":
             out = GAME / "assets" / "art" / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
-            src = SOURCE / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
-            prompt = cfg["prompt"].format(style=style, name=j["name"], kind=KIND[j["group"]], nationality=NATION[j["side"]])
             size = cfg["size"]
+            if cfg.get("mode", "edit") == "t2i":
+                src = None
+                desc = cfg["descriptions"].get(j["name"], f"A {j['name']} {KIND[j['group']]}")
+                prompt = cfg["t2i_prompt"].format(desc=desc, kind=KIND[j["group"]], nationality=NATION[j["side"]])
+            else:
+                src = SOURCE / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
+                prompt = cfg["prompt"].format(style=style, name=j["name"], kind=KIND[j["group"]], nationality=NATION[j["side"]])
         else:
             out = GAME / "assets" / "art" / "backdrops" / f"{j['name']}.png"
             src = None
@@ -228,40 +291,39 @@ def main() -> None:
             size = cfg["size"]
         if a.only_missing and out.exists():
             continue
-        seed = seed_for(j["name"])
+        seed = seed_for(j.get("seed_key", j["name"])) + a.reseed
         if src is not None:
             if not src.exists():
                 print(f"skip {j['name']}: no source render at {src} (run art_export.tscn)")
                 continue
+            style_ref = cfg.get("style_ref")
+            style_name = None
+            if style_ref and (ROOT / style_ref).exists():
+                style_name = upload_image(ROOT / style_ref) if not a.dry_run else Path(style_ref).name
             if a.dry_run:
-                print(json.dumps(edit_graph(src.name, prompt, seed, *size), indent=1)[:1500])
+                print(json.dumps(edit_graph(src.name, prompt, seed, *size, style_name), indent=1)[:1500])
                 return
             uploaded = upload_image(src)
-            graph = edit_graph(uploaded, prompt, seed, *size)
+            graph = edit_graph(uploaded, prompt, seed, *size, style_name)
         else:
             if a.dry_run:
-                print(json.dumps(t2i_graph(prompt, seed, *size), indent=1)[:1500])
+                print(json.dumps(t2i_graph(prompt, seed, *size, cfg.get("negative_extra", "")), indent=1)[:1500])
                 return
-            graph = t2i_graph(prompt, seed, *size)
+            graph = t2i_graph(prompt, seed, *size, cfg.get("negative_extra", ""))
         t0 = time.time()
         img = run_workflow(graph)[0]
         if a.kind == "portraits":
-            img = fit_cover(img, tuple(cfg["output"])).convert("RGB")
+            img = fit_cover(trim_frame(img), tuple(cfg["output"])).convert("RGB")
         elif a.kind == "hardware":
             img = chroma_key(fit_cover(img, tuple(cfg["output"])), tuple(cfg["chroma_key"]))
         else:
             img = img.convert("RGB")
         out.parent.mkdir(parents=True, exist_ok=True)
         img.save(out)
-        rel = out.relative_to(GAME / "assets")
-        lines.append(f"| {rel} | {a.kind[:-1]} {j['name']} | generated with Qwen-Image{'-Edit' if src else ''} via tools/comfy_batch.py, seed {seed} | CC0 (AI output) |")
         done += 1
         print(f"{done}/{len(jobs)} {out.relative_to(ROOT)}  ({time.time() - t0:.0f}s)")
-    if lines:
-        with manifest.open("a") as f:
-            f.write("\n".join(lines) + "\n")
-        print(f"{len(lines)} manifest line(s) appended to {manifest.relative_to(ROOT)}; move them into MANIFEST.md")
-
+    if done:
+        print("MANIFEST.md covers these folders with wildcard lines; per-image seeds are crc32 of the name plus --reseed.")
 
 if __name__ == "__main__":
     main()

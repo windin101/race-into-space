@@ -149,3 +149,28 @@ procedural drawing when it does not, so assets can land one at a time. That load
 not written yet; it is the first task once the first real asset arrives. Every file
 must be added to `assets/MANIFEST.md` with its licence, and the manifest test will
 refuse unlisted files.
+
+## Generating the art locally (2026-10-12)
+
+The portraits, hardware icons and backdrops are produced with Qwen-Image and
+Qwen-Image-Edit (Apache 2.0) through the local ComfyUI server, driven by
+`tools/comfy_batch.py` with prompts in `tools/comfy_style.json`:
+
+```
+DISPLAY=:1 godot --path game res://tools/art_export.tscn -- --out ../reference/art_source
+python3 -I tools/comfy_batch.py portraits [--only-missing] [--names A,B] [--reseed N]
+python3 -I tools/comfy_batch.py hardware
+python3 -I tools/comfy_batch.py backdrops
+python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
+```
+
+- Portraits are text-to-image only. The export step writes each name's deterministic
+  feature set (face shape, skin, hair, eyes, moustache, glasses) to
+  `reference/art_source/portrait_features.json`, and the prompt is built from those words.
+  Image-edit with a style reference was tried and dropped: the model copies the reference
+  face onto everyone. The look is anchored on `SHEPARD.png`; a pale painted frame is cropped
+  by `trim_frame` in the batch tool. A bad draw is fixed by `--reseed 1` for that name.
+- Hardware uses image-edit over the procedural silhouettes so the outlines match the game's
+  hotspot rects, on a green background that is keyed to alpha afterwards.
+- Seeds are `crc32(name)` plus the reseed offset, so a rerun reproduces the same picture.
+  `MANIFEST.md` covers the folders with wildcard lines rather than one line per file.

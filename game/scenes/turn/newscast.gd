@@ -83,6 +83,7 @@ func _refresh() -> void:
 	var state := Session.state()
 	var p := Session.me()
 	var news: Dictionary = p.last_news
+	set_backdrop("newscast_%s" % p.side)
 	_date_card.text = state.date_string()
 	_anchor.text = "Carter Walcrite reporting for the %s network" % TurnLogic.side_name(p.side)
 	var raw := str(news.get("text", ""))

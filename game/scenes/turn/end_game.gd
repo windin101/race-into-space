@@ -112,6 +112,7 @@ func _refresh() -> void:
 		_reason.text = reason.capitalize()
 	if not state.ended and _report.is_empty():
 		_reason.text = "The game has not ended yet."
+	set_backdrop("endgame_%s_%s" % [me.side, "win" if winner == me.index else "lose"])
 
 	var lines: Array = GameData.text.get("endgame", {}).get("endgame", [])
 	var sides: Array = [me.index] if winner >= 0 else [0, 1]

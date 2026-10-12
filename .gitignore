@@ -27,3 +27,6 @@ reference/
 
 # gdUnit4 reports
 game/reports/
+
+# Python
+__pycache__/

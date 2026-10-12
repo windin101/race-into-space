@@ -36,3 +36,7 @@ Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio
 | art/vignettes/docking_ok/frame_*.webp | docking vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
 | art/vignettes/duration_ok/frame_*.webp | duration vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
 | art/vignettes/lm_ops_ok/frame_*.webp | lm_ops vignette (ok), 36 frames | https://images.nasa.gov/details/HD%20049%20Mercury_Gemini_Apollo_Resource%20Reel%201 | Public domain (NASA resource reel HD 049) |
+| art/portraits/*.png | 230 astronaut and cosmonaut portraits, 336x400 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from reference/art_source/portrait_features.json; seed = crc32(name), IVANOVA and PONOMARYOVA +1 | CC0 (AI output) |
+| art/hardware/usa/*.png | US hardware icons, 512x512, chroma-keyed | Qwen-Image-Edit (Apache 2.0) over the procedural silhouettes via tools/comfy_batch.py; seed = crc32(name) | CC0 (AI output) |
+| art/hardware/ussr/*.png | Soviet hardware icons, 512x512, chroma-keyed | Qwen-Image-Edit (Apache 2.0) over the procedural silhouettes via tools/comfy_batch.py; seed = crc32(name) | CC0 (AI output) |
+| art/backdrops/*.png | title, newscast and end-game backdrops, 1920x1080 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py; seed = crc32(name) | CC0 (AI output) |
