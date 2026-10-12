@@ -65,9 +65,18 @@
       "Jupiter": "A large conical three-man capsule standing on four landing legs with a rocket engine underneath",
       "Eagle": "The Apollo lunar module: a boxy gold-foiled descent stage on four legs with a silver ascent cabin on top",
       "Cricket": "A tiny one-man open-frame lunar lander with a single engine and three thin legs",
-      "Kicker-A": "A small cylindrical upper-stage kick motor with one engine nozzle",
-      "Kicker-B": "A medium cylindrical upper-stage kick motor with a wide engine nozzle and tank bands",
-      "Kicker-C": "A large upper-stage engine module with a big nozzle and two propellant tanks",
+      "Kicker-A": {
+        "desc": "The Agena upper stage: a slim plain white cylinder with a single small engine bell at one end, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      },
+      "Kicker-B": {
+        "desc": "The Centaur upper stage: a smooth stainless steel cylinder like a tin can with flat ends, two engine bells sticking out of one end, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      },
+      "Kicker-C": {
+        "desc": "The Saturn S-IVB upper stage: a smooth white cylinder like a tin can with flat ends and a black band, one big engine bell sticking out of one end, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      },
       "Eva Suits": "An empty white spacesuit with a backpack, gold visor helmet and blue gloves, standing upright",
       "Docking": "A cylindrical docking module with a probe-and-drogue ring at one end and a hatch",
       "Photo Recon": "A cylindrical reconnaissance satellite with a large camera lens at one end and solar panels",
@@ -96,7 +105,7 @@
     "prompts": {
       "title": "Wide painted key art, {style}: a Saturn-class rocket and an R-7 rocket rising on opposite sides of a night sky over a launch complex, the Moon large above, 1957 to 1977 space race, cinematic but flat, no text",
       "newscast_usa": "Television news studio of 1965, {style}: an empty anchor desk at the left, a world map and clocks behind, broadcast lights, muted colours, no people, no text",
-      "newscast_ussr": "Soviet television news studio of 1965, {style}: an empty anchor desk at the left, a map of the USSR and a red banner behind, muted colours, no people, no text",
+      "newscast_ussr": "Soviet television news studio of 1965, {style}: an empty anchor desk at the left, a map of the USSR and a plain blank red banner with no writing behind, muted colours, no people, no text, no letters",
       "endgame_usa_win": "Celebration painting, {style}: an Apollo capsule and parachutes over an aircraft carrier, ticker tape, 1969, triumphant, no text",
       "endgame_usa_lose": "Sombre painting, {style}: an empty launch pad at dusk at Cape Canaveral, a lowered flag, 1977, no text",
       "endgame_ussr_win": "Celebration painting, {style}: cosmonauts on Red Square, red banners, a lunar lander silhouette above, triumphant, no text",

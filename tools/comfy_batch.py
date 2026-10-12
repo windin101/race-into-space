@@ -255,6 +255,7 @@ def main() -> None:
 
     done = 0
     for j in jobs:
+        neg_item = ""
         if a.kind == "portraits":
             out = GAME / "assets" / "art" / "portraits" / f"{j['name']}.png"
             size = cfg["size"]
@@ -280,6 +281,9 @@ def main() -> None:
             if cfg.get("mode", "edit") == "t2i":
                 src = None
                 desc = cfg["descriptions"].get(j["name"], f"A {j['name']} {KIND[j['group']]}")
+                neg_item = ""
+                if isinstance(desc, dict):
+                    neg_item, desc = desc.get("negative", ""), desc["desc"]
                 prompt = cfg["t2i_prompt"].format(desc=desc, kind=KIND[j["group"]], nationality=NATION[j["side"]])
             else:
                 src = SOURCE / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
@@ -307,9 +311,9 @@ def main() -> None:
             graph = edit_graph(uploaded, prompt, seed, *size, style_name)
         else:
             if a.dry_run:
-                print(json.dumps(t2i_graph(prompt, seed, *size, cfg.get("negative_extra", "")), indent=1)[:1500])
+                print(json.dumps(t2i_graph(prompt, seed, *size, ", ".join(x for x in [cfg.get("negative_extra", ""), neg_item] if x)), indent=1)[:1500])
                 return
-            graph = t2i_graph(prompt, seed, *size, cfg.get("negative_extra", ""))
+            graph = t2i_graph(prompt, seed, *size, ", ".join(x for x in [cfg.get("negative_extra", ""), neg_item] if x))
         t0 = time.time()
         img = run_workflow(graph)[0]
         if a.kind == "portraits":

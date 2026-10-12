@@ -170,7 +170,10 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   Image-edit with a style reference was tried and dropped: the model copies the reference
   face onto everyone. The look is anchored on `SHEPARD.png`; a pale painted frame is cropped
   by `trim_frame` in the batch tool. A bad draw is fixed by `--reseed 1` for that name.
-- Hardware uses image-edit over the procedural silhouettes so the outlines match the game's
-  hotspot rects, on a green background that is keyed to alpha afterwards.
+- Hardware is text-to-image as well, from a one-line description per vehicle in
+  `comfy_style.json`, painted on a green screen that `chroma_key` cuts by green dominance
+  (the model's green is never pure #00ff00). Image-edit over the procedural silhouettes was
+  tried first and left the source almost untouched. Ask for the craft "floating in empty
+  space" and put ground, shadow and label in the negative prompt, or it paints a floor.
 - Seeds are `crc32(name)` plus the reseed offset, so a rerun reproduces the same picture.
   `MANIFEST.md` covers the folders with wildcard lines rather than one line per file.

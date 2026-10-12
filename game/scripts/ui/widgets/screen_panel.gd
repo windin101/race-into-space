@@ -31,7 +31,7 @@ func _init() -> void:
 	_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
 	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
 	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_backdrop.modulate = Color(0.55, 0.55, 0.55)
+	_backdrop.modulate = Color(0.65, 0.65, 0.65)
 	_backdrop.visible = false
 	add_child(_backdrop)
 	var margin := MarginContainer.new()
@@ -82,10 +82,23 @@ func set_backdrop(name: String) -> void:
 	_backdrop.texture = tex
 	_backdrop.visible = tex != null
 	if tex != null:
-		var sb := UiTheme.flat(Color(UiPalette.PANEL, 0.82), UiPalette.BORDER_SOFT)
-		_panel.add_theme_stylebox_override("panel", sb)
+		_panel.add_theme_stylebox_override("panel", UiTheme.flat(Color(UiPalette.PANEL, 0.72), UiPalette.BORDER_SOFT))
+		_make_translucent(content)
 	else:
 		_panel.remove_theme_stylebox_override("panel")
+
+
+## Nested panels (Sunken, Card) would hide the art, so they get a see-through copy of
+## their own stylebox. Called once the subclass has built its content.
+func _make_translucent(node: Node) -> void:
+	for child in node.get_children():
+		if child is PanelContainer and not child.has_theme_stylebox_override("panel"):
+			var sb: StyleBox = child.get_theme_stylebox("panel")
+			if sb is StyleBoxFlat:
+				var copy := sb.duplicate() as StyleBoxFlat
+				copy.bg_color = Color(copy.bg_color, 0.78)
+				child.add_theme_stylebox_override("panel", copy)
+		_make_translucent(child)
 
 
 func set_status(text: String) -> void:
