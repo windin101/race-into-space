@@ -18,6 +18,9 @@ static func ask(host: Node, title: String, text: String, ok_label := "Yes", canc
 	await box.visibility_changed
 	if box.visible:
 		await box.visibility_changed
+	# AcceptDialog hides itself *before* emitting `confirmed`, so the hide resumes this
+	# coroutine first; yield one frame so the signal (and the lambda above) can run.
+	await host.get_tree().process_frame
 	box.queue_free()
 	return result[0]
 
