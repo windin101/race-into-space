@@ -182,3 +182,10 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   flag (top half only, the model always paints a building at the pole's foot). The painter
   fits each cutout into its hotspot box grown by 30% and stands it on the box's baseline.
   Prompts that say "no rockets" get rockets; put the unwanted thing in the negative instead.
+- Icons: the five Administration glyphs and the two flags are hand-drawn SVGs under
+  `assets/art/icons/`. Emblems (fictional agencies, never real seals), the app icon and the
+  mission patches come from `comfy_batch.py icons` and `comfy_batch.py patches`; a patch's
+  motif is assembled from the mission name's keywords in `patch_motif()`, one per side so the
+  colours match the programme. Shown by Administration, Intelligence, New Game and the VAB.
+  Word choice matters more than negatives: "spidery lander" drew spiders, "capsule" alone drew
+  pills; say "four-legged landing module" and "cone-shaped capsule with a heat shield".

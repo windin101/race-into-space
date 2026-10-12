@@ -43,6 +43,11 @@ static func backdrop(name: String) -> Texture2D:
 	return texture("backdrops/%s.png" % name)
 
 
+## Mission patch for a side and mission index (assets/art/patches/<side>/mission_<i>.png).
+static func patch(side: String, index: int) -> Texture2D:
+	return texture("patches/%s/mission_%d.png" % [side, index])
+
+
 static func icon(name: String) -> Texture2D:
 	var svg := texture("icons/%s.svg" % name)
 	return svg if svg != null else texture("icons/%s.png" % name)

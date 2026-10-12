@@ -64,6 +64,11 @@ func _entry(office: Dictionary, side: String) -> Control:
 	button.text = office_title(office, side)
 	button.theme_type_variation = "Accent"
 	button.custom_minimum_size = Vector2(300, 64)
+	var glyph := ArtAssets.icon(office["id"])
+	if glyph != null:
+		button.icon = glyph
+		button.add_theme_constant_override("icon_max_width", 32)
+		button.add_theme_constant_override("h_separation", 12)
 	button.pressed.connect(_open.bind(office))
 	row.add_child(button)
 	_buttons[office["id"]] = button

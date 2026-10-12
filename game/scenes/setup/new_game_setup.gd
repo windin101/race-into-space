@@ -11,6 +11,7 @@ const MODEL_NAMES := {"basic": "Basic", "historical": "Historical"}
 const SEED_MAX := 2147483647
 
 var _side: OptionButton
+var _emblem: TextureRect
 var _model: OptionButton
 var _seed: SpinBox
 var _director: Dictionary = {}     ## side -> LineEdit
@@ -41,8 +42,23 @@ func _ready() -> void:
 	_side = OptionButton.new()
 	for s in SIDES:
 		_side.add_item(SIDE_TITLES[s])
+		var flag := ArtAssets.icon("flag_%s" % s)
+		if flag != null:
+			_side.set_item_icon(_side.item_count - 1, flag)
 	_side.selected = 0
-	_row(top, "Your side", _side)
+	_side.add_theme_constant_override("icon_max_width", 38)
+	var side_row := HBoxContainer.new()
+	side_row.add_theme_constant_override("separation", 16)
+	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	side_row.add_child(_side)
+	_emblem = TextureRect.new()
+	_emblem.custom_minimum_size = Vector2(72, 72)
+	_emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	side_row.add_child(_emblem)
+	_side.item_selected.connect(func(_i): _refresh_emblem())
+	_refresh_emblem()
+	_row(top, "Your side", side_row)
 	_model = OptionButton.new()
 	_models = GameData.hardware.get("models", {}).keys()
 	for m in _models:
@@ -116,6 +132,12 @@ func _ready() -> void:
 	start.theme_type_variation = "Accent"
 	start.pressed.connect(_on_start)
 	footer.add_child(start)
+
+
+func _refresh_emblem() -> void:
+	var tex := ArtAssets.icon("emblem_%s" % SIDES[_side.selected])
+	_emblem.texture = tex
+	_emblem.visible = tex != null
 
 
 func _row(grid: GridContainer, label: String, control: Control) -> void:

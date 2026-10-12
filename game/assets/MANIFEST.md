@@ -42,3 +42,8 @@ Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio
 | art/backdrops/*.png | title, newscast and end-game backdrops, 1920x1080 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py; seed = crc32(name), newscast_ussr +2 | CC0 (AI output) |
 | art/spaceport/usa/*.png | Cape Canaveral: two season backgrounds (1920x1080) and green-screen cutouts for each building, plot, pad state and flag | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from tools/comfy_style.json; seed = crc32(side/layer), flag +1 | CC0 (AI output) |
 | art/spaceport/ussr/*.png | Baikonur: the same layer set | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py; seed = crc32(side/layer) | CC0 (AI output) |
+| art/icons/budget.svg, hardware.svg, future.svg, recruiting.svg, preferences.svg | Administration menu glyphs, 64x64 | hand-drawn for this project | GPL-2.0-or-later (project) |
+| art/icons/flag_usa.svg, flag_ussr.svg | simplified national flags, 76x40 | hand-drawn for this project | GPL-2.0-or-later (project) |
+| art/icons/*.png | fictional programme and agency emblems, app icon, 512x512 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py icons; seed = crc32(name) | CC0 (AI output) |
+| art/patches/usa/*.png | one 256x256 mission patch per mission, US colours | Qwen-Image (Apache 2.0) via tools/comfy_batch.py patches, motif from the mission name; seed = crc32(patch/side/index), missions 3, 9, 55, 60, 61 +1 | CC0 (AI output) |
+| art/patches/ussr/*.png | the same in Soviet colours | as above, missions 8, 10, 11, 31, 54, 57, 61 +1 | CC0 (AI output) |

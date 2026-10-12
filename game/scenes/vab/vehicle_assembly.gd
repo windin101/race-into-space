@@ -66,6 +66,14 @@ func _make_mission_card(state: SimState, p: SimPlayer, pad: int) -> Control:
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 16)
 	v.add_child(head)
+	var patch := ArtAssets.patch(p.side, int(pl["mission_index"]))
+	if patch != null:
+		var badge := TextureRect.new()
+		badge.texture = patch
+		badge.custom_minimum_size = Vector2(72, 72)
+		badge.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		badge.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		head.add_child(badge)
 	var name_label := Label.new()
 	name_label.theme_type_variation = "Subheading"
 	name_label.text = "%s   (Pad %d)" % [str(m["name"]).capitalize(), pad + 1]

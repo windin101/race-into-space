@@ -180,6 +180,61 @@ def spaceport_entries(cfg: dict) -> list[dict]:
     return out
 
 
+def patch_motif(name: str) -> str:
+    """A patch motif from the mission name's keywords, so each of the 62 patches differs."""
+    n = name.upper()
+    parts = []
+    if "RESCUE" in n:
+        parts.append("a life ring and a reaching hand")
+    if "LANDING" in n and "LUNAR" in n:
+        parts.append("a four-legged lunar landing module standing on the Moon's surface with Earth rising")
+    elif "LUNAR ORBITAL" in n or "LUNAR PASS" in n or "LUNAR FLYBY" in n:
+        parts.append("a cone-shaped space capsule with a flat heat shield and a small window, swinging around a large cratered Moon")
+    elif "LUNAR PROBE" in n:
+        parts.append("a small probe descending to the Moon")
+    for planet, motif in [("VENUS", "a pale yellow planet Venus"), ("MARS", "a red planet Mars"), ("MERCURY FLYBY", "a small grey planet close to a blazing Sun"),
+                          ("JUPITER", "a banded giant planet Jupiter"), ("SATURN", "a ringed planet Saturn")]:
+        if planet in n:
+            parts.append("a probe flying past " + motif)
+    if "ORBITING LAB" in n:
+        parts.append("a cylindrical space laboratory with solar wings orbiting Earth")
+    if "LM TEST" in n:
+        parts.append("a four-legged lunar module and a cone-shaped space capsule flying together")
+    if "DOCKING" in n:
+        parts.append("two cone-shaped space capsules docked nose to nose")
+    if "EVA" in n:
+        parts.append("a spacewalking astronaut on a tether")
+    if "DURATION" in n:
+        parts.append("a clock face or an hourglass")
+    if "SUBORBITAL" in n:
+        parts.append("a cone-shaped space capsule with a flat heat shield on a high arc over a curved Earth")
+    elif "SATELLITE" in n:
+        parts.append("a small satellite with antennae circling Earth")
+    elif "EARTH ORBITAL" in n or ("ORBITAL" in n and "LUNAR" not in n and not parts):
+        parts.append("a cone-shaped space capsule with a flat heat shield and a small window circling a blue Earth")
+    if "JT" in n.split():
+        parts.append("two launch arcs side by side")
+    if "UNMANNED" in n:
+        parts.append("no crew, a robotic craft")
+    if not parts:
+        parts.append("a rocket climbing past stars")
+    return "; ".join(parts[:4])
+
+
+def patch_entries(cfg: dict) -> list[dict]:
+    missions = json.loads((GAME / "data" / "missions.json").read_text())["missions"]
+    out = []
+    for i, m in enumerate(missions):
+        if i == 0:
+            continue
+        for side in ["usa", "ussr"]:
+            motif = patch_motif(m["name"]) + "; " + cfg["flag_motif"][side]
+            out.append({"name": f"{side}/{i}", "side": side, "index": i, "seed_key": f"patch/{side}/{i}",
+                        "prompt": cfg["prompt"].format(colours=cfg["colours"][side], motif=motif),
+                        "negative_side": cfg["negative_side"][side]})
+    return out
+
+
 def hardware_entries() -> list[dict]:
     hw = json.loads((GAME / "data" / "hardware.json").read_text())["models"]["basic"]
     out = []
@@ -258,7 +313,7 @@ def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90,
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("kind", choices=["portraits", "hardware", "backdrops", "spaceport"])
+    ap.add_argument("kind", choices=["portraits", "hardware", "backdrops", "spaceport", "icons", "patches"])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--names", default="", help="comma-separated names to restrict to")
     ap.add_argument("--side", default="", help="usa or ussr")
@@ -278,6 +333,12 @@ def main() -> None:
     elif a.kind == "spaceport":
         cfg = STYLE["spaceport"]
         jobs = spaceport_entries(cfg)
+    elif a.kind == "icons":
+        cfg = STYLE["icons"]
+        jobs = [{"name": k, "prompt": cfg["prompt"].format(desc=v)} for k, v in cfg["items"].items()]
+    elif a.kind == "patches":
+        cfg = STYLE["patches"]
+        jobs = patch_entries(cfg)
     else:
         cfg = STYLE["backdrops"]
         jobs = [{"name": k, "prompt": v} for k, v in cfg["prompts"].items()]
@@ -323,6 +384,18 @@ def main() -> None:
             else:
                 src = SOURCE / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
                 prompt = cfg["prompt"].format(style=style, name=j["name"], kind=KIND[j["group"]], nationality=NATION[j["side"]])
+        elif a.kind == "icons":
+            out = GAME / "assets" / "art" / "icons" / f"{j['name']}.png"
+            src = None
+            prompt = j["prompt"]
+            neg_item = cfg["negative"]
+            size = cfg["size"]
+        elif a.kind == "patches":
+            out = GAME / "assets" / "art" / "patches" / j["side"] / f"mission_{j['index']}.png"
+            src = None
+            prompt = j["prompt"]
+            neg_item = cfg["negative"] + ", " + j["negative_side"]
+            size = cfg["size"]
         elif a.kind == "spaceport":
             out = GAME / "assets" / "art" / "spaceport" / j["side"] / f"{j['layer']}.png"
             src = None
@@ -361,6 +434,8 @@ def main() -> None:
             img = fit_cover(trim_frame(img), tuple(cfg["output"])).convert("RGB")
         elif a.kind == "hardware":
             img = chroma_key(fit_cover(img, tuple(cfg["output"])), tuple(cfg["chroma_key"]))
+        elif a.kind in ("icons", "patches"):
+            img = chroma_key(fit_cover(img, (cfg["output"], cfg["output"])), tuple(cfg["chroma_key"]))
         elif a.kind == "spaceport" and j["kind"] == "cutout":
             img = chroma_key(img, tuple(cfg["chroma_key"]), tight=True)
             if j["layer"] == "flag":

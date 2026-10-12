@@ -183,5 +183,52 @@
       255,
       0
     ]
+  },
+  "icons": {
+    "prompt": "Flat vector emblem illustration, clean geometric shapes, soft two-tone cel shading, no outlines, limited muted palette like a 1960s print. {desc}, centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
+    "negative": "text, letters, words, caption, label, photograph, 3d render, frame, border, people, real logo",
+    "size": [
+      768,
+      768
+    ],
+    "output": 512,
+    "items": {
+      "emblem_usa": "A round space programme emblem for a fictional American space agency: a white rocket arcing over a blue globe with a red orbit ring and a few white stars, blue and white and red",
+      "emblem_ussr": "A round space programme emblem for a fictional Soviet space agency: a silver rocket rising past a red star over a globe with a golden orbit ring, red and gold",
+      "intel_usa": "A round seal for a fictional American intelligence agency: an eagle head in profile over a compass rose, navy blue and gold",
+      "intel_ussr": "A round seal for a fictional Soviet intelligence service: a shield with a sword behind it and a red star on top, red and gold and dark grey",
+      "app_icon": "A square app icon with rounded corners: a white rocket climbing diagonally past a crescent moon on a deep navy sky with three small stars, bold and simple, readable when tiny"
+    },
+    "chroma_key": [
+      0,
+      255,
+      0
+    ]
+  },
+  "patches": {
+    "prompt": "A round embroidered cloth mission patch, flat vector illustration with a stitched border ring, soft two-tone cel shading, limited palette of {colours}. {motif}. Centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
+    "negative": "text, letters, words, numbers, caption, label, photograph, 3d render, people's faces, real logo, NASA, pill, medicine capsule, tablet",
+    "size": [
+      768,
+      768
+    ],
+    "output": 256,
+    "colours": {
+      "usa": "navy blue, white and red with gold thread",
+      "ussr": "red, gold and black with silver thread"
+    },
+    "chroma_key": [
+      0,
+      255,
+      0
+    ],
+    "negative_side": {
+      "usa": "Soviet flag, hammer and sickle, red star",
+      "ussr": "American flag, stars and stripes, United States flag, bald eagle"
+    },
+    "flag_motif": {
+      "usa": "a small American stars-and-stripes flag",
+      "ussr": "a small Soviet red flag with a gold hammer and sickle"
+    }
   }
 }

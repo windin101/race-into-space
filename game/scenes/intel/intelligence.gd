@@ -16,10 +16,23 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 16)
+	content.add_child(head)
+	var seal := ArtAssets.icon("intel_%s" % (Session.human_side if Session.has_game() else "usa"))
+	if seal != null:
+		var emblem := TextureRect.new()
+		emblem.texture = seal
+		emblem.custom_minimum_size = Vector2(96, 96)
+		emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		head.add_child(emblem)
 	_accuracy = Label.new()
 	_accuracy.theme_type_variation = "Dim"
 	_accuracy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_accuracy)
+	_accuracy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_accuracy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	head.add_child(_accuracy)
 
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL

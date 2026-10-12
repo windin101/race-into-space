@@ -10,7 +10,7 @@ config/name="Race Into Space"
 config/description="Hobby reimplementation of the 1993 space-race strategy game, GPL-2.0-or-later."
 run/main_scene="res://scenes/main.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
-config/icon="res://icon.svg"
+config/icon="res://assets/art/icons/app_icon.png"
 
 [autoload]
 
