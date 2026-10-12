@@ -111,5 +111,77 @@
       "endgame_ussr_win": "Celebration painting, {style}: cosmonauts on Red Square, red banners, a lunar lander silhouette above, triumphant, no text",
       "endgame_ussr_lose": "Sombre painting, {style}: an empty pad at Baikonur on the steppe at dusk, a lowered red flag, 1977, no text"
     }
+  },
+  "spaceport": {
+    "background_prompt": "Wide flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean shapes, no outlines, limited muted palette. {scene}, seen from a slightly elevated viewpoint, the horizon in the upper third, wide empty flat open land filling the lower two thirds with a few straight access roads, uninhabited and completely empty.",
+    "background_negative": "building, house, hut, tower, rocket, missile, gantry, launch pad, vehicle, car, truck, boat, people, text, label, sign",
+    "scenes": {
+      "usa": {
+        "background_spring": "Cape Canaveral in spring: a bright blue sky with a few small clouds, the Atlantic ocean along the horizon with a thin sandy beach, pale green scrub and sandy flats",
+        "background_fall": "Cape Canaveral in autumn: a hazy pale sky, the Atlantic along the horizon with a thin sandy beach, sandy flats with dry tan scrub, soft warm low light"
+      },
+      "ussr": {
+        "background_spring": "Baikonur on the Kazakh steppe in spring: a wide pale blue sky, flat green-brown steppe to the horizon, dusty tracks",
+        "background_fall": "Baikonur on the Kazakh steppe in autumn: a washed-out grey sky, flat dry yellow-brown steppe to the horizon, dusty tracks, cold light"
+      }
+    },
+    "cutout_prompt": "Flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean geometric shapes, no outlines, limited muted palette. {desc}, at a {nationality} space centre of the 1960s{flavour}, seen from the front at a slightly elevated three-quarter view, the whole structure visible and centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
+    "cutout_negative": "sky, clouds, horizon, landscape, trees, road, people, cars, text, label, sign, number, caption, logo",
+    "flavour": {
+      "usa": ", clean white 1960s American modernist style",
+      "ussr": ", Soviet grey concrete style with a small red star"
+    },
+    "descriptions": {
+      "administration": "A low two-storey office block with long rows of windows and a small entrance canopy",
+      "research": "A modern research laboratory with a glass front and a small radio dish on the roof",
+      "programs": "A long low office building with a central entrance canopy and a row of flagpoles",
+      "astronaut_complex": "A long crew quarters building with a covered walkway and a small outdoor swimming pool",
+      "training": "A training centre: a hangar with a round domed centrifuge building attached at one end",
+      "vab": "A huge vehicle assembly building: a very tall windowless box with giant vertical doors and vertical stripes",
+      "mission_control": "A mission control building: a wide low block with a large radar dish on the roof",
+      "museum": "A museum building with a colonnade front and a small rocket displayed upright beside it",
+      "intelligence": "A small plain windowless office with a fenced yard and a tall antenna mast",
+      "plot": {
+        "desc": "A flat empty rectangle of bare graded dirt and gravel on the ground, nothing built on it, only bare earth with wooden survey stakes and string at the corners",
+        "negative": "building, structure, house, hut, shed, wall, roof, machinery, crane, people, rocket"
+      },
+      "pad_site": {
+        "desc": "A bare flat square concrete slab lying on open ground, completely empty, nothing standing on it, just the slab and its edges",
+        "negative": "rocket, missile, tower, gantry, mast, building, structure, blockhouse, hut, wall, people"
+      },
+      "pad_ok": {
+        "desc": "An empty launch pad awaiting its rocket: a concrete apron with a tall steel lattice gantry service tower and a lightning mast, the pad is vacant",
+        "negative": "rocket, missile, spacecraft, capsule, exhaust, smoke"
+      },
+      "pad_damaged": {
+        "desc": "A wrecked launch pad: a scorched blackened concrete apron and a bent collapsed steel gantry tower with wisps of smoke",
+        "negative": "rocket, missile, spacecraft, fire, explosion"
+      },
+      "flag": {
+        "desc": "The national flag of {flag_of} waving from the top of a tall white flagpole against the green screen, only the upper part of the pole with the flag, the base of the pole is out of the picture, nothing else",
+        "negative": "building, house, wall, roof, ground, grass, concrete, people, base, plinth"
+      }
+    },
+    "flag_of": {
+      "usa": "the United States",
+      "ussr": "the Soviet Union"
+    },
+    "background_size": [
+      1920,
+      1080
+    ],
+    "cutout_size": [
+      1024,
+      768
+    ],
+    "flag_size": [
+      512,
+      1024
+    ],
+    "chroma_key": [
+      0,
+      255,
+      0
+    ]
   }
 }

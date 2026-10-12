@@ -152,6 +152,34 @@ def roster_entries() -> list[dict]:
     return out
 
 
+def spaceport_entries(cfg: dict) -> list[dict]:
+    """One job per painted layer: the two season backgrounds, every building in the layout,
+    the generic plot, the three pad states and the flag, for each side."""
+    layout = json.loads((GAME / "data" / "ui" / "spaceport_layout.json").read_text())["buildings"]
+    ids = [b["id"] for b in layout if not b["id"].startswith("pad_") and b["id"] != "flag"]
+    out = []
+    for side in ["usa", "ussr"]:
+        for layer, scene in cfg["scenes"][side].items():
+            out.append({"side": side, "layer": layer, "name": layer, "seed_key": f"{side}/{layer}", "kind": "background",
+                        "prompt": cfg["background_prompt"].format(scene=scene), "negative": cfg["background_negative"],
+                        "size": cfg["background_size"]})
+        # No "plot" layer: the model always builds something on a cleared site, so unbuilt
+        # plots stay procedural (a translucent outline, which also reads as a hotspot cue).
+        for key in ids + ["pad_site", "pad_ok", "pad_damaged", "flag"]:
+            layer = ("building_" + key) if key in ids else key
+            desc = cfg["descriptions"][key]
+            neg_item = ""
+            if isinstance(desc, dict):
+                neg_item, desc = desc.get("negative", ""), desc["desc"]
+            desc = desc.format(flag_of=cfg["flag_of"][side])
+            flavour = "" if key == "flag" else cfg["flavour"][side]
+            out.append({"side": side, "layer": layer, "name": key, "seed_key": f"{side}/{layer}", "kind": "cutout",
+                        "prompt": cfg["cutout_prompt"].format(desc=desc, nationality=NATION[side], flavour=flavour),
+                        "negative": ", ".join(x for x in [cfg["cutout_negative"], neg_item] if x),
+                        "size": cfg["flag_size"] if key == "flag" else cfg["cutout_size"]})
+    return out
+
+
 def hardware_entries() -> list[dict]:
     hw = json.loads((GAME / "data" / "hardware.json").read_text())["models"]["basic"]
     out = []
@@ -198,7 +226,7 @@ def fit_cover(img: Image.Image, size: tuple[int, int]) -> Image.Image:
     return img.crop((left, top, left + size[0], top + size[1]))
 
 
-def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90) -> Image.Image:
+def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90, tight: bool = False) -> Image.Image:
     """Green-screen removal that copes with the model's imperfect green: any pixel whose green
     channel dominates both red and blue is cut, partially so near the edge, and the remaining
     green spill on the subject's rim is neutralised."""
@@ -215,6 +243,10 @@ def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90)
     # Drop a floor shadow the model may paint: fully transparent rows below the subject are
     # already gone; crop the alpha bbox and recentre so the icon fills the tile.
     bbox = out.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
+    if bbox and tight:
+        # Keep the subject's own aspect: the game fits the cutout into its hotspot rect.
+        m = 4
+        return out.crop((max(0, bbox[0] - m), max(0, bbox[1] - m), min(img.width, bbox[2] + m), min(img.height, bbox[3] + m)))
     if bbox:
         sub = out.crop(bbox)
         scale = min((img.width * 0.9) / sub.width, (img.height * 0.9) / sub.height)
@@ -226,7 +258,7 @@ def chroma_key(img: Image.Image, key: tuple[int, int, int], tolerance: int = 90)
 
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("kind", choices=["portraits", "hardware", "backdrops"])
+    ap.add_argument("kind", choices=["portraits", "hardware", "backdrops", "spaceport"])
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--names", default="", help="comma-separated names to restrict to")
     ap.add_argument("--side", default="", help="usa or ussr")
@@ -243,6 +275,9 @@ def main() -> None:
     elif a.kind == "hardware":
         cfg = STYLE["hardware"]
         jobs = hardware_entries()
+    elif a.kind == "spaceport":
+        cfg = STYLE["spaceport"]
+        jobs = spaceport_entries(cfg)
     else:
         cfg = STYLE["backdrops"]
         jobs = [{"name": k, "prompt": v} for k, v in cfg["prompts"].items()]
@@ -288,6 +323,12 @@ def main() -> None:
             else:
                 src = SOURCE / "hardware" / j["side"] / f"{j['group']}_{j['slot']}.png"
                 prompt = cfg["prompt"].format(style=style, name=j["name"], kind=KIND[j["group"]], nationality=NATION[j["side"]])
+        elif a.kind == "spaceport":
+            out = GAME / "assets" / "art" / "spaceport" / j["side"] / f"{j['layer']}.png"
+            src = None
+            prompt = j["prompt"]
+            neg_item = j["negative"]
+            size = j["size"]
         else:
             out = GAME / "assets" / "art" / "backdrops" / f"{j['name']}.png"
             src = None
@@ -320,6 +361,11 @@ def main() -> None:
             img = fit_cover(trim_frame(img), tuple(cfg["output"])).convert("RGB")
         elif a.kind == "hardware":
             img = chroma_key(fit_cover(img, tuple(cfg["output"])), tuple(cfg["chroma_key"]))
+        elif a.kind == "spaceport" and j["kind"] == "cutout":
+            img = chroma_key(img, tuple(cfg["chroma_key"]), tight=True)
+            if j["layer"] == "flag":
+                # The model insists on a building at the foot of the pole; keep the top half.
+                img = img.crop((0, 0, img.width, int(img.height * 0.5)))
         else:
             img = img.convert("RGB")
         out.parent.mkdir(parents=True, exist_ok=True)

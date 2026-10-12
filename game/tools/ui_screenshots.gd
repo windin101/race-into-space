@@ -4,6 +4,7 @@ extends Node
 ## involved. Reports labels and buttons whose text is wider than the space they got.
 ##
 ##   DISPLAY=:1 godot --path game res://tools/ui_screenshots.tscn -- --out ../docs/screens/phase4 [--all-sizes]
+##       [--side ussr] [--season fall] [--only spaceport,newscast]
 ##
 ## Scenes are discovered under res://scenes/. The four core screens render at every size;
 ## the rest at 1920x1080 unless --all-sizes is given. Scenes needing arguments list them
@@ -21,6 +22,9 @@ const SETUP_ARGS := {
 const DESIGN := Vector2(1920, 1080)
 
 var _out := "../docs/screens/phase4"
+var _side := "usa"
+var _season := 0
+var _only: PackedStringArray = []
 var _all_sizes := false
 var _problems: Array = []
 
@@ -32,20 +36,26 @@ func _ready() -> void:
 			_out = args[i + 1]
 		if args[i] == "--all-sizes":
 			_all_sizes = true
+		if args[i] == "--side" and i + 1 < args.size():
+			_side = args[i + 1]
+		if args[i] == "--season" and i + 1 < args.size():
+			_season = 1 if args[i + 1] == "fall" else 0
+		if args[i] == "--only" and i + 1 < args.size():
+			_only = args[i + 1].split(",")
 	call_deferred("_run")
 
 
 func _run() -> void:
 	await get_tree().process_frame
-	Session.new_game(7, {"human_side": "usa"})
-	_advance_game(6)
-	get_tree().root.theme = UiTheme.get_theme("usa")
+	Session.new_game(7, {"human_side": _side})
+	_advance_game(6 if _season == 0 else 7)
+	get_tree().root.theme = UiTheme.get_theme(_side)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://" + _out))
 	var scenes := _discover("res://scenes")
 	scenes.sort()
 	for path in scenes:
 		var scene_name: String = path.get_file().get_basename()
-		if scene_name in SKIP:
+		if scene_name in SKIP or (not _only.is_empty() and scene_name not in _only):
 			continue
 		var sizes: Array = SIZES if (scene_name in CORE or _all_sizes) else [Vector2i(1920, 1080)]
 		for size in sizes:

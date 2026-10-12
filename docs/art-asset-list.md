@@ -23,8 +23,8 @@ Canvas 3840x2160 for 16:9. Ultrawide monitors extend the logical canvas to 2580x
 so paint the background 5160x2160 with the 3840-wide composition centred and the extra
 660 px each side as continuation (sky, sea, scrub), not new content.
 
-Layers, each a separate PNG at full canvas size so positions are exact, or cropped to
-the rectangle below with the offset recorded in the file name:
+Layers: the background is one full-canvas PNG; every other layer is a cutout with alpha
+that the painter fits (aspect preserved, centred) into its rectangle below:
 
 | layer | USA (Cape Canaveral) | USSR (Baikonur) | count |
 |---|---|---|---|
@@ -177,3 +177,8 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   space" and put ground, shadow and label in the negative prompt, or it paints a floor.
 - Seeds are `crc32(name)` plus the reseed offset, so a rerun reproduces the same picture.
   `MANIFEST.md` covers the folders with wildcard lines rather than one line per file.
+- Spaceports: `comfy_batch.py spaceport` renders the empty landscape per side and season,
+  then one green-screen cutout per building, the generic plot, the three pad states and the
+  flag (top half only, the model always paints a building at the pole's foot). The painter
+  fits each cutout into its hotspot box grown by 30% and stands it on the box's baseline.
+  Prompts that say "no rockets" get rockets; put the unwanted thing in the negative instead.

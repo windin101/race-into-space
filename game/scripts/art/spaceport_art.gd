@@ -42,8 +42,13 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 				var idx := int(id.substr(4)) - 1
 				var st: int = pads_state[idx] if idx < pads_state.size() else -1
 				layer = ArtAssets.spaceport_layer(side, "pad_" + ("site" if st == -1 else ("ok" if st == 0 else "damaged")))
+			elif b.get("built", true):
+				layer = ArtAssets.spaceport_layer(side, "building_" + id)
 			else:
-				layer = ArtAssets.spaceport_layer(side, ("building_" if b.get("built", true) else "plot_") + id)
+				# A per-building plot if painted, else the side's generic cleared ground.
+				layer = ArtAssets.spaceport_layer(side, "plot_" + id)
+				if layer == null:
+					layer = ArtAssets.spaceport_layer(side, "plot")
 			if layer != null:
 				_draw_layer(c, layer, r, size)
 			elif id.begins_with("pad_"):
@@ -110,15 +115,17 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 	_flag(c, size, side)
 
 
-## A painted layer is either full-canvas (same aspect as the scene: draw over everything)
-## or a crop of its hotspot rectangle (fit into the rectangle).
-static func _draw_layer(c: CanvasItem, tex: Texture2D, rect: Rect2, size: Vector2) -> void:
+## A painted cutout (building, pad, flag) is fitted into its hotspot rectangle; the
+## background alone covers the canvas. No aspect guessing: a tight crop can be any shape.
+static func _draw_layer(c: CanvasItem, tex: Texture2D, rect: Rect2, _size: Vector2) -> void:
+	# The hotspot is the click target; the painting may spill past it. Fit into the box grown
+	# by 30% and stand the cutout on the box's baseline so buildings sit on the ground.
 	var ts := tex.get_size()
-	var full_aspect := size.x / size.y
-	if absf(ts.x / ts.y - full_aspect) < 0.05 or absf(ts.x / ts.y - 5160.0 / 2160.0) < 0.05:
-		ArtAssets.draw_cover(c, tex, Rect2(Vector2.ZERO, size))
-	else:
-		ArtAssets.draw_fit(c, tex, rect)
+	var box := rect.grow_individual(rect.size.x * 0.15, rect.size.y * 0.3, rect.size.x * 0.15, 0.0)
+	var scale := minf(box.size.x / ts.x, box.size.y / ts.y)
+	var drawn := ts * scale
+	var pos := Vector2(rect.position.x + (rect.size.x - drawn.x) * 0.5, rect.end.y - drawn.y)
+	c.draw_texture_rect(tex, Rect2(pos, drawn), false)
 
 
 static func _clouds(c: CanvasItem, size: Vector2, horizon: float, usa: bool) -> void:
