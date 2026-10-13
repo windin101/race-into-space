@@ -117,7 +117,7 @@ func _apply_backdrop(tex: Texture2D, monotone: bool) -> void:
 		var mat := ShaderMaterial.new()
 		mat.shader = load("res://scripts/ui/monotone.gdshader")
 		var side := Session.human_side if Session.has_game() else "usa"
-		mat.set_shader_parameter("tint", UiPalette.ROOM_TINT_USA if side == "usa" else UiPalette.ROOM_TINT_USSR)
+		mat.set_shader_parameter("tint", UiPalette.room_tint(side))
 		_sp_backdrop.material = mat
 		_sp_backdrop.modulate = Color.WHITE
 	else:

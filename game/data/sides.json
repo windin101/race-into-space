@@ -1,0 +1,91 @@
+{
+  "_notes": "Every faction the game knows. Code never names a side; it reads this file through the Sides class. 'text_slot' indexes the per-side text decks (reviews, endgame); 'rules' names the side whose personnel rules a side follows. Adding a faction: an entry here plus its blocks in hardware, roster, new_game and the text decks, and its art folders. See docs/adding-a-faction.md.",
+  "min_sides": 2,
+  "max_sides": 3,
+  "default": [
+    "usa",
+    "ussr"
+  ],
+  "sides": [
+    {
+      "id": "usa",
+      "name": "United States",
+      "short": "USA",
+      "adjective": "American",
+      "nation": "The United States",
+      "people": "astronaut",
+      "accent": "3d7bdc",
+      "accent_dark": "27509a",
+      "room_tint": "2a4d8c",
+      "suit": "blue",
+      "site": "Cape Canaveral",
+      "capital_announces": "Washington announces",
+      "agency": "CIA",
+      "reviewer": "President",
+      "reviewer_deputy": "Vice President",
+      "reviewer_deputy_from": 5,
+      "reviewer_deputy_to": 10,
+      "review_body": "Capitol",
+      "text_slot": 0,
+      "rules": "usa",
+      "heads_of_state": [
+        [
+          60,
+          "Eisenhower"
+        ],
+        [
+          63,
+          "Kennedy"
+        ],
+        [
+          68,
+          "Johnson"
+        ],
+        [
+          73,
+          "Nixon"
+        ],
+        [
+          76,
+          "Ford"
+        ],
+        [
+          99,
+          "Carter"
+        ]
+      ]
+    },
+    {
+      "id": "ussr",
+      "name": "Soviet Union",
+      "short": "USSR",
+      "adjective": "Soviet",
+      "nation": "The Soviet Union",
+      "people": "cosmonaut",
+      "accent": "d23a2f",
+      "accent_dark": "8e241c",
+      "room_tint": "8c2a2a",
+      "suit": "red",
+      "site": "Baikonur",
+      "capital_announces": "Radio Moscow announces",
+      "agency": "KGB",
+      "reviewer": "General Secretary",
+      "reviewer_deputy": "Politburo",
+      "reviewer_deputy_from": 5,
+      "reviewer_deputy_to": 11,
+      "review_body": "Politburo",
+      "text_slot": 1,
+      "rules": "ussr",
+      "heads_of_state": [
+        [
+          64,
+          "Khrushchev"
+        ],
+        [
+          99,
+          "Brezhnev"
+        ]
+      ]
+    }
+  ]
+}

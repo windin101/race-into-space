@@ -60,7 +60,7 @@ func _build(title: String, text: String, picture: Texture2D, side: String) -> vo
 		pic.clip_contents = true
 		var mat := ShaderMaterial.new()
 		mat.shader = load("res://scripts/ui/monotone.gdshader")
-		mat.set_shader_parameter("tint", UiPalette.ROOM_TINT_USA if side == "usa" else UiPalette.ROOM_TINT_USSR)
+		mat.set_shader_parameter("tint", UiPalette.room_tint(side))
 		mat.set_shader_parameter("strength", 0.55)
 		mat.set_shader_parameter("brightness", 0.85)
 		pic.material = mat

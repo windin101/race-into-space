@@ -89,6 +89,14 @@ static func from_dict(data, d: Dictionary) -> SimGame:
 	state.turn_log.assign(d.get("turn_log", []))
 	game.last_turn_report = d.get("last_turn_report", {})
 	state.prestige_rows = d.get("prestige_rows", state.prestige_rows)
+	# Saves from before three-sided play have no "others" list on the ledger rows.
+	for row in state.prestige_rows:
+		var others: Array = []
+		for v in row.get("others", []):
+			others.append(int(v))
+		row["others"] = others
+		for k in ["first", "second"]:
+			row[k] = int(row.get(k, -1))
 	state.event_deck.assign(d.get("event_deck", []))
 	var players: Array = d.get("players", [])
 	for i in mini(players.size(), state.players.size()):

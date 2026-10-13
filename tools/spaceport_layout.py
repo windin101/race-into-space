@@ -242,7 +242,7 @@ def main() -> None:
     out_dir.mkdir(parents=True, exist_ok=True)
     data = json.loads(LAYOUT.read_text())
     sides = {}
-    for side in ("usa", "ussr"):
+    for side in [x["id"] for x in json.loads((ROOT / "game" / "data" / "sides.json").read_text())["sides"]]:
         sides[side] = solve(side)
         preview(side, sides[side], out_dir / f"preview_{side}.png", a.boxes)
         print(f"{side}: horizon {sides[side]['horizon']}, preview {out_dir / f'preview_{side}.png'}")

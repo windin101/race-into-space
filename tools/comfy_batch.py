@@ -42,9 +42,11 @@ FEATURES = json.loads(_FEAT.read_text()) if _FEAT.exists() else {}
 SERVER = STYLE["server"]
 CLIENT = str(uuid.uuid4())
 
-NATION = {"usa": "American", "ussr": "Soviet"}
-ROLE = {"usa": "astronaut", "ussr": "cosmonaut"}
-SUIT = {"usa": "blue", "ussr": "red"}
+_SIDES_REG = json.loads((ROOT / "game" / "data" / "sides.json").read_text())["sides"]
+SIDES = tuple(s["id"] for s in _SIDES_REG)
+NATION = {s["id"]: s.get("adjective", s["id"]) for s in _SIDES_REG}
+ROLE = {s["id"]: s.get("people", "astronaut") for s in _SIDES_REG}
+SUIT = {s["id"]: s.get("suit", "blue") for s in _SIDES_REG}
 KIND = {"probe": "unmanned probe", "rocket": "launch rocket", "manned": "crewed spacecraft", "misc": "spacecraft module"}
 
 
@@ -143,7 +145,7 @@ def t2i_graph(prompt: str, seed: int, width: int, height: int, negative_extra: s
 def roster_entries() -> list[dict]:
     roster = json.loads((GAME / "data" / "roster.json").read_text())
     out = []
-    for side in ("usa", "ussr"):
+    for side in SIDES:
         for group in roster["sides"][side]:
             for c in group["candidates"]:
                 out.append({"name": c["name"], "female": c["female"], "side": side})
@@ -158,7 +160,7 @@ def spaceport_entries(cfg: dict) -> list[dict]:
     layout = json.loads((GAME / "data" / "ui" / "spaceport_layout.json").read_text())["buildings"]
     ids = [b["id"] for b in layout if not b["id"].startswith("pad_") and b["id"] != "flag"]
     out = []
-    for side in ["usa", "ussr"]:
+    for side in SIDES:
         for layer, scene in cfg["scenes"][side].items():
             out.append({"side": side, "layer": layer, "name": layer, "seed_key": f"{side}/{layer}", "kind": "background",
                         "prompt": cfg["background_prompt"].format(scene=scene), "negative": cfg["background_negative"],
@@ -227,7 +229,7 @@ def patch_entries(cfg: dict) -> list[dict]:
     for i, m in enumerate(missions):
         if i == 0:
             continue
-        for side in ["usa", "ussr"]:
+        for side in SIDES:
             motif = patch_motif(m["name"]) + "; " + cfg["flag_motif"][side]
             out.append({"name": f"{side}/{i}", "side": side, "index": i, "seed_key": f"patch/{side}/{i}",
                         "prompt": cfg["prompt"].format(colours=cfg["colours"][side], motif=motif),
@@ -238,7 +240,7 @@ def patch_entries(cfg: dict) -> list[dict]:
 def hardware_entries() -> list[dict]:
     hw = json.loads((GAME / "data" / "hardware.json").read_text())["models"]["basic"]
     out = []
-    for side in ("usa", "ussr"):
+    for side in SIDES:
         for group in ("probe", "rocket", "manned", "misc"):
             for slot, spec in enumerate(hw[side][group]):
                 if spec:

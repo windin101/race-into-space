@@ -7,6 +7,7 @@ two seasons share one composition (roads, coast, horizon) and one building layou
 Greens become straw and rust, blues (sky, sea) lose saturation and warm toward haze,
 everything gets a little softer and warmer. Roads, sand and white stay where they are.
 """
+import json
 from pathlib import Path
 
 import numpy as np
@@ -67,7 +68,7 @@ def grade(src: Path, dst: Path, side: str) -> None:
 
 
 def main() -> None:
-    for side in ("usa", "ussr"):
+    for side in [x["id"] for x in json.loads((ROOT / "game" / "data" / "sides.json").read_text())["sides"]]:
         grade(ART / side / "background_spring.png", ART / side / "background_fall.png", side)
         print("wrote", side)
 

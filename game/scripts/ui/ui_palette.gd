@@ -28,12 +28,18 @@ const ACCENT_USSR := Color("d23a2f")
 const ACCENT_USSR_DARK := Color("8e241c")
 
 
+## Side colours come from the registry (data/sides.json); the constants above are the
+## first two sides' values, kept for code that needs a compile-time colour.
 static func accent(side: String) -> Color:
-	return ACCENT_USSR if side == "ussr" else ACCENT_USA
+	return Sides.colour(side, "accent") if Sides.exists(side) else ACCENT_USA
 
 
 static func accent_dark(side: String) -> Color:
-	return ACCENT_USSR_DARK if side == "ussr" else ACCENT_USA_DARK
+	return Sides.colour(side, "accent_dark") if Sides.exists(side) else ACCENT_USA_DARK
+
+
+static func room_tint(side: String) -> Color:
+	return Sides.colour(side, "room_tint") if Sides.exists(side) else ROOM_TINT_USA
 
 
 ## Colour for a safety percentage, matching the readiness bands.

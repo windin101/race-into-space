@@ -5,7 +5,6 @@ extends ScreenPanel
 const SPACEPORT := "res://scenes/spaceport/spaceport.tscn"
 const TITLE := "res://scenes/ui/title_screen.tscn"
 const SETTINGS := "res://scenes/ui/settings_screen.tscn"
-const SIDE_TITLES := {"usa": "USA", "ussr": "USSR"}
 
 var _table: DataTable
 var _label_edit: LineEdit
@@ -100,7 +99,7 @@ func _refresh() -> void:
 		rows.append({
 			"label": str(meta.get("label", meta["slot"])),
 			"date": str(meta.get("date", "")),
-			"side": SIDE_TITLES.get(meta.get("side", ""), str(meta.get("side", ""))),
+			"side": Sides.short(str(meta.get("side", ""))),
 			"saved_at": str(meta.get("saved_at", "")).replace("T", " "),
 			"_slot": meta["slot"],
 		})
@@ -151,7 +150,7 @@ func _action(b: Button, text: String, kind: String, reason: String, tip: String)
 func _default_label() -> String:
 	if not Session.has_game():
 		return ""
-	return "%s  %s" % [SIDE_TITLES.get(Session.human_side, Session.human_side), Session.state().date_string()]
+	return "%s  %s" % [Sides.short(Session.human_side), Session.state().date_string()]
 
 
 func _new_slot_name() -> String:

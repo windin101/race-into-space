@@ -39,16 +39,16 @@ Recommended answers below; the ones marked **(decide)** need your call.
    in data, not code. Hot-seat for several humans comes with Phase 8's hot-seat work.
 2. **Prestige with three sides.** First claim pays `first`, second pays `second`, a third
    side pays the row's trickle value (the amount already paid for repeat successes). No
-   new numbers are invented. **(decide)**
-3. **Winning.** First side to land a crew on the Moon and return wins, as now. A dismissed
-   director knocks that side out; the race continues between the rest until one lands, the
-   deadline passes, or only one side is left.
+   new numbers are invented. **(decided 2026-10-13: as proposed)**
+3. **Winning.** First side to land a crew on the Moon and return wins, as now. Only a
+   human director can be dismissed, and that ends the player's game; the rival in the
+   lead is recorded as the winner (in a two-side game, simply the other side).
 4. **Faction identity: "on a budget".** Hardware is cheaper to open and buy (about 15%
    less), starts at lower safety (about 5 points less), and reaches the same ceilings, so
    the Commonwealth trades early reliability for money. Its starting budget sits between
    the US and USSR. Exact numbers come from balance runs (Phase 6), with the target that
    each side wins a fair share of AI-versus-AI games at equal difficulty.
-   **(decide: this twist, or identical rules with only the names and art changed)**
+   **(decided 2026-10-13: as proposed)**
 5. **Look.** Accent colour Commonwealth green (`#2e7d4f`), with the room tint for its
    offices to match. Flight suits in RAF blue-grey with a green collar stripe. The emblem
    and agency seal are fictional, as with the other two sides.
@@ -121,7 +121,7 @@ when a lunar-orbit probe mission flies.
 
 ## 4. Phases
 
-### Phase A: N-sided core (no visible change)
+### Phase A: N-sided core (no visible change) — done 2026-10-13
 
 - `SimState.rivals(i)` replaces `opponent(i)`. Everything that used the one opponent
   either loops over rivals or picks the leading rival: events that target "the other

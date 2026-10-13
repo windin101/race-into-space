@@ -8,7 +8,6 @@ extends ScreenPanel
 
 const SKILL_TITLES := {"capsule": "Capsule", "lm": "LM", "eva": "EVA", "docking": "Docking", "endurance": "Endurance"}
 const SKILL_SHORT := {"capsule": "Cap", "lm": "LM", "eva": "EVA", "docking": "Dock", "endurance": "End"}
-const SIDE_TITLES := {"usa": "Astronaut Recruiting", "ussr": "Cosmonaut Recruiting"}
 const PICK_MARK := "[x]"
 const UNPICK_MARK := "[  ]"
 const CASE_BG := Color("0a1424")
@@ -48,7 +47,7 @@ var _clear: Button
 
 func _init() -> void:
 	super()
-	title = SIDE_TITLES.get(Session.human_side if Session.has_game() else "usa", SIDE_TITLES["usa"])
+	title = "%s Recruiting" % str(Sides.field(_side(), "people", "astronaut")).capitalize()
 
 
 func _ready() -> void:

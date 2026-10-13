@@ -41,7 +41,7 @@ static func visible_launches(report: Dictionary, human_index: int) -> Array:
 ## Context the vignettes need for one launch.
 static func context_for(launch: Dictionary, state: SimState) -> Dictionary:
 	var pidx := int(launch.get("player", 0))
-	var side := "usa" if pidx == 0 else "ussr"
+	var side: String = state.player(pidx).side
 	var mi := int(launch.get("mission_index", 0))
 	var m: Dictionary = state.data.missions[mi] if mi < state.data.missions.size() else {}
 	var ctx := {

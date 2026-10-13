@@ -194,7 +194,7 @@ func _refresh() -> void:
 		review = p.reviews.back()
 	_chart.font = get_theme_default_font()
 	_chart.set_reviews(p.reviews)
-	var body := "Capitol" if p.side == "usa" else "Politburo"
+	var body := str(Sides.field(p.side, "review_body", "Government"))
 	_sheet_values[1].text = str(SimReview.FIRED_AT)
 	_sheet_values[2].text = str(SimReview.director_score(state, p))
 	_sheet_values[3].text = str(p.prestige_total)

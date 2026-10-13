@@ -69,7 +69,7 @@ static func firsts_for(report: Dictionary, state: SimState, player: int, side: S
 	var cards: Array = []
 	for result in report.get("launches", []):
 		var flier := int(result.get("player", -1))
-		var flier_side := "usa" if flier == 0 else "ussr"
+		var flier_side := state.player(flier).side
 		var rival := flier != player
 		var titles: PackedStringArray = []
 		var points := 0
@@ -86,14 +86,14 @@ static func firsts_for(report: Dictionary, state: SimState, player: int, side: S
 		var mission_name := ""
 		if mi >= 0 and mi < state.data.missions.size():
 			mission_name = PlaybackScript.mission_title(state.data.missions[mi]["name"])
-		var nation := "The United States" if flier_side == "usa" else "The Soviet Union"
+		var nation := Sides.nation(flier_side)
 		var listed := titles[0] if titles.size() == 1 else ", ".join(titles.slice(0, titles.size() - 1)) + " and " + titles[-1]
 		var title: String
 		var text: String
 		if rival:
-			title = "%s first: %s" % ["American" if flier_side == "usa" else "Soviet", mission_name]
+			title = "%s first: %s" % [Sides.adjective(flier_side), mission_name]
 			text = "%s %s. %s claims the first %s in history and gains %d prestige. The record is lost to us; the race goes on." % [
-				"Washington announces" if flier_side == "usa" else "Radio Moscow announces",
+				str(Sides.field(flier_side, "capital_announces", "It is announced")),
 				"a successful %s" % mission_name.to_lower(), nation, listed, points]
 		else:
 			title = "First: " + mission_name

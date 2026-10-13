@@ -192,7 +192,7 @@ func _side() -> String:
 
 
 func _refresh() -> void:
-	FrameBars.fill_crumbs(_crumbs, "Cape Canaveral" if _side() == "usa" else "Baikonur", self)
+	FrameBars.fill_crumbs(_crumbs, str(Sides.field(_side(), "site", Sides.name(_side()))), self)
 	FrameBars.fill_top_right(_top_right)
 	FrameBars.fill_chips(_chips)
 	if not Session.has_game():

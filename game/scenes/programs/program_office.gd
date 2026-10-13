@@ -337,7 +337,7 @@ func _draw_case() -> void:
 	var size := _case.size
 	_case.draw_rect(Rect2(Vector2.ZERO, size), CASE_BG)
 	var side := Session.human_side if Session.has_game() else "usa"
-	var accent := UiPalette.ACCENT_USSR if side == "ussr" else UiPalette.ACCENT_USA
+	var accent := UiPalette.accent(side)
 	var stage := Vector2(size.x, size.y - STRIP_H)
 	var centre := stage / 2.0
 	for i in range(6, 0, -1):

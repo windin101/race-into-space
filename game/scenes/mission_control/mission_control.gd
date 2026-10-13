@@ -302,7 +302,7 @@ static func paint_pad(c: CanvasItem, rect: Rect2, side: String, pad_state: int, 
 		var size := ts * scale
 		var dest := Rect2(Vector2(area.get_center().x - size.x / 2.0, area.end.y - size.y), size)
 		if layer == "pad_ok" and ROCKET_HOLE.has(side):
-			var hole: Rect2 = ROCKET_HOLE[side]
+			var hole: Rect2 = ROCKET_HOLE.get(side, ROCKET_HOLE["usa"])
 			# Draw the picture in four pieces around the placeholder rocket.
 			var cols := [0.0, hole.position.x, hole.end.x, 1.0]
 			var rows := [0.0, hole.position.y, hole.end.y, 1.0]

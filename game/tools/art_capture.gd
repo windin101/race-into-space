@@ -18,7 +18,7 @@ func _ready() -> void:
 func _run() -> void:
 	await get_tree().process_frame
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://" + _out))
-	for side in ["usa", "ussr"]:
+	for side in Sides.ids():
 		await _spaceport(side)
 	await _hardware_sheet()
 	await _portrait_sheet()
@@ -66,7 +66,7 @@ func _hardware_sheet() -> void:
 	canvas.draw.connect(func():
 		canvas.draw_rect(Rect2(Vector2.ZERO, canvas.size), UiPalette.PANEL)
 		var row := 0
-		for side in ["usa", "ussr"]:
+		for side in Sides.ids():
 			for group in SimProgram.GROUPS:
 				var specs: Array = GameData.hardware["models"]["basic"][side][group]
 				for slot in 7:
@@ -84,7 +84,7 @@ func _portrait_sheet() -> void:
 	var tile := Vector2(140, 170)
 	var cols := 8
 	var names: Array = []
-	for side in ["usa", "ussr"]:
+	for side in Sides.ids():
 		for group in GameData.roster["sides"][side].slice(0, 2):
 			for c in group["candidates"].slice(0, 8):
 				names.append([c["name"], c["female"], side])

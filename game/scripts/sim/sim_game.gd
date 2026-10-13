@@ -182,7 +182,8 @@ func _check_dismissal() -> void:
 	for p in state.players:
 		if SimReview.dismissed(state, p):
 			state.ended = true
-			state.winner = 1 - p.index
+			# The dismissed director's race is over; the rival in the lead takes it.
+			state.winner = state.leading_rival(p.index).index
 			state.end_reason = "%s director dismissed" % p.side
 			return
 

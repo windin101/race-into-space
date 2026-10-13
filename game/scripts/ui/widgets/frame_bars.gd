@@ -109,10 +109,10 @@ static func fill_top_right(right: HBoxContainer, with_rival := false) -> void:
 	star.set_value(str(me.prestige_total), false, UiPalette.GOLD)
 	right.add_child(star)
 	if with_rival:
-		var rival: SimPlayer = state.player(1 - me.index)
-		var rs := StatChip.new("star", str(rival.prestige_total), "Rival prestige")
-		rs.set_value(str(rival.prestige_total), false, UiPalette.accent(rival.side))
-		right.add_child(rs)
+		for rival in state.rivals(me.index):
+			var rs := StatChip.new("star", str(rival.prestige_total), "%s prestige" % Sides.name(rival.side))
+			rs.set_value(str(rival.prestige_total), false, UiPalette.accent(rival.side))
+			right.add_child(rs)
 	var date := Label.new()
 	date.text = state.date_string().to_upper()
 	date.theme_type_variation = "CapsBright"

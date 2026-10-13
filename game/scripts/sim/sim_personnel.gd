@@ -354,14 +354,14 @@ static func end_of_season(state: SimState, p: SimPlayer) -> void:
 			continue
 		if a.mood < MOOD_UNHAPPY:
 			a.retire_reason = REASON_UNHAPPY
-			if p.index == 0:
+			if Sides.rules(p.side) == "usa":
 				a.retire_in_seasons = UNHAPPY_DELAY_USA
 			else:
 				_retire(state, p, a)
 			continue
 		if a.seasons_active >= MUSTER_FROM_ACTIVE_SEASON and a.seasons_active % 2 == 0 \
 				and state.rng.chance(MUSTER_PERCENT):
-			a.retire_in_seasons = MUSTER_DELAY_USA if p.index == 0 else MUSTER_DELAY_USSR
+			a.retire_in_seasons = MUSTER_DELAY_USA if Sides.rules(p.side) == "usa" else MUSTER_DELAY_USSR
 			a.retire_reason = _pick_retirement_reason(state, p)
 
 

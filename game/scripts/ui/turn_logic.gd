@@ -5,8 +5,6 @@ extends RefCounted
 ##
 ## Nothing here changes game state.
 
-const SIDE_NAMES := {"usa": "United States", "ussr": "Soviet Union"}
-const AGENCY := {"usa": "CIA", "ussr": "KGB"}
 const ENDGAME_NO_LANDING_FIRST := 10      ## endgame.json lines 10 (USA) / 11 (USSR)
 const ENDGAME_LAST_BAND := 4
 
@@ -51,6 +49,7 @@ static func endgame_band(year: int) -> int:
 ## Line of text/endgame.json to narrate the ending for `side_index`'s reader.
 ## With a winner the line is band * 2 + winner; with no landing it is 10 for the USA
 ## and 11 for the USSR.
+## winner and side are text slots (Sides.text_slot), -1 for no winner.
 static func endgame_text_index(year: int, winner: int, side_index: int) -> int:
 	if winner < 0:
 		return ENDGAME_NO_LANDING_FIRST + clampi(side_index, 0, 1)
@@ -95,9 +94,7 @@ static func intel_estimates(state: SimState, rival: SimPlayer, level: int) -> Di
 ## review.json portrait_rule: USA shows the President for index <= 4 or >= 11, the Vice
 ## President for 5..10; USSR the General Secretary for <= 4 or >= 12, the Politburo 5..11.
 static func review_portrait(side: String, index: int) -> String:
-	if side == "ussr":
-		return "General Secretary" if index <= 4 or index >= 12 else "Politburo"
-	return "President" if index <= 4 or index >= 11 else "Vice President"
+	return Sides.reviewer(side, index)
 
 
 ## Bar colour for a review index from the review.json table ("good" / "poor").
@@ -172,19 +169,7 @@ static func effect_line(news: Dictionary) -> String:
 ## Heads of state by two-digit year, used for the newscast "g" placeholder. The year
 ## bands are the portrait bands in review.json portrait_rule.
 static func head_of_state(side: String, year: int) -> String:
-	if side == "ussr":
-		return "Khrushchev" if year <= 64 else "Brezhnev"
-	if year <= 60:
-		return "Eisenhower"
-	if year <= 63:
-		return "Kennedy"
-	if year <= 68:
-		return "Johnson"
-	if year <= 73:
-		return "Nixon"
-	if year <= 76:
-		return "Ford"
-	return "Carter"
+	return Sides.head_of_state(side, year)
 
 
 ## Fill the upstream placeholder letters in an event line (event_effects.json
@@ -225,7 +210,11 @@ static func news_colour(color_code: int) -> Color:
 # -------------------------------------------------------------------- shared helpers
 
 static func side_name(side: String) -> String:
-	return SIDE_NAMES.get(side, side)
+	return Sides.name(side)
+
+
+static func agency(side: String) -> String:
+	return str(Sides.field(side, "agency", "Intelligence"))
 
 
 static func mission_name(index: int) -> String:

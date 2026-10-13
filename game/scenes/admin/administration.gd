@@ -16,7 +16,7 @@ const OFFICES := [
 	{"id": "preferences", "title": "Preferences", "scene": "res://scenes/admin/preferences.tscn", "help": "I013",
 		"text": "Game options: sound, music, animation and astronaut editing."},
 ]
-const BUILDING_HELP := {"usa": "I702", "ussr": "I703"}
+const BUILDING_HELP := {"usa": "I702", "ussr": "I703"}   ## upstream help pages; other sides use the first
 
 var _buttons: Dictionary = {}
 
@@ -84,10 +84,10 @@ func _entry(office: Dictionary, side: String) -> Control:
 	return row
 
 
-## Soviet side recruits cosmonauts; everything else reads the same.
+## Recruiting is named for the side's word for its crews (astronaut, cosmonaut, ...).
 static func office_title(office: Dictionary, side: String) -> String:
-	if office["id"] == "recruiting" and side == "ussr":
-		return "Cosmonaut Recruiting"
+	if office["id"] == "recruiting":
+		return "%s Recruiting" % str(Sides.field(side, "people", "astronaut")).capitalize()
 	return office["title"]
 
 

@@ -186,7 +186,7 @@ static func _most_advanced(p: SimPlayer, group: String, filter: Callable = Calla
 static func apply_card(state: SimState, p: SimPlayer, card: Dictionary) -> Dictionary:
 	var effect: String = card.get("effect", "none")
 	var params: Dictionary = card.get("params", {})
-	var rival := state.opponent(p.index)
+	var rival := state.leading_rival(p.index)
 	match effect:
 		"none":
 			return {"ok": true}

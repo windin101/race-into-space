@@ -7,7 +7,7 @@ const PAD_OK := 0
 ## pads[i] > 0 means damaged with that repair cost in MB; >= 20 means destroyed (rebuild).
 
 var index: int                  ## 0 USA, 1 USSR
-var side: String                ## "usa" / "ussr"
+var side: String                ## side id from data/sides.json ("usa", "ussr", ...)
 var director_name: String
 var level := 0                  ## difficulty 0 easy, 1 medium, 2 hard
 var astronaut_level := 0
@@ -48,10 +48,10 @@ var reviews: Array = []                        ## annual review records
 var review_index := 8                          ## running review value, lower is better
 
 
-static func create(p_index: int, data, model: String) -> SimPlayer:
+static func create(p_index: int, data, model: String, p_side: String = "") -> SimPlayer:
 	var p := SimPlayer.new()
 	p.index = p_index
-	p.side = "usa" if p_index == 0 else "ussr"
+	p.side = p_side if p_side != "" else Sides.default_lineup()[p_index]
 	var ng: Dictionary = data.new_game["sides"][p.side]
 	p.director_name = ng["director_name"]
 	p.budget = ng["starting_budget"]

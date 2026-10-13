@@ -7,7 +7,7 @@ signal turn_ended(report: Dictionary)
 signal state_changed
 
 var game: SimGame
-var human_side := "usa"
+var human_side := "usa"      ## side id of the human player
 var drivers: Array = []       ## SimAi for each computer side
 
 
@@ -15,16 +15,19 @@ func has_game() -> bool:
 	return game != null
 
 
+## options.sides: the line-up (side ids, default from data/sides.json); options.human_side:
+## which of them the player controls. Every other side is run by the AI.
 func new_game(p_seed: int, options: Dictionary = {}) -> void:
-	human_side = options.get("human_side", "usa")
 	var opts := options.duplicate()
-	opts["ai_usa"] = human_side != "usa"
-	opts["ai_ussr"] = human_side != "ussr"
+	var lineup: Array = Array(opts.get("sides", Sides.default_lineup()))
+	opts["sides"] = lineup
+	human_side = str(opts.get("human_side", lineup[0]))
+	if not lineup.has(human_side):
+		human_side = str(lineup[0])
+	for side in lineup:
+		opts["ai_%s" % side] = side != human_side
 	game = SimGame.new(GameData, p_seed, opts)
-	drivers.clear()
-	for i in 2:
-		if game.state.player(i).is_ai:
-			drivers.append(SimAi.new(i))
+	_make_drivers()
 	_apply_theme()
 	game_started.emit()
 	state_changed.emit()
@@ -34,13 +37,9 @@ func new_game(p_seed: int, options: Dictionary = {}) -> void:
 func load_game(p_game: SimGame, p_human_side: String) -> void:
 	game = p_game
 	human_side = p_human_side
-	for i in 2:
-		var p := game.state.player(i)
+	for p in game.state.players:
 		p.is_ai = p.side != human_side
-	drivers.clear()
-	for i in 2:
-		if game.state.player(i).is_ai:
-			drivers.append(SimAi.new(i))
+	_make_drivers()
 	_apply_theme()
 	game_started.emit()
 	state_changed.emit()
@@ -67,13 +66,28 @@ func state() -> SimState:
 func me() -> SimPlayer:
 	if game == null:
 		return null
-	return game.state.player(0 if human_side == "usa" else 1)
+	return game.state.player_for_side(human_side)
 
 
+## Every other side in the race.
+func rivals() -> Array[SimPlayer]:
+	if game == null:
+		return []
+	return game.state.rivals(me().index)
+
+
+## The leading rival (the only one in a two-side game).
 func rival() -> SimPlayer:
 	if game == null:
 		return null
-	return game.state.player(1 if human_side == "usa" else 0)
+	return game.state.leading_rival(me().index)
+
+
+func _make_drivers() -> void:
+	drivers.clear()
+	for p in game.state.players:
+		if p.is_ai:
+			drivers.append(SimAi.new(p.index))
 
 
 ## Let the AI sides act, then roll the season over.

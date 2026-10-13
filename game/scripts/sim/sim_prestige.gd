@@ -92,6 +92,14 @@ static func _claim(state: SimState, pidx: int, row: int, running_total: int, awa
 		kind = "second"
 		_mark_chain(state, pidx, row)
 		_set_milestone(state, pidx, row)
+	elif not _is_achiever(ledger, pidx):
+		# A third (or later) side to achieve the row: paid the row's trickle value and
+		# counted as having achieved it, so its later missions are not blocked.
+		ledger["others"].append(pidx)
+		pts = table["other"]
+		kind = "later"
+		_mark_chain(state, pidx, row)
+		_set_milestone(state, pidx, row)
 	elif running_total < OTHER_PAID_WHILE_TOTAL_BELOW:
 		pts = table["other"]
 		kind = "other"
@@ -109,6 +117,8 @@ static func _mark_chain(state: SimState, pidx: int, row: int) -> void:
 			ledger["first_season"] = state.season
 		elif ledger["second"] == -1 and ledger["first"] != pidx:
 			ledger["second"] = pidx
+		elif not _is_achiever(ledger, pidx):
+			ledger["others"].append(pidx)
 		_set_milestone(state, pidx, lower)
 		_mark_chain(state, pidx, lower)
 
@@ -118,7 +128,10 @@ static func _set_milestone(state: SimState, pidx: int, row: int) -> void:
 		state.player(pidx).milestones[ROW_TO_MILESTONE[row]] = 1
 
 
-## True if the player has been first or second on the row.
+## True if the player has achieved the row (first, second or later).
 static func achieved(state: SimState, pidx: int, row: int) -> bool:
-	var ledger: Dictionary = state.prestige_rows[row]
-	return ledger["first"] == pidx or ledger["second"] == pidx
+	return _is_achiever(state.prestige_rows[row], pidx)
+
+
+static func _is_achiever(ledger: Dictionary, pidx: int) -> bool:
+	return ledger["first"] == pidx or ledger["second"] == pidx or ledger.get("others", []).has(pidx)

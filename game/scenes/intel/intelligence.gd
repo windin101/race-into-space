@@ -256,7 +256,7 @@ func _refresh() -> void:
 	var me := Session.me()
 	var rival := Session.rival()
 	_rival_side = rival.side
-	var agency: String = TurnLogic.AGENCY.get(me.side, "CIA")
+	var agency: String = TurnLogic.agency(me.side)
 	title = "%s Intelligence" % agency
 	_accuracy.text = "%s briefing on the %s programme. Estimates are accurate to within %d safety points (%d%% accuracy at %s level) and are refreshed each season." % [
 		agency, TurnLogic.side_name(rival.side), TurnLogic.intel_max_deviation(me.level), TurnLogic.intel_accuracy(me.level), TurnLogic.level_name(me.level)]
@@ -289,7 +289,7 @@ func _refresh() -> void:
 	for a in rival.astronauts:
 		if a.is_alive():
 			living += 1
-	var crew_word := "Cosmonauts" if rival.side == "ussr" else "Astronauts"
+	var crew_word := "%ss" % str(Sides.field(rival.side, "people", "astronaut")).capitalize()
 	_rival_sheet["side"].text = TurnLogic.side_name(rival.side)
 	_rival_sheet["prestige"].text = str(rival.prestige_total)
 	_rival_sheet["pads"].text = str(rival.pad_count())

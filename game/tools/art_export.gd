@@ -21,7 +21,7 @@ func _run() -> void:
 	for sub in ["portraits", "hardware/usa", "hardware/ussr"]:
 		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://%s/%s" % [_out, sub]))
 	var count := 0
-	for side in ["usa", "ussr"]:
+	for side in Sides.ids():
 		for group in GameData.roster["sides"][side]:
 			for c in group["candidates"]:
 				await _render(Vector2i(672, 800), "portraits/%s.png" % c["name"],
@@ -31,7 +31,7 @@ func _run() -> void:
 		await _render(Vector2i(672, 800), "portraits/%s.png" % extra[0],
 			func(canvas): PortraitArt.paint(canvas, Rect2(Vector2.ZERO, canvas.size), extra[0], extra[1], extra[2], ""))
 		count += 1
-	for side in ["usa", "ussr"]:
+	for side in Sides.ids():
 		for group in SimProgram.GROUPS:
 			var specs: Array = GameData.hardware["models"]["basic"][side][group]
 			for slot in 7:
@@ -44,7 +44,7 @@ func _run() -> void:
 				count += 1
 	# Portrait features as JSON so the text-to-image batch can describe each person.
 	var features := {}
-	for side in ["usa", "ussr"]:
+	for side in Sides.ids():
 		for group in GameData.roster["sides"][side]:
 			for c in group["candidates"]:
 				var f := PortraitArt.features(c["name"], c["female"])

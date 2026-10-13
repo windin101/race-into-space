@@ -45,8 +45,11 @@ static func annual_review(state: SimState, p: SimPlayer) -> Dictionary:
 	elif val <= -10:
 		ip += 1 + p.level
 	ip = clampi(ip, 1, FIRED_AT)
-	var rival := state.opponent(p.index)
-	if ip > rival.review_index:
+	# Doing worse than the best-reviewed rival costs a further point.
+	var best_rival := 99
+	for r in state.rivals(p.index):
+		best_rival = mini(best_rival, r.review_index)
+	if ip > best_rival:
 		ip += 1
 	p.review_index = ip
 	var review := {"year": state.year, "spring": spring, "fall": fall, "value": val,
@@ -59,7 +62,7 @@ static func annual_review(state: SimState, p: SimPlayer) -> Dictionary:
 ## Line in text/reviews.json for this side and index. Fired players get the dismissal
 ## line, or the harsher one when two or more astronauts have died.
 static func text_index(state: SimState, p: SimPlayer, index: int) -> int:
-	var base := TEXT_PER_SIDE * p.index
+	var base := TEXT_PER_SIDE * Sides.text_slot(p.side)
 	if index >= FIRED_AT:
 		var dead := 0
 		for a in p.astronauts:
@@ -71,8 +74,11 @@ static func text_index(state: SimState, p: SimPlayer, index: int) -> int:
 
 ## Only a human playing the computer above easy can be dismissed.
 static func dismissed(state: SimState, p: SimPlayer) -> bool:
-	if p.is_ai or p.level == 0 or not state.opponent(p.index).is_ai:
+	if p.is_ai or p.level == 0:
 		return false
+	for r in state.rivals(p.index):
+		if not r.is_ai:
+			return false
 	return p.review_index >= FIRED_AT
 
 
@@ -80,7 +86,9 @@ static func dismissed(state: SimState, p: SimPlayer) -> bool:
 ## landing bonus for the side that made the manned lunar landing, by year.
 static func director_score(state: SimState, p: SimPlayer) -> int:
 	var lv_a := p.level + 1
-	var lv_b := state.opponent(p.index).level + 1
+	var lv_b := 1
+	for r in state.rivals(p.index):
+		lv_b = maxi(lv_b, r.level + 1)
 	var total := 0
 	for r in p.mission_log:
 		var pr: int = r.get("prestige", {}).get("total", 0)

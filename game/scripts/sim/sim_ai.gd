@@ -92,9 +92,9 @@ func _handicap(state: SimState, p: SimPlayer) -> void:
 	var every: int = _params["bonus_every"]
 	if every <= 0:
 		return
-	var human := state.opponent(p.index)
-	if human.level == 0 and not human.is_ai:
-		return
+	for human in state.rivals(p.index):
+		if human.level == 0 and not human.is_ai:
+			return
 	if state.turn_index() % every == 0:
 		p.cash += int(_params["cash_bonus"])
 

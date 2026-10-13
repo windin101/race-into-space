@@ -3,7 +3,6 @@ extends ScreenPanel
 ## figure, a row per side) in a Card, then the prestige-per-season and budget-per-season
 ## line graphs (drawn by a custom Control), each with a side-coloured legend.
 
-const SIDE_TITLES := {"usa": "United States", "ussr": "Soviet Union"}
 
 const LEDGER_KEYS := ["CASH", "BUDGET", "SPENT THIS SEASON", "PRESTIGE THIS SEASON", "PRESTIGE TOTAL", "DIRECTOR SCORE"]
 
@@ -185,9 +184,9 @@ func _ready() -> void:
 		k.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		k.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_ledger.add_child(k)
-	for side in ["usa", "ussr"]:
+	for side in _lineup():
 		var h := Label.new()
-		h.text = SIDE_TITLES[side].to_upper()
+		h.text = Sides.name(side).to_upper()
 		h.theme_type_variation = "CapsBright"
 		h.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
 		h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -197,7 +196,7 @@ func _ready() -> void:
 			var v := Label.new()
 			v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 			v.theme_type_variation = "Readout"
-			v.tooltip_text = "%s: %s" % [SIDE_TITLES[side], str(key).capitalize()]
+			v.tooltip_text = "%s: %s" % [Sides.name(side), str(key).capitalize()]
 			v.mouse_filter = Control.MOUSE_FILTER_PASS
 			_ledger.add_child(v)
 			cells.append(v)
@@ -231,7 +230,7 @@ func _graph_box(heading: String, graph: LineGraph) -> Control:
 	head.add_theme_constant_override("separation", 18)
 	head.alignment = BoxContainer.ALIGNMENT_END
 	panel.body.add_child(head)
-	for side in ["usa", "ussr"]:
+	for side in _lineup():
 		var item := HBoxContainer.new()
 		item.add_theme_constant_override("separation", 6)
 		var swatch := ColorRect.new()
@@ -240,12 +239,12 @@ func _graph_box(heading: String, graph: LineGraph) -> Control:
 		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		item.add_child(swatch)
 		var text := Label.new()
-		text.text = SIDE_TITLES[side].to_upper()
+		text.text = Sides.name(side).to_upper()
 		text.theme_type_variation = "Caps"
 		text.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
 		item.add_child(text)
 		head.add_child(item)
-	panel.tooltip_text = "%s for both sides, one point per season." % heading
+	panel.tooltip_text = "%s for every side, one point per season." % heading
 	panel.body.add_child(graph)
 	return panel
 
@@ -254,21 +253,20 @@ func _refresh() -> void:
 	if not Session.has_game():
 		return
 	var state := Session.state()
-	var usa := state.player(0)
-	var ussr := state.player(1)
-	_prestige_graph.set_series([
-		{"label": SIDE_TITLES["usa"], "color": UiPalette.accent("usa"), "values": Array(usa.prestige_history)},
-		{"label": SIDE_TITLES["ussr"], "color": UiPalette.accent("ussr"), "values": Array(ussr.prestige_history)},
-	])
-	_budget_graph.set_series([
-		{"label": SIDE_TITLES["usa"], "color": UiPalette.accent("usa"), "values": Array(usa.budget_history)},
-		{"label": SIDE_TITLES["ussr"], "color": UiPalette.accent("ussr"), "values": Array(ussr.budget_history)},
-	])
+	var prestige: Array = []
+	var budget: Array = []
+	for p in state.players:
+		prestige.append({"label": Sides.name(p.side), "color": UiPalette.accent(p.side), "values": Array(p.prestige_history)})
+		budget.append({"label": Sides.name(p.side), "color": UiPalette.accent(p.side), "values": Array(p.budget_history)})
+	_prestige_graph.set_series(prestige)
+	_budget_graph.set_series(budget)
 	_ledger_title.text = "LEDGER: %s" % state.date_string().to_upper()
 	var rows := summary_rows(state)
-	for j in 2:
-		var side: String = ["usa", "ussr"][j]
-		var mine := state.player(j) == Session.me()
+	for p in state.players:
+		var side: String = p.side
+		if not _ledger_cells.has(side):
+			continue
+		var mine := p == Session.me()
 		for i in mini(rows.size(), _ledger_cells[side].size()):
 			var r: Dictionary = rows[i]
 			var lbl: Label = _ledger_cells[side][i]
@@ -277,18 +275,28 @@ func _refresh() -> void:
 			lbl.add_theme_color_override("font_color", UiPalette.TEXT if mine else UiPalette.TEXT_DIM)
 
 
+## The sides in this game, in player order (the registry's default line-up with no game).
+static func _lineup() -> Array:
+	var out: Array = []
+	if Session.has_game():
+		for p in Session.state().players:
+			out.append(p.side)
+	else:
+		out = Array(Sides.default_lineup())
+	return out
+
+
 ## The current-season table: one row per figure, a value per side.
 static func summary_rows(state: SimState) -> Array:
-	var usa := state.player(0)
-	var ussr := state.player(1)
-	return [
-		{"metric": "Cash (MB)", "usa": usa.cash, "ussr": ussr.cash},
-		{"metric": "Budget (MB)", "usa": usa.budget, "ussr": ussr.budget},
-		{"metric": "Spent this season (MB)", "usa": usa.spending_this_season, "ussr": ussr.spending_this_season},
-		{"metric": "Prestige this season", "usa": usa.prestige, "ussr": ussr.prestige},
-		{"metric": "Prestige total", "usa": usa.prestige_total, "ussr": ussr.prestige_total},
-		{"metric": "Director score", "usa": SimReview.director_score(state, usa), "ussr": SimReview.director_score(state, ussr)},
-	]
+	var metrics := [["Cash (MB)", "cash"], ["Budget (MB)", "budget"], ["Spent this season (MB)", "spending_this_season"],
+			["Prestige this season", "prestige"], ["Prestige total", "prestige_total"], ["Director score", ""]]
+	var rows: Array = []
+	for m in metrics:
+		var row := {"metric": m[0]}
+		for p in state.players:
+			row[p.side] = SimReview.director_score(state, p) if m[1] == "" else int(p.get(m[1]))
+		rows.append(row)
+	return rows
 
 
 

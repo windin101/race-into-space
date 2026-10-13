@@ -638,7 +638,7 @@ func _prepare_feeds(launch: Dictionary, state: SimState) -> void:
 	_feed_names = FEED_NAMES.duplicate()
 	_crew_tex = []
 	var pidx := int(launch.get("player", 0))
-	var side := "usa" if pidx == 0 else "ussr"
+	var side: String = state.player(pidx).side
 	var steps: Array = launch.get("steps", [])
 	var names: Array = []
 	for st in steps:
@@ -684,7 +684,7 @@ func _find_hardware(state: SimState, side: String, name: String) -> Dictionary:
 
 func setup(args: Dictionary) -> void:
 	_report = args.get("report", {})
-	var human := 0 if Session.human_side == "usa" else 1
+	var human := Session.me().index
 	_launches = PlaybackScript.visible_launches(_report, human)
 	if _launches.is_empty():
 		_step_title.text = "NO LAUNCHES"
@@ -747,10 +747,10 @@ func _play_all() -> void:
 func _play_launch(launch: Dictionary) -> void:
 	var state := Session.state()
 	var mi := int(launch.get("mission_index", 0))
-	var side := "USA" if int(launch.get("player", 0)) == 0 else "USSR"
-	_mission_label.text = "%s: %s" % [side, PlaybackScript.mission_title(str(state.data.missions[mi]["name"]))]
+	var flier: String = state.player(int(launch.get("player", 0))).side
+	_mission_label.text = "%s: %s" % [Sides.short(flier), PlaybackScript.mission_title(str(state.data.missions[mi]["name"]))]
 	_subtitle.text = "Launch %d of %d" % [_current + 1, _launches.size()]
-	_set_room("usa" if side == "USA" else "ussr")
+	_set_room(flier)
 	_log.clear()
 	_stage_ctx = PlaybackScript.context_for(launch, state)
 	_steps = launch.get("steps", [])
