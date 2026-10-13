@@ -18,6 +18,9 @@ const WARN := Color("e0b84c")
 const DANGER := Color("d9534f")
 const INFO := Color("5aa9e6")
 const GOLD := Color("d4a84b")
+## Monotone backdrop hues per side (ui-style-guide section 3).
+const ROOM_TINT_USA := Color("2a4d8c")
+const ROOM_TINT_USSR := Color("8c2a2a")
 
 const ACCENT_USA := Color("3d7bdc")
 const ACCENT_USA_DARK := Color("27509a")

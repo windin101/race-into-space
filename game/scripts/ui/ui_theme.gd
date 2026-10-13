@@ -4,14 +4,18 @@ extends RefCounted
 ## One theme per side; the accent colour is the only difference.
 ##
 ## Type variations available to scenes:
-##   Label:  "Title", "Heading", "Subheading", "Dim", "Mono"
-##   Button: "Accent", "Danger", "Flat"
+##   Label:  "Title", "Heading", "Subheading", "Dim", "Mono", "Small", "Caps", "CapsBright", "Readout"
+##   Button: "Accent", "Danger", "Flat", "Go", "Caution", "Blocked", "Bar"
+## "Caps" is the wide label face (Michroma) for panel titles, bars and lamps: set the
+## label's text in capitals. Go / Caution / Blocked follow the colour rules in
+## docs/specs/ui-style-guide.md section 6.
 ##   PanelContainer: "Raised", "Sunken", "Card"
 
 const FONT_BODY := "res://assets/fonts/SourceSans3-Regular.otf"
 const FONT_BODY_SEMIBOLD := "res://assets/fonts/SourceSans3-Semibold.otf"
 const FONT_BODY_BOLD := "res://assets/fonts/SourceSans3-Bold.otf"
 const FONT_HEADING := "res://assets/fonts/Oswald-Variable.ttf"
+const FONT_LABEL := "res://assets/fonts/Michroma-Regular.ttf"
 
 ## Sizes in logical pixels at the 1920x1080 design resolution.
 const SIZE_BODY := 18
@@ -58,6 +62,7 @@ static func build(side: String) -> Theme:
 	var semibold := font(FONT_BODY_SEMIBOLD)
 	var bold := font(FONT_BODY_BOLD)
 	var heading := font(FONT_HEADING)
+	var label_font := font(FONT_LABEL)
 
 	t.default_font = body
 	t.default_font_size = SIZE_BODY
@@ -79,6 +84,17 @@ static func build(side: String) -> Theme:
 	t.set_font_size("font_size", "Small", SIZE_SMALL)
 	t.set_color("font_color", "Small", UiPalette.TEXT_DIM)
 	t.set_font("font", "Mono", semibold)
+	for variation in ["Caps", "CapsBright", "Readout"]:
+		t.add_type(variation)
+		t.set_type_variation(variation, "Label")
+	t.set_font("font", "Caps", label_font)
+	t.set_font_size("font_size", "Caps", SIZE_SMALL)
+	t.set_color("font_color", "Caps", UiPalette.TEXT_DIM)
+	t.set_font("font", "CapsBright", label_font)
+	t.set_font_size("font_size", "CapsBright", SIZE_SMALL)
+	t.set_color("font_color", "CapsBright", UiPalette.TEXT)
+	t.set_font("font", "Readout", semibold)
+	t.set_font_size("font_size", "Readout", SIZE_SUBHEADING)
 
 	# Buttons
 	t.set_font("font", "Button", semibold)
@@ -102,6 +118,26 @@ static func build(side: String) -> Theme:
 	t.set_stylebox("normal", "Danger", flat(UiPalette.DANGER.darkened(0.3), UiPalette.DANGER))
 	t.set_stylebox("hover", "Danger", flat(UiPalette.DANGER, Color.WHITE))
 	t.set_stylebox("pressed", "Danger", flat(UiPalette.DANGER.darkened(0.5), Color.WHITE))
+	# Action colours (style guide section 6) and the full-width panel action bar.
+	for pair in [["Go", UiPalette.OK], ["Caution", UiPalette.WARN], ["Blocked", UiPalette.DANGER]]:
+		var vname: String = pair[0]
+		var col: Color = pair[1]
+		t.add_type(vname)
+		t.set_type_variation(vname, "Button")
+		t.set_stylebox("normal", vname, flat(col.darkened(0.35), col))
+		t.set_stylebox("hover", vname, flat(col.darkened(0.15), Color.WHITE))
+		t.set_stylebox("pressed", vname, flat(col.darkened(0.5), Color.WHITE))
+		t.set_stylebox("disabled", vname, flat(UiPalette.PANEL, UiPalette.BORDER_SOFT))
+		t.set_font("font", vname, label_font)
+		t.set_font_size("font_size", vname, SIZE_SMALL)
+		t.set_color("font_color", vname, Color.WHITE)
+	t.add_type("Bar")
+	t.set_type_variation("Bar", "Button")
+	t.set_font("font", "Bar", label_font)
+	t.set_font_size("font_size", "Bar", SIZE_SMALL)
+	t.set_stylebox("normal", "Bar", flat(UiPalette.PANEL_RAISED, UiPalette.BORDER))
+	t.set_stylebox("hover", "Bar", flat(UiPalette.PANEL_RAISED.lightened(0.08), accent))
+	t.set_stylebox("pressed", "Bar", flat(accent_dark, accent))
 	t.set_stylebox("normal", "Flat", flat(Color.TRANSPARENT))
 	t.set_stylebox("hover", "Flat", flat(UiPalette.PANEL_RAISED))
 	t.set_stylebox("pressed", "Flat", flat(accent_dark))

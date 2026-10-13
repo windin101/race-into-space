@@ -120,7 +120,12 @@ func _fade_in(node: Control) -> void:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if event.is_action_pressed("ui_cancel"):
+	# Back is everywhere (ui-style-guide section 2): Esc, a right-click on empty space,
+	# and the mouse's back button all go back one screen.
+	var back := event.is_action_pressed("ui_cancel")
+	if event is InputEventMouseButton and event.pressed:
+		back = back or event.button_index == MOUSE_BUTTON_RIGHT or event.button_index == MOUSE_BUTTON_XBUTTON1
+	if back:
 		var top := current()
 		if top != null and top.has_method("handles_back") and top.call("handles_back"):
 			return

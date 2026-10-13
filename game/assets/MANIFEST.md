@@ -9,6 +9,7 @@ hardware, portraits, vignettes) is code, not files, and is covered by the projec
 | fonts/SourceSans3-Semibold.otf | body font, semibold | Adobe Source Sans 3 | SIL OFL 1.1 |
 | fonts/SourceSans3-Bold.otf | body font, bold | Adobe Source Sans 3 | SIL OFL 1.1 |
 | fonts/Oswald-Variable.ttf | heading font | Oswald (Vernon Adams et al., Google Fonts) | SIL OFL 1.1 (fonts/OFL-Oswald.txt) |
+| fonts/Michroma-Regular.ttf | wide label font | Michroma (The Michroma Project Authors, Google Fonts) | SIL OFL 1.1 (fonts/OFL-Michroma.txt) |
 | audio/music/title_theme.ogg | title and end-game music, 48 s loop | synthesised by tools/gen_audio.py | CC0 |
 | audio/music/spaceport_day.ogg | spaceport ambience, 60 s loop | synthesised by tools/gen_audio.py | CC0 |
 | audio/music/mission.ogg | mission playback music, 40 s loop | synthesised by tools/gen_audio.py | CC0 |

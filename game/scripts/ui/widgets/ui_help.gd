@@ -27,3 +27,9 @@ static func attach(control: Control, code: String) -> void:
 	var t := text_for(code)
 	if t != "":
 		control.tooltip_text = t
+
+
+## Open the help text for a code in a notice box (the (i) badge, and F1).
+static func show_code(host: Node, code: String) -> void:
+	var t := text_for(code)
+	ConfirmBox.notice(host, "Help", t if t != "" else "No help for this panel yet.")

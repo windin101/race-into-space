@@ -1,22 +1,32 @@
 class_name ScreenPanel
 extends Control
-## Base for full-screen panels: a header with title and back button, a content area and
-## a footer for actions. Subclasses add children to `content` and `footer`.
+## Base for full-screen panels, in the fixed frame of docs/specs/ui-style-guide.md:
+## a top bar (back arrow, breadcrumb, prestige, date), the content area on the screen's
+## backdrop, and a bottom resource bar whose right end holds the screen's context action
+## (`footer`). Subclasses add children to `content` and their actions to `footer`; when a
+## screen adds none, a "Spaceport" action is supplied.
+##
+## Backdrops: set_room(name) shows a painting as a monotone tint in the side's hue (offices);
+## set_backdrop(name) shows it in full colour (stage-like screens).
 
 var title := "":
 	set(v):
 		title = v
-		if _title:
-			_title.text = v
+		if _sp_crumbs:
+			FrameBars.fill_crumbs(_sp_crumbs, title, self)
 var show_back := true
+## Show the rival's prestige in the top bar (screens about the race).
+var show_rival_prestige := false
 
 var content: VBoxContainer
 var footer: HBoxContainer
-var _backdrop: TextureRect
-var _panel: PanelContainer
-var _title: Label
-var _back: Button
-var _status: Label
+var _sp_backdrop: TextureRect
+var _sp_panel: PanelContainer
+var _sp_crumbs: HBoxContainer
+var _sp_top_right: HBoxContainer
+var _sp_chips: HBoxContainer
+var _sp_back: Button
+var _sp_status: Label
 
 
 func _init() -> void:
@@ -26,66 +36,98 @@ func _init() -> void:
 	bg.set_anchors_preset(Control.PRESET_FULL_RECT)
 	bg.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bg)
-	_backdrop = TextureRect.new()
-	_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
-	_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_backdrop.modulate = Color(0.65, 0.65, 0.65)
-	_backdrop.visible = false
-	add_child(_backdrop)
+	_sp_backdrop = TextureRect.new()
+	_sp_backdrop.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	_sp_backdrop.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+	_sp_backdrop.set_anchors_preset(Control.PRESET_FULL_RECT)
+	_sp_backdrop.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sp_backdrop.visible = false
+	add_child(_sp_backdrop)
+
+	var frame := VBoxContainer.new()
+	frame.set_anchors_preset(Control.PRESET_FULL_RECT)
+	frame.add_theme_constant_override("separation", 0)
+	add_child(frame)
+	var top := FrameBars.make_top(_on_back)
+	frame.add_child(top["node"])
+	_sp_crumbs = top["crumbs"]
+	_sp_top_right = top["right"]
+	_sp_back = top["back"]
+	_sp_status = Label.new()
+	_sp_status.theme_type_variation = "Dim"
+	_sp_status.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	(top["node"] as Control).get_child(0).add_child(_sp_status)
+	(top["node"] as Control).get_child(0).move_child(_sp_status, 2)
+
 	var margin := MarginContainer.new()
-	margin.set_anchors_preset(Control.PRESET_FULL_RECT)
-	for side in ["left", "right", "top", "bottom"]:
+	margin.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	for side in ["left", "right"]:
 		margin.add_theme_constant_override("margin_" + side, 24)
-	add_child(margin)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 14)
-	margin.add_child(v)
-	var header := HBoxContainer.new()
-	v.add_child(header)
-	_back = Button.new()
-	_back.text = "◀ Back"
-	_back.theme_type_variation = "Flat"
-	_back.pressed.connect(_on_back)
-	header.add_child(_back)
-	_title = Label.new()
-	_title.theme_type_variation = "Heading"
-	_title.text = title
-	_title.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	header.add_child(_title)
-	_status = Label.new()
-	_status.theme_type_variation = "Dim"
-	header.add_child(_status)
-	_panel = PanelContainer.new()
-	_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	v.add_child(_panel)
+	for side in ["top", "bottom"]:
+		margin.add_theme_constant_override("margin_" + side, 16)
+	frame.add_child(margin)
+	_sp_panel = PanelContainer.new()
+	_sp_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	margin.add_child(_sp_panel)
 	content = VBoxContainer.new()
 	content.add_theme_constant_override("separation", 10)
-	_panel.add_child(content)
-	footer = HBoxContainer.new()
-	footer.alignment = BoxContainer.ALIGNMENT_END
-	v.add_child(footer)
+	_sp_panel.add_child(content)
+
+	var bottom := FrameBars.make_bottom()
+	frame.add_child(bottom["node"])
+	_sp_chips = bottom["chips"]
+	footer = bottom["action"]
 
 
 func _ready() -> void:
-	_back.visible = show_back
+	_sp_back.visible = show_back and Screens.stack.find(self) > 0
+	FrameBars.fill_crumbs(_sp_crumbs, title, self)
 	_refresh_status()
 	if Session.has_game():
 		Session.state_changed.connect(_refresh_status)
+	_add_default_action.call_deferred()
 
 
-## Show a full-screen painting behind the panel (assets/art/backdrops/<name>.png) when one
-## exists; the content panel turns translucent so the art reads through. No file, no change.
+func _add_default_action() -> void:
+	if footer.get_child_count() > 0 or Screens.stack.find(self) <= 0:
+		return
+	var home := Button.new()
+	home.text = "SPACEPORT"
+	home.theme_type_variation = "Bar"
+	home.tooltip_text = "Back to the spaceport"
+	home.custom_minimum_size = Vector2(170, 40)
+	home.pressed.connect(func(): Screens.go_home())
+	footer.add_child(home)
+
+
+## A painting in full colour behind translucent panels (stage-like screens).
 func set_backdrop(name: String) -> void:
-	var tex := ArtAssets.backdrop(name)
-	_backdrop.texture = tex
-	_backdrop.visible = tex != null
+	_apply_backdrop(ArtAssets.backdrop(name), false)
+
+
+## A painting as a monotone room in the side's hue behind translucent panels (offices).
+func set_room(name: String) -> void:
+	_apply_backdrop(ArtAssets.backdrop(name), true)
+
+
+func _apply_backdrop(tex: Texture2D, monotone: bool) -> void:
+	_sp_backdrop.texture = tex
+	_sp_backdrop.visible = tex != null
+	if monotone and tex != null:
+		var mat := ShaderMaterial.new()
+		mat.shader = load("res://scripts/ui/monotone.gdshader")
+		var side := Session.human_side if Session.has_game() else "usa"
+		mat.set_shader_parameter("tint", UiPalette.ROOM_TINT_USA if side == "usa" else UiPalette.ROOM_TINT_USSR)
+		_sp_backdrop.material = mat
+		_sp_backdrop.modulate = Color.WHITE
+	else:
+		_sp_backdrop.material = null
+		_sp_backdrop.modulate = Color(0.65, 0.65, 0.65)
 	if tex != null:
-		_panel.add_theme_stylebox_override("panel", UiTheme.flat(Color(UiPalette.PANEL, 0.72), UiPalette.BORDER_SOFT))
+		_sp_panel.add_theme_stylebox_override("panel", UiTheme.flat(Color(UiPalette.PANEL, 0.55 if monotone else 0.72), UiPalette.BORDER_SOFT, 10))
 		_make_translucent(content)
 	else:
-		_panel.remove_theme_stylebox_override("panel")
+		_sp_panel.remove_theme_stylebox_override("panel")
 
 
 ## Nested panels (Sunken, Card) would hide the art, so they get a see-through copy of
@@ -96,19 +138,18 @@ func _make_translucent(node: Node) -> void:
 			var sb: StyleBox = child.get_theme_stylebox("panel")
 			if sb is StyleBoxFlat:
 				var copy := sb.duplicate() as StyleBoxFlat
-				copy.bg_color = Color(copy.bg_color, 0.78)
+				copy.bg_color = Color(copy.bg_color, 0.82)
 				child.add_theme_stylebox_override("panel", copy)
 		_make_translucent(child)
 
 
 func set_status(text: String) -> void:
-	_status.text = text
+	_sp_status.text = text
 
 
 func _refresh_status() -> void:
-	if Session.has_game():
-		var me := Session.me()
-		_status.text = "%s   Cash %d MB   Budget %d MB" % [Session.state().date_string(), me.cash, me.budget]
+	FrameBars.fill_top_right(_sp_top_right, show_rival_prestige)
+	FrameBars.fill_chips(_sp_chips)
 
 
 func _on_back() -> void:
