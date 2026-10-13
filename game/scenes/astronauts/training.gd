@@ -3,7 +3,8 @@ extends ScreenPanel
 ## facility cards across the top (capsule, LM, EVA, docking, endurance), each with its
 ## hardware picture and the trainees' portrait tiles; beneath them basic training and
 ## the medical centre as roster lists, the advanced trainees as a sortable list, and the
-## command board to enrol or withdraw. The selected facility is the course on offer.
+## enrol and withdraw panels with their action bars. The selected facility is the course
+## on offer. Each region is a UiPanel (ui-style-guide section 4).
 ## Commands go through SimPersonnel and are followed by Session.notify_change().
 
 const SKILL_TITLES := {"capsule": "Capsule", "lm": "LM", "eva": "EVA", "docking": "Docking", "endurance": "Endurance"}
@@ -29,6 +30,8 @@ var _enrol_portrait: Control
 var _enrol_level: Label
 var _enrol_mood: Label
 var _enrol_text: Label
+var _enrol_cost: StatChip
+var _enrol_seasons: StatChip
 var _enrol: Button
 var _summary: Label
 
@@ -44,10 +47,11 @@ func _init() -> void:
 func _ready() -> void:
 	super()
 	# Facility cards.
+	var hall_panel := UiPanel.new("Advanced training facilities", DEFAULT_HELP)
+	content.add_child(hall_panel)
 	var hall := HBoxContainer.new()
 	hall.add_theme_constant_override("separation", 10)
-	content.add_child(hall)
-	UiHelp.attach(hall, DEFAULT_HELP)
+	hall_panel.body.add_child(hall)
 	for s in SimAstronaut.SKILLS:
 		hall.add_child(_facility_card(s))
 
@@ -55,44 +59,47 @@ func _ready() -> void:
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
-	UiHelp.attach(split, DEFAULT_HELP)
 
 	# Left: basic training over the medical centre.
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.add_theme_constant_override("separation", 6)
+	left.add_theme_constant_override("separation", 12)
 	split.add_child(left)
-	left.add_child(_banner("BASIC TRAINING"))
-	left.add_child(_note("Recruits spend %d seasons here; one random skill improves each season." % _basic_seasons()))
+	var basic_panel := UiPanel.new("Basic training", DEFAULT_HELP)
+	basic_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(basic_panel)
+	basic_panel.body.add_child(_note("Recruits spend %d seasons here; one random skill improves each season." % _basic_seasons()))
 	_basic = DataTable.new()
 	_basic.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_basic.tooltip_text = "Recruits in basic training. Click a column heading to sort."
 	_basic.set_columns([
 		{"key": "name", "title": "Name", "stretch": 1.8},
 		{"key": "left", "title": "Seasons", "numeric": true, "stretch": 0.9},
 		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.7, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
 	])
-	left.add_child(_basic)
-	left.add_child(_banner("MEDICAL CENTRE"))
-	left.add_child(_note("The injured return to active duty when their recovery ends."))
+	basic_panel.body.add_child(_basic)
+	var med_panel := UiPanel.new("Medical centre", DEFAULT_HELP)
+	med_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(med_panel)
+	med_panel.body.add_child(_note("The injured return to active duty when their recovery ends."))
 	_medical = DataTable.new()
 	_medical.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_medical.tooltip_text = "Injured astronauts and the seasons until they recover. Click a column heading to sort."
 	_medical.set_columns([
 		{"key": "name", "title": "Name", "stretch": 1.8, "color": func(_r): return UiPalette.WARN},
 		{"key": "left", "title": "Recovery", "numeric": true, "stretch": 0.9},
 		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.7, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
 	])
-	left.add_child(_medical)
+	med_panel.body.add_child(_medical)
 
 	# Middle: every advanced trainee, sortable.
-	var middle := VBoxContainer.new()
-	middle.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var middle := UiPanel.new("Advanced training", DEFAULT_HELP)
 	middle.size_flags_stretch_ratio = 1.1
-	middle.add_theme_constant_override("separation", 6)
 	split.add_child(middle)
-	middle.add_child(_banner("ADVANCED TRAINING"))
-	middle.add_child(_note("One skill per course: +1 after the second season and +1 on completion."))
+	middle.body.add_child(_note("One skill per course: +1 after the second season and +1 on completion."))
 	_advanced = DataTable.new()
 	_advanced.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_advanced.tooltip_text = "Select a trainee to withdraw them. Click a column heading to sort."
 	_advanced.set_columns([
 		{"key": "name", "title": "Name", "stretch": 1.6},
 		{"key": "focus", "title": "Course", "stretch": 1.1},
@@ -101,29 +108,27 @@ func _ready() -> void:
 		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.6, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
 	])
 	_advanced.row_selected.connect(_on_advanced_row)
-	middle.add_child(_advanced)
+	middle.body.add_child(_advanced)
+	_summary = _note("")
+	_summary.add_theme_color_override("font_color", UiPalette.TEXT_DIM)
+	middle.body.add_child(_summary)
 
-	# Right: the command board.
+	# Right: enrol and withdraw.
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.custom_minimum_size.x = 420
-	right.add_theme_constant_override("separation", 10)
+	right.custom_minimum_size.x = 440
+	right.add_theme_constant_override("separation", 12)
 	split.add_child(right)
 	right.add_child(_build_enrol_board())
 	right.add_child(_build_withdraw_board())
 
-	_summary = Label.new()
-	_summary.theme_type_variation = "Dim"
-	_summary.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_summary.clip_text = true
-	_summary.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	footer.add_child(_summary)
+	set_room("room_crew")
 	_set_skill(_skill)
 
 
 func _facility_card(skill: String) -> Control:
 	var card := PanelContainer.new()
-	card.theme_type_variation = "Card"
+	card.theme_type_variation = "Sunken"
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	var v := VBoxContainer.new()
 	v.add_theme_constant_override("separation", 4)
@@ -131,16 +136,16 @@ func _facility_card(skill: String) -> Control:
 	var b := Button.new()
 	b.text = SKILL_TITLES[skill].to_upper()
 	b.toggle_mode = true
-	b.custom_minimum_size.y = 110
+	b.custom_minimum_size.y = 92
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
 	b.expand_icon = false
 	b.add_theme_constant_override("icon_max_width", 68)
+	b.tooltip_text = "Offer %s training in the enrol panel" % SKILL_TITLES[skill].to_lower()
 	b.pressed.connect(_set_skill.bind(skill))
 	v.add_child(b)
 	var count := Label.new()
-	count.theme_type_variation = "Small"
-	count.add_theme_color_override("font_color", UiPalette.INFO)
+	count.theme_type_variation = "Caps"
 	count.clip_text = true
 	count.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	v.add_child(count)
@@ -154,17 +159,17 @@ func _facility_card(skill: String) -> Control:
 
 
 func _build_enrol_board() -> Control:
-	var board := PanelContainer.new()
-	board.theme_type_variation = "Card"
-	var fv := VBoxContainer.new()
-	fv.add_theme_constant_override("separation", 8)
-	board.add_child(fv)
+	var board := UiPanel.new("Enrol", DEFAULT_HELP)
+	var fv := board.body
+	var banner_panel := PanelContainer.new()
+	banner_panel.theme_type_variation = "Sunken"
+	fv.add_child(banner_panel)
 	_enrol_title = Label.new()
-	_enrol_title.theme_type_variation = "Subheading"
+	_enrol_title.theme_type_variation = "Heading"
 	_enrol_title.add_theme_color_override("font_color", UiPalette.GOLD)
 	_enrol_title.clip_text = true
 	_enrol_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	fv.add_child(_enrol_title)
+	banner_panel.add_child(_enrol_title)
 	var body := HBoxContainer.new()
 	body.add_theme_constant_override("separation", 12)
 	fv.add_child(body)
@@ -172,7 +177,7 @@ func _build_enrol_board() -> Control:
 	frame.theme_type_variation = "Sunken"
 	body.add_child(frame)
 	_enrol_portrait = Control.new()
-	_enrol_portrait.custom_minimum_size = Vector2(108, 130)
+	_enrol_portrait.custom_minimum_size = Vector2(96, 112)
 	_enrol_portrait.draw.connect(_draw_enrol_portrait)
 	frame.add_child(_enrol_portrait)
 	var col := VBoxContainer.new()
@@ -180,81 +185,60 @@ func _build_enrol_board() -> Control:
 	col.add_theme_constant_override("separation", 6)
 	body.add_child(col)
 	var who := Label.new()
-	who.text = "CANDIDATE:"
-	who.theme_type_variation = "Dim"
+	who.text = "CANDIDATE"
+	who.theme_type_variation = "Caps"
 	col.add_child(who)
 	_enrol_who = OptionButton.new()
 	_enrol_who.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_enrol_who.clip_text = true
 	_enrol_who.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_enrol_who.tooltip_text = "Active astronauts who are not in a crew, with their current level in this skill"
 	_enrol_who.item_selected.connect(func(_i): _refresh_enrol_text())
 	col.add_child(_enrol_who)
 	var grid := GridContainer.new()
-	grid.columns = 2
+	grid.columns = 4
 	grid.add_theme_constant_override("h_separation", 14)
 	col.add_child(grid)
 	var lk := Label.new()
-	lk.text = "SKILL:"
-	lk.theme_type_variation = "Dim"
+	lk.text = "SKILL"
+	lk.theme_type_variation = "Caps"
+	lk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	grid.add_child(lk)
 	_enrol_level = Label.new()
 	_enrol_level.theme_type_variation = "Subheading"
 	_enrol_level.add_theme_color_override("font_color", UiPalette.GOLD)
 	grid.add_child(_enrol_level)
 	var mk := Label.new()
-	mk.text = "MOOD:"
-	mk.theme_type_variation = "Dim"
+	mk.text = "MOOD"
+	mk.theme_type_variation = "Caps"
+	mk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	grid.add_child(mk)
 	_enrol_mood = Label.new()
 	_enrol_mood.theme_type_variation = "Subheading"
 	grid.add_child(_enrol_mood)
+	var chips := HBoxContainer.new()
+	chips.add_theme_constant_override("separation", 8)
+	fv.add_child(chips)
+	_enrol_cost = StatChip.new("cost", "-", "Course fee")
+	chips.add_child(_enrol_cost)
+	_enrol_seasons = StatChip.new("seasons", "-", "Seasons in training")
+	chips.add_child(_enrol_seasons)
 	_enrol_text = Label.new()
 	_enrol_text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_enrol_text.theme_type_variation = "Small"
 	fv.add_child(_enrol_text)
-	_enrol = Button.new()
-	_enrol.theme_type_variation = "Accent"
-	_enrol.clip_text = true
-	_enrol.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	_enrol.pressed.connect(_on_enrol)
-	fv.add_child(_enrol)
+	_enrol = board.add_action("Enrol", "go", _on_enrol)
 	return board
 
 
 func _build_withdraw_board() -> Control:
-	var board := PanelContainer.new()
-	board.theme_type_variation = "Card"
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	board.add_child(v)
-	var t := Label.new()
-	t.text = "WITHDRAW FROM TRAINING"
-	t.theme_type_variation = "Subheading"
-	t.add_theme_color_override("font_color", UiPalette.GOLD)
-	v.add_child(t)
+	var board := UiPanel.new("Withdraw from training", DEFAULT_HELP)
 	_withdraw_note = Label.new()
 	_withdraw_note.theme_type_variation = "Small"
 	_withdraw_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(_withdraw_note)
-	_withdraw = Button.new()
-	_withdraw.text = "Withdraw"
-	_withdraw.theme_type_variation = "Danger"
-	_withdraw.pressed.connect(_on_withdraw)
-	v.add_child(_withdraw)
+	board.body.add_child(_withdraw_note)
+	_withdraw = board.add_action("Withdraw", "caution", _on_withdraw)
 	return board
-
-
-func _banner(text: String) -> Control:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = "Sunken"
-	var l := Label.new()
-	l.text = text
-	l.theme_type_variation = "Heading"
-	l.add_theme_color_override("font_color", UiPalette.GOLD)
-	l.clip_text = true
-	l.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	panel.add_child(l)
-	return panel
 
 
 func _note(text: String) -> Label:
@@ -436,6 +420,7 @@ func _refresh() -> void:
 			c.queue_free()
 		var here: Array = trainees.filter(func(a): return a.training_focus == skill)
 		card["count"].text = "%d IN TRAINING" % here.size() if not here.is_empty() else "FACILITY IDLE"
+		card["count"].add_theme_color_override("font_color", UiPalette.INFO if not here.is_empty() else UiPalette.TEXT_DIM)
 		for a in here:
 			tiles.add_child(_portrait_tile(a))
 	_refresh_withdraw()
@@ -447,7 +432,7 @@ func _refresh() -> void:
 	_enrol_who.clear()
 	for i in _candidates.size():
 		var a: SimAstronaut = _candidates[i]
-		_enrol_who.add_item("%s   (%s %d)" % [a.name.capitalize(), SKILL_SHORT[_skill], a.skill(_skill)])
+		_enrol_who.add_item("%s   (%s %d, mood %d)" % [a.name.capitalize(), SKILL_SHORT[_skill], a.skill(_skill), a.mood])
 		_enrol_who.set_item_metadata(i, a)
 		if a == previous:
 			_enrol_who.select(i)
@@ -455,7 +440,7 @@ func _refresh() -> void:
 		_enrol_who.add_item("No eligible astronaut")
 		_enrol_who.set_item_metadata(0, null)
 	_refresh_enrol_text()
-	_summary.text = "In basic training %d,  in advanced training %d,  injured %d,  eligible to enrol %d" % [
+	_summary.text = "In basic training %d,  in advanced training %d,  injured %d,  eligible to enrol %d." % [
 		basic_rows.size(), adv_rows.size(), med_rows.size(), _candidates.size()]
 
 
@@ -487,10 +472,12 @@ func _refresh_selection() -> void:
 
 
 func _refresh_withdraw() -> void:
-	_withdraw.disabled = _advanced_selected == null
 	if _advanced_selected == null:
-		_withdraw_note.text = "Select a trainee (a portrait tile or a row) to withdraw them early. Part of the fee is refunded depending on how far along they are."
+		_withdraw_note.text = "Pick a trainee (a portrait tile or a row) to end their course early; part of the fee is refunded."
+		UiAction.style(_withdraw, "blocked", "Withdraw", "Select a trainee first. Click a portrait tile or a row in Advanced training.")
 	else:
+		UiAction.style(_withdraw, "caution", "Withdraw %s" % _advanced_selected.name.capitalize())
+		_withdraw.tooltip_text = "End the course early; progress is kept and part of the fee comes back"
 		_withdraw_note.text = "Withdraw %s from %s training (%d seasons left)." % [
 			_advanced_selected.name.capitalize(), SKILL_TITLES.get(_advanced_selected.training_focus, _advanced_selected.training_focus),
 			_advanced_selected.training_seasons_left]
@@ -509,14 +496,16 @@ func _enrol_skill_key() -> String:
 func _refresh_enrol_text() -> void:
 	var a := _enrol_pick()
 	var skill := _enrol_skill_key()
-	_enrol_title.text = "ENROL: %s TRAINING" % SKILL_TITLES.get(skill, "-").to_upper()
-	_enrol.text = "Enrol in %s training" % SKILL_TITLES.get(skill, "-")
+	_enrol_title.text = "%s TRAINING" % SKILL_TITLES.get(skill, "-").to_upper()
+	var label := "Enrol in %s training" % SKILL_TITLES.get(skill, "-")
 	_enrol_portrait.queue_redraw()
 	if a == null or skill == "":
 		_enrol_level.text = "-"
 		_enrol_mood.text = "-"
+		_enrol_cost.set_value("-")
+		_enrol_seasons.set_value("-")
 		_enrol_text.text = "Only active astronauts who are not in a crew can enrol."
-		_enrol.disabled = true
+		UiAction.style(_enrol, "blocked", label, "No eligible astronaut. Only active astronauts who are not in a crew can enrol.")
 		return
 	_enrol_level.text = "%s %d" % [SKILL_SHORT[skill].to_upper(), a.skill(skill)]
 	_enrol_mood.text = str(a.mood)
@@ -531,7 +520,15 @@ func _refresh_enrol_text() -> void:
 	if terms["ok"] and not affordable:
 		text += " Not enough cash."
 	_enrol_text.text = text
-	_enrol.disabled = not affordable
+	_enrol_cost.set_value("%d MB" % int(terms["cost"]) if terms["ok"] else "-", terms["ok"] and not affordable)
+	_enrol_seasons.set_value(str(terms["seasons"]) if terms["ok"] else "-")
+	if not terms["ok"]:
+		UiAction.style(_enrol, "blocked", label, "Skill at maximum. " + str(terms["text"]))
+	elif not affordable:
+		UiAction.style(_enrol, "blocked", label, "Not enough cash. The course costs %d MB and you have %d MB." % [int(terms["cost"]), Session.me().cash])
+	else:
+		UiAction.style(_enrol, "go", label)
+		_enrol.tooltip_text = "Start the course now: %s" % terms["text"]
 
 
 func _on_enrol() -> void:

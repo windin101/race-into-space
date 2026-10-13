@@ -6,6 +6,7 @@ extends ScreenPanel
 ## band for the human's difficulty, stable within a turn (TurnLogic.intel_estimates).
 
 const CASE_BG := Color("0a1424")
+const STRIP_H := 44.0   ## name strip across the foot of the case
 
 var _table: DataTable
 var _accuracy: Label
@@ -23,11 +24,13 @@ var _prev: Button
 var _next: Button
 var _sheet: Dictionary = {}    ## key -> value Label
 var _rival_sheet: Dictionary = {}
+var _gauge: Gauge
 
 
 func _init() -> void:
 	super()
 	title = "Intelligence"
+	show_rival_prestige = true
 
 
 func _ready() -> void:
@@ -39,12 +42,11 @@ func _ready() -> void:
 	if seal != null:
 		var emblem := TextureRect.new()
 		emblem.texture = seal
-		emblem.custom_minimum_size = Vector2(96, 96)
+		emblem.custom_minimum_size = Vector2(80, 80)
 		emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		head.add_child(emblem)
 	_accuracy = Label.new()
-	_accuracy.theme_type_variation = "Dim"
 	_accuracy.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_accuracy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_accuracy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -52,19 +54,17 @@ func _ready() -> void:
 
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.size_flags_stretch_ratio = 1.15
-	split.add_theme_constant_override("separation", 20)
+	split.size_flags_stretch_ratio = 1.3
+	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
 
-	# Display case for the selected rival programme.
-	var left := VBoxContainer.new()
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Viewer for the selected rival programme, its name strip across the case foot.
+	var left := UiPanel.new("Rival programme", "I027")
 	left.size_flags_stretch_ratio = 1.1
-	left.add_theme_constant_override("separation", 8)
 	split.add_child(left)
 	var banner_panel := PanelContainer.new()
 	banner_panel.theme_type_variation = "Sunken"
-	left.add_child(banner_panel)
+	left.body.add_child(banner_panel)
 	_banner = Label.new()
 	_banner.theme_type_variation = "Heading"
 	_banner.add_theme_color_override("font_color", UiPalette.GOLD)
@@ -74,62 +74,78 @@ func _ready() -> void:
 	var case_panel := PanelContainer.new()
 	case_panel.theme_type_variation = "Sunken"
 	case_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.add_child(case_panel)
+	left.body.add_child(case_panel)
 	_case = Control.new()
 	_case.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_case.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_case.custom_minimum_size.y = 180
+	_case.custom_minimum_size.y = 200
 	_case.clip_contents = true
 	_case.draw.connect(_draw_case)
 	_case.resized.connect(_case.queue_redraw)
 	case_panel.add_child(_case)
 	var nav := HBoxContainer.new()
+	nav.set_anchors_preset(Control.PRESET_BOTTOM_WIDE)
+	nav.offset_top = -STRIP_H
+	nav.offset_left = 6
+	nav.offset_right = -6
 	nav.add_theme_constant_override("separation", 10)
-	left.add_child(nav)
+	_case.add_child(nav)
 	_prev = Button.new()
 	_prev.text = "◀"
-	_prev.custom_minimum_size.x = 64
+	_prev.theme_type_variation = "Flat"
+	_prev.custom_minimum_size.x = 56
+	_prev.tooltip_text = "Previous rival programme"
 	_prev.pressed.connect(func(): _step(-1))
 	nav.add_child(_prev)
 	_case_name = Label.new()
-	_case_name.theme_type_variation = "Subheading"
+	_case_name.theme_type_variation = "CapsBright"
 	_case_name.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_case_name.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	_case_name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_case_name.size_flags_vertical = Control.SIZE_FILL
 	_case_name.clip_text = true
 	_case_name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	nav.add_child(_case_name)
 	_next = Button.new()
 	_next.text = "▶"
-	_next.custom_minimum_size.x = 64
+	_next.theme_type_variation = "Flat"
+	_next.custom_minimum_size.x = 56
+	_next.tooltip_text = "Next rival programme"
 	_next.pressed.connect(func(): _step(1))
 	nav.add_child(_next)
 
-	# Estimate sheet, the rival summary and recent missions.
+	# Estimate (with its gauge), the rival summary and recent missions.
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.custom_minimum_size.x = 420
-	right.add_theme_constant_override("separation", 10)
+	right.custom_minimum_size.x = 440
+	right.add_theme_constant_override("separation", 12)
 	split.add_child(right)
 	var cards := HBoxContainer.new()
-	cards.add_theme_constant_override("separation", 10)
+	cards.add_theme_constant_override("separation", 12)
 	right.add_child(cards)
-	cards.add_child(_sheet_card("ESTIMATE", _sheet, [["category", "CATEGORY:"], ["status", "STATUS:"], ["safety", "EST. SAFETY:"], ["range", "LIKELY RANGE:"]]))
-	cards.add_child(_sheet_card("RIVAL", _rival_sheet, [["side", "NATION:"], ["prestige", "PRESTIGE:"], ["pads", "LAUNCH PADS:"], ["crew", "CREW:"]]))
-	var mt := Label.new()
-	mt.theme_type_variation = "Subheading"
-	mt.text = "RECENT MISSIONS"
-	mt.add_theme_color_override("font_color", UiPalette.GOLD)
-	right.add_child(mt)
+	var est_panel := _sheet_card("Estimate", _sheet, [["category", "CATEGORY"], ["status", "STATUS"], ["range", "LIKELY RANGE"]])
+	_gauge = Gauge.new(false, "Estimated safety")
+	_gauge.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	est_panel.body.add_child(_gauge)
+	est_panel.body.move_child(_gauge, 0)
+	cards.add_child(est_panel)
+	cards.add_child(_sheet_card("Rival", _rival_sheet, [["side", "NATION"], ["prestige", "PRESTIGE"], ["pads", "LAUNCH PADS"], ["crew", "CREW"]]))
+	var missions_panel := UiPanel.new("Recent missions", "I027")
+	missions_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.add_child(missions_panel)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	right.add_child(scroll)
+	missions_panel.body.add_child(scroll)
 	_missions = VBoxContainer.new()
 	_missions.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_missions.add_theme_constant_override("separation", 4)
 	scroll.add_child(_missions)
 
 	# Briefing table beneath.
+	var brief := UiPanel.new("Briefing", "I027")
+	brief.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(brief)
 	_table = DataTable.new()
 	_table.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_table.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -141,32 +157,24 @@ func _ready() -> void:
 			"color": func(r): return UiPalette.safety_color(int(r["safety"])) if int(r["safety"]) >= 0 else UiPalette.TEXT_MUTED},
 	])
 	_table.row_selected.connect(_on_row)
-	content.add_child(_table)
+	brief.body.add_child(_table)
 	UiHelp.attach(_table, "I027")
+	set_room("room_intel")
 	_refresh()
 
 
-func _sheet_card(heading: String, store: Dictionary, keys: Array) -> Control:
-	var card := PanelContainer.new()
-	card.theme_type_variation = "Card"
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 6)
-	card.add_child(v)
-	var t := Label.new()
-	t.text = heading
-	t.theme_type_variation = "Subheading"
-	t.add_theme_color_override("font_color", UiPalette.GOLD)
-	v.add_child(t)
+func _sheet_card(heading: String, store: Dictionary, keys: Array) -> UiPanel:
+	var card := UiPanel.new(heading, "I027")
 	var grid := GridContainer.new()
 	grid.columns = 2
 	grid.add_theme_constant_override("h_separation", 16)
 	grid.add_theme_constant_override("v_separation", 4)
-	v.add_child(grid)
+	card.body.add_child(grid)
 	for pair in keys:
 		var k := Label.new()
 		k.text = pair[1]
-		k.theme_type_variation = "Dim"
+		k.theme_type_variation = "Caps"
+		k.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		grid.add_child(k)
 		var val := Label.new()
 		val.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -199,14 +207,24 @@ func _draw_case() -> void:
 	var prog := _selected()
 	if prog == null:
 		_case.draw_string(get_theme_default_font(), Vector2(0, centre.y), "No programme on file", HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SUBHEADING, UiPalette.TEXT_MUTED)
+		_draw_strip()
 		return
-	var rect := Rect2(Vector2.ZERO, size).grow(-minf(size.x, size.y) * 0.08)
+	var stage := Vector2(size.x, size.y - STRIP_H)
+	var rect := Rect2(Vector2.ZERO, stage).grow(-minf(stage.x, stage.y) * 0.08)
 	HardwareArt.paint(_case, rect, prog.group, prog.slot, _rival_side)
-	_case.draw_line(Vector2(size.x * 0.15, size.y - 18), Vector2(size.x * 0.85, size.y - 18), UiPalette.BORDER_SOFT, 2.0)
+	_case.draw_line(Vector2(size.x * 0.15, stage.y - 8), Vector2(size.x * 0.85, stage.y - 8), UiPalette.BORDER_SOFT, 2.0)
 	if not prog.owned:
 		# No activity seen: the exhibit is shown greyed behind a stamp.
 		_case.draw_rect(Rect2(Vector2.ZERO, size), Color(CASE_BG, 0.65))
 		_case.draw_string(get_theme_default_font(), Vector2(0, centre.y), "NO ACTIVITY DETECTED", HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SUBHEADING, UiPalette.TEXT_DIM)
+	_draw_strip()
+
+
+## The name strip's backing across the foot of the case.
+func _draw_strip() -> void:
+	var size := _case.size
+	_case.draw_rect(Rect2(0, size.y - STRIP_H, size.x, STRIP_H), Color(0, 0, 0, 0.55))
+	_case.draw_line(Vector2(0, size.y - STRIP_H), Vector2(size.x, size.y - STRIP_H), UiPalette.BORDER_SOFT, 1.0)
 
 
 # ----------------------------------------------------------------- state
@@ -310,24 +328,30 @@ func _refresh_detail() -> void:
 	_case.queue_redraw()
 	_prev.disabled = _programs.size() < 2
 	_next.disabled = _programs.size() < 2
+	_prev.tooltip_text = "Only one programme on file" if _prev.disabled else "Previous rival programme"
+	_next.tooltip_text = "Only one programme on file" if _next.disabled else "Next rival programme"
 	var prog := _selected()
 	if prog == null:
 		_banner.text = "PROGRAM: -"
-		_case_name.text = "Nothing on file"
+		_case_name.text = "NOTHING ON FILE"
+		_gauge.value = 0
+		_gauge.modulate.a = 0.4
 		for key in _sheet:
 			_sheet[key].text = "-"
 		return
 	_banner.text = "PROGRAM: %s" % prog.display_name().to_upper()
-	_case_name.text = "%s   %s" % [prog.display_name().capitalize(), OpsView.kind_name(prog)]
+	_case_name.text = "%s   %s" % [prog.display_name().to_upper(), OpsView.kind_name(prog).to_upper()]
 	_sheet["category"].text = prog.group.capitalize()
 	_sheet["status"].text = "Active" if prog.owned else "Not started"
 	var est := int(_estimates.get("%s/%d" % [prog.group, prog.slot], -1))
 	var dev := TurnLogic.intel_max_deviation(Session.me().level)
 	if est < 0:
-		_sheet["safety"].text = "-"
-		_sheet["safety"].add_theme_color_override("font_color", UiPalette.TEXT_MUTED)
+		_gauge.value = 0
+		_gauge.modulate.a = 0.4
+		_gauge.label = "No safety estimate: no activity seen"
 		_sheet["range"].text = "-"
 	else:
-		_sheet["safety"].text = "%d%%" % est
-		_sheet["safety"].add_theme_color_override("font_color", UiPalette.safety_color(est))
+		_gauge.value = est
+		_gauge.modulate.a = 1.0
+		_gauge.label = "Estimated safety %d%% (likely %d-%d%%)" % [est, clampi(est - dev, 1, 100), clampi(est + dev, 1, 100)]
 		_sheet["range"].text = "%d-%d%%" % [clampi(est - dev, 1, 100), clampi(est + dev, 1, 100)]

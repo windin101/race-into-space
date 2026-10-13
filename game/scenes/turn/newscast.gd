@@ -28,23 +28,22 @@ func _ready() -> void:
 	var top := HBoxContainer.new()
 	top.add_theme_constant_override("separation", 16)
 	content.add_child(top)
-	var frame := PanelContainer.new()
-	frame.theme_type_variation = "Sunken"
-	top.add_child(frame)
+	var anchor_panel := UiPanel.new("Anchor")
+	anchor_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	top.add_child(anchor_panel)
 	_anchor_tile = Control.new()
 	_anchor_tile.custom_minimum_size = Vector2(170, 204)
+	_anchor_tile.tooltip_text = ANCHOR
 	_anchor_tile.draw.connect(_draw_anchor)
-	frame.add_child(_anchor_tile)
-	var card := PanelContainer.new()
-	card.theme_type_variation = "Card"
+	anchor_panel.body.add_child(_anchor_tile)
+	var card := UiPanel.new("Network news", "I001")
 	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	top.add_child(card)
-	var card_box := VBoxContainer.new()
+	var card_box := card.body
 	card_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	card_box.add_theme_constant_override("separation", 6)
-	card.add_child(card_box)
 	var banner := Label.new()
-	banner.theme_type_variation = "Subheading"
+	banner.theme_type_variation = "Heading"
 	banner.add_theme_color_override("font_color", UiPalette.GOLD)
 	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	banner.text = "NETWORK NEWS"
@@ -60,13 +59,13 @@ func _ready() -> void:
 	_anchor.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	card_box.add_child(_anchor)
 
-	var body := PanelContainer.new()
-	body.theme_type_variation = "Sunken"
-	body.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# Sized to the story, not the screen, so the studio shows beneath it.
+	var body := UiPanel.new("This season", "I001")
 	content.add_child(body)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	body.add_child(scroll)
+	scroll.custom_minimum_size.y = 300
+	body.body.add_child(scroll)
 	var lines := VBoxContainer.new()
 	lines.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	lines.add_theme_constant_override("separation", 12)
@@ -82,12 +81,13 @@ func _ready() -> void:
 	_effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	lines.add_child(_effect)
 	_damage_box = VBoxContainer.new()
+	_damage_box.add_theme_constant_override("separation", 8)
 	lines.add_child(_damage_box)
-	UiHelp.attach(body, "I001")
 
 	var go := Button.new()
-	go.text = "Continue"
-	go.theme_type_variation = "Accent"
+	go.custom_minimum_size = Vector2(170, 40)
+	UiAction.style(go, "go", "Continue")
+	go.tooltip_text = "On to the spaceport"
 	go.pressed.connect(func(): Screens.pop())
 	footer.add_child(go)
 	_refresh()
@@ -139,11 +139,16 @@ func _refresh_damage(p: SimPlayer) -> void:
 		if prog.damage == 0:
 			continue
 		var b := Button.new()
-		b.text = "Pay %d MB to clear the damage to %s" % [prog.damage_cost, prog.display_name().capitalize()]
-		b.theme_type_variation = "Danger"
-		b.disabled = p.cash < prog.damage_cost
+		var label := "Pay %d MB to clear the damage to %s" % [prog.damage_cost, prog.display_name().capitalize()]
+		var reason := "" if p.cash >= prog.damage_cost else "Not enough cash: clearing the damage costs %d MB and you have %d MB." % [prog.damage_cost, p.cash]
+		UiAction.go_or_blocked(b, label, reason)
+		if reason == "":
+			b.tooltip_text = "Repair the event damage now; otherwise it lowers this hardware's safety on its next mission"
+		b.custom_minimum_size.y = 40
 		b.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
-		b.pressed.connect(_on_pay.bind(prog))
+		b.pressed.connect(func():
+			if not UiAction.is_blocked(b):
+				_on_pay(prog))
 		_damage_box.add_child(b)
 
 

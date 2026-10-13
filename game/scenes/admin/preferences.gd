@@ -25,11 +25,9 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
-	var heading := Label.new()
-	heading.theme_type_variation = "Subheading"
-	heading.text = "Saved games"
-	content.add_child(heading)
-
+	var slots := UiPanel.new("Saved games", "I013")
+	slots.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	content.add_child(slots)
 	_table = DataTable.new()
 	_table.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_table.set_columns([
@@ -38,15 +36,27 @@ func _ready() -> void:
 		{"key": "side", "title": "Side"},
 		{"key": "saved_at", "title": "Saved", "stretch": 2},
 	])
+	_table.tooltip_text = "Your saved games. Click a column to sort; double-click a save to load it."
 	_table.row_selected.connect(_on_row)
 	_table.row_activated.connect(func(_row): _on_load())
-	content.add_child(_table)
+	slots.body.add_child(_table)
+	_message = Label.new()
+	_message.theme_type_variation = "Dim"
+	_message.clip_text = true
+	_message.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	slots.body.add_child(_message)
+	_load = slots.add_action("Load selected", "go", _on_load)
+	_delete = slots.add_action("Delete selected", "caution", _on_delete)
 
+	var save_panel := UiPanel.new("Save the current game", "I013")
+	content.add_child(save_panel)
 	var save_row := HBoxContainer.new()
-	save_row.add_theme_constant_override("separation", 10)
-	content.add_child(save_row)
+	save_row.add_theme_constant_override("separation", 12)
+	save_panel.body.add_child(save_row)
 	var l := Label.new()
-	l.text = "Label"
+	l.text = "LABEL"
+	l.theme_type_variation = "Caps"
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	save_row.add_child(l)
 	_label_edit = LineEdit.new()
 	_label_edit.placeholder_text = "Name for a new save"
@@ -54,44 +64,23 @@ func _ready() -> void:
 	_label_edit.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_label_edit.text_submitted.connect(func(_t): _on_save_new())
 	save_row.add_child(_label_edit)
-	_save_new = Button.new()
-	_save_new.text = "Save to new slot"
-	_save_new.theme_type_variation = "Accent"
-	_save_new.pressed.connect(_on_save_new)
-	save_row.add_child(_save_new)
-	_save_over = Button.new()
-	_save_over.text = "Save over selected"
-	_save_over.pressed.connect(_on_save_over)
-	save_row.add_child(_save_over)
-
-	var slot_row := HBoxContainer.new()
-	slot_row.add_theme_constant_override("separation", 10)
-	content.add_child(slot_row)
-	_load = Button.new()
-	_load.text = "Load selected"
-	_load.pressed.connect(_on_load)
-	slot_row.add_child(_load)
-	_delete = Button.new()
-	_delete.text = "Delete selected"
-	_delete.theme_type_variation = "Danger"
-	_delete.pressed.connect(_on_delete)
-	slot_row.add_child(_delete)
-	_message = Label.new()
-	_message.theme_type_variation = "Dim"
-	_message.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_message.clip_text = true
-	_message.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	slot_row.add_child(_message)
+	_save_new = save_panel.add_action("Save to new slot", "go", _on_save_new)
+	_save_over = save_panel.add_action("Save over selected", "caution", _on_save_over)
 
 	var settings := Button.new()
-	settings.text = "Settings"
+	settings.theme_type_variation = "Bar"
+	settings.text = "SETTINGS"
+	settings.tooltip_text = "Display, sound and playback settings"
+	settings.custom_minimum_size = Vector2(170, 40)
 	settings.pressed.connect(func(): Screens.push(load(SETTINGS)))
 	footer.add_child(settings)
 	_quit = Button.new()
-	_quit.text = "Quit to title"
-	_quit.theme_type_variation = "Danger"
-	_quit.pressed.connect(_on_quit)
+	_quit.custom_minimum_size = Vector2(200, 40)
+	_quit.pressed.connect(func():
+		if not UiAction.is_blocked(_quit):
+			_on_quit())
 	footer.add_child(_quit)
+	set_room("room_admin")
 	_refresh()
 
 
@@ -132,12 +121,31 @@ func _on_row(row: Dictionary) -> void:
 func _update_buttons() -> void:
 	var in_game := Session.has_game()
 	var has_sel := not _selected.is_empty()
-	_save_new.disabled = not in_game
-	_save_over.disabled = not (in_game and has_sel)
-	_load.disabled = not has_sel
-	_delete.disabled = not has_sel
-	_quit.disabled = not in_game
+	var no_game := "No game in progress. Start or load a game first."
+	var pick := "No saved games yet." if _table.rows.is_empty() else "Select a saved game in the list first."
+	_action(_save_new, "Save to new slot", "go", "" if in_game else no_game,
+		"Save the current game to a new slot, named by the label above.")
+	_action(_save_over, "Save over selected", "caution", no_game if not in_game else ("" if has_sel else pick),
+		"Replace the selected save with the current game.")
+	_action(_load, "Load selected", "go", "" if has_sel else pick, "Load the selected save.")
+	_action(_delete, "Delete selected", "caution", "" if has_sel else pick, "Delete the selected save permanently.")
+	_action(_quit, "Quit to title", "go", "" if in_game else no_game, "Leave this game and return to the title screen.")
 	_label_edit.editable = in_game
+	_label_edit.tooltip_text = "Name for a new save; empty uses the side and date." if in_game else no_game
+
+
+## Style an action for its state: `kind` when `reason` is empty, else blocked with it.
+func _action(b: Button, text: String, kind: String, reason: String, tip: String) -> void:
+	# UiPanel freezes its bar buttons' styleboxes when it rounds their corners, so drop
+	# those overrides before restyling and round them again afterwards.
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		b.remove_theme_stylebox_override(state)
+	UiAction.style(b, kind if reason == "" else "blocked", text, reason)
+	if reason == "":
+		b.tooltip_text = tip
+	var panel := b.get_parent().get_parent().get_parent() if b.get_parent() != footer else null
+	if panel is UiPanel:
+		panel._round_bar()
 
 
 func _default_label() -> String:

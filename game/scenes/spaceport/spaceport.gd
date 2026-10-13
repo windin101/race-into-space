@@ -8,6 +8,12 @@ const PLACEHOLDER_PANEL := "res://scripts/ui/widgets/placeholder_panel.gd"
 var _layout: Dictionary
 var _buttons: Dictionary = {}
 var _hud: Label
+var _top_bar: PanelContainer
+var _bottom_bar: PanelContainer
+var _crumbs: HBoxContainer
+var _top_right: HBoxContainer
+var _chips: HBoxContainer
+var _end_btn: Button
 var _flag: Button
 var _sky: ColorRect
 
@@ -97,26 +103,37 @@ static func _place(c: Control, r: Dictionary) -> void:
 	c.offset_bottom = 0
 
 
+## The fixed frame over the painting (ui-style-guide section 2): the site name, prestige
+## and date on top; the resource chips and the End season action below. The hub has no
+## back arrow.
 func _build_hud() -> void:
+	var top := FrameBars.make_top(func(): pass)
+	_top_bar = top["node"]
+	_top_bar.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	(top["back"] as Button).visible = false
+	_crumbs = top["crumbs"]
+	_top_right = top["right"]
 	_hud = Label.new()
-	_hud.theme_type_variation = "Subheading"
-	_hud.add_theme_color_override("font_color", UiPalette.BG_DEEP)
-	_hud.anchor_left = 0.02
-	_hud.anchor_top = 0.02
-	_hud.anchor_right = 0.6
-	_hud.anchor_bottom = 0.10
-	_hud.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(_hud)
-	var title := Label.new()
-	title.theme_type_variation = "Title"
-	title.add_theme_color_override("font_color", UiPalette.BG_DEEP)
-	title.text = "Cape Canaveral" if _side() == "usa" else "Baikonur"
-	title.anchor_left = 0.02
-	title.anchor_top = 0.10
-	title.anchor_right = 0.6
-	title.anchor_bottom = 0.22
-	title.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(title)
+	_hud.theme_type_variation = "Dim"
+	_hud.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_hud.visible = false
+	_top_bar.get_child(0).add_child(_hud)
+	_top_bar.get_child(0).move_child(_hud, 2)
+	add_child(_top_bar)
+	var bottom := FrameBars.make_bottom()
+	_bottom_bar = bottom["node"]
+	_bottom_bar.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	_bottom_bar.grow_vertical = Control.GROW_DIRECTION_BEGIN
+	_chips = bottom["chips"]
+	add_child(_bottom_bar)
+	_end_btn = Button.new()
+	_end_btn.custom_minimum_size = Vector2(190, 40)
+	UiAction.style(_end_btn, "go", "End season")
+	_end_btn.tooltip_text = "Lower the flag and play out the season  (or click the flag)"
+	_end_btn.pressed.connect(func():
+		if not UiAction.is_blocked(_end_btn):
+			_on_end_turn())
+	(bottom["action"] as HBoxContainer).add_child(_end_btn)
 
 
 func _side() -> String:
@@ -124,12 +141,17 @@ func _side() -> String:
 
 
 func _refresh() -> void:
+	FrameBars.fill_crumbs(_crumbs, "Cape Canaveral" if _side() == "usa" else "Baikonur", self)
+	FrameBars.fill_top_right(_top_right)
+	FrameBars.fill_chips(_chips)
 	if not Session.has_game():
 		_hud.text = "No game in progress"
+		_hud.visible = true
+		UiAction.style(_end_btn, "blocked", "End season", "No game in progress.")
 		return
+	_hud.visible = false
 	var s := Session.state()
 	var me := Session.me()
-	_hud.text = "%s     Cash %d MB     Budget %d MB     Prestige %d" % [s.date_string(), me.cash, me.budget, me.prestige_total]
 	for i in 3:
 		var btn: Button = _buttons.get("pad_%d" % (i + 1))
 		if btn:
@@ -150,6 +172,12 @@ func _refresh() -> void:
 	_set_building("vab", any_program)
 	_set_building("mission_control", any_program)
 	_flag.disabled = s.ended
+	_flag.tooltip_text = "The game is over." if s.ended else "Lower the flag to end the season"
+	if s.ended:
+		UiAction.style(_end_btn, "blocked", "End season", "The game is over.")
+	else:
+		UiAction.style(_end_btn, "go", "End season")
+		_end_btn.tooltip_text = "Lower the flag and play out %s" % s.date_string()
 
 
 func _set_building(id: String, built: bool) -> void:

@@ -34,11 +34,19 @@ func _ready() -> void:
 	intro.text = "The race runs from Spring %d to Fall %d. The first side to land on the Moon and bring the crew home wins." % [SimState.FIRST_YEAR + 1900, SimState.LAST_YEAR + 1900]
 	content.add_child(intro)
 
+	var panels := HBoxContainer.new()
+	panels.add_theme_constant_override("separation", 16)
+	content.add_child(panels)
+
+	var game := UiPanel.new("The game", "I013")
+	game.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	game.size_flags_stretch_ratio = 1.0
+	panels.add_child(game)
 	var top := GridContainer.new()
 	top.columns = 2
-	top.add_theme_constant_override("h_separation", 24)
+	top.add_theme_constant_override("h_separation", 20)
 	top.add_theme_constant_override("v_separation", 12)
-	content.add_child(top)
+	game.body.add_child(top)
 	_side = OptionButton.new()
 	for s in SIDES:
 		_side.add_item(SIDE_TITLES[s])
@@ -47,9 +55,11 @@ func _ready() -> void:
 			_side.set_item_icon(_side.item_count - 1, flag)
 	_side.selected = 0
 	_side.add_theme_constant_override("icon_max_width", 38)
+	_side.tooltip_text = "The side you direct; the computer plays the other"
 	var side_row := HBoxContainer.new()
 	side_row.add_theme_constant_override("separation", 16)
 	_side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_side.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	side_row.add_child(_side)
 	_emblem = TextureRect.new()
 	_emblem.custom_minimum_size = Vector2(72, 72)
@@ -64,35 +74,41 @@ func _ready() -> void:
 	for m in _models:
 		_model.add_item(MODEL_NAMES.get(m, str(m).capitalize()))
 	_model.selected = maxi(0, _models.find("basic"))
+	_model.tooltip_text = "Which hardware rules the game uses: the original's basic model or the historical one"
 	_row(top, "Hardware model", _model)
 	var seed_row := HBoxContainer.new()
+	seed_row.add_theme_constant_override("separation", 10)
 	_seed = SpinBox.new()
 	_seed.min_value = 0
 	_seed.max_value = SEED_MAX
 	_seed.step = 1
 	_seed.custom_minimum_size.x = 200
 	_seed.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_seed.tooltip_text = "The same seed and settings replay the same game"
 	seed_row.add_child(_seed)
 	var random := Button.new()
-	random.text = "Random"
+	random.text = "RANDOM"
+	random.theme_type_variation = "Bar"
+	random.tooltip_text = "Pick a new random seed"
 	random.pressed.connect(_randomise_seed)
 	seed_row.add_child(random)
 	_row(top, "Seed", seed_row)
 	_randomise_seed()
 
-	var sides_heading := Label.new()
-	sides_heading.theme_type_variation = "Subheading"
-	sides_heading.text = "Sides"
-	content.add_child(sides_heading)
+	var sides := UiPanel.new("The sides", "I013")
+	sides.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	sides.size_flags_stretch_ratio = 1.4
+	panels.add_child(sides)
 	var grid := GridContainer.new()
 	grid.columns = 3
-	grid.add_theme_constant_override("h_separation", 24)
+	grid.add_theme_constant_override("h_separation", 20)
 	grid.add_theme_constant_override("v_separation", 12)
-	content.add_child(grid)
+	sides.body.add_child(grid)
 	grid.add_child(_label(""))
 	for s in SIDES:
-		var h := _label(SIDE_TITLES[s])
-		h.theme_type_variation = "Subheading"
+		var h := _label(SIDE_TITLES[s].to_upper())
+		h.theme_type_variation = "CapsBright"
+		h.add_theme_color_override("font_color", UiPalette.accent(s).lightened(0.3))
 		grid.add_child(h)
 	grid.add_child(_label("Director"))
 	for s in SIDES:
@@ -101,16 +117,19 @@ func _ready() -> void:
 		e.max_length = 24
 		e.custom_minimum_size.x = 220
 		e.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		e.tooltip_text = "The %s programme director's name" % SIDE_TITLES[s]
 		grid.add_child(e)
 		_director[s] = e
 	grid.add_child(_label("Difficulty"))
 	for s in SIDES:
 		var o := _levels(int(ng.get("default_difficulty", {}).get(s, 0)))
+		o.tooltip_text = "%s: budget, R&D limits and failure consequences" % SIDE_TITLES[s]
 		grid.add_child(o)
 		_level[s] = o
 	grid.add_child(_label("Astronaut level"))
 	for s in SIDES:
 		var o := _levels(int(ng.get("default_astronaut_level", {}).get(s, 0)))
+		o.tooltip_text = "%s: quality of the recruit pool" % SIDE_TITLES[s]
 		grid.add_child(o)
 		_astro_level[s] = o
 
@@ -118,20 +137,25 @@ func _ready() -> void:
 	note.theme_type_variation = "Small"
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	note.text = "Difficulty sets the budget, R&D limits and failure consequences for that side. The astronaut level sets the quality of the recruit pool. The same seed and settings replay the same game."
-	content.add_child(note)
+	sides.body.add_child(note)
 	var filler := Control.new()
 	filler.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(filler)
 
 	var load_btn := Button.new()
-	load_btn.text = "Load game"
+	load_btn.text = "LOAD GAME"
+	load_btn.theme_type_variation = "Bar"
+	load_btn.tooltip_text = "Open the saved games instead"
+	load_btn.custom_minimum_size = Vector2(170, 40)
 	load_btn.pressed.connect(func(): Screens.push(load(PREFERENCES)))
 	footer.add_child(load_btn)
 	var start := Button.new()
-	start.text = "Start the race"
-	start.theme_type_variation = "Accent"
+	UiAction.style(start, "go", "Start the race")
+	start.tooltip_text = "Begin in Spring %d with these settings" % (SimState.FIRST_YEAR + 1900)
+	start.custom_minimum_size = Vector2(220, 40)
 	start.pressed.connect(_on_start)
 	footer.add_child(start)
+	set_backdrop("title")
 
 
 func _refresh_emblem() -> void:
@@ -148,7 +172,9 @@ func _row(grid: GridContainer, label: String, control: Control) -> void:
 
 func _label(text: String) -> Label:
 	var l := Label.new()
-	l.text = text
+	l.text = text.to_upper()
+	l.theme_type_variation = "Caps"
+	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	l.custom_minimum_size.x = 160
 	return l
 

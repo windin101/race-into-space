@@ -6,7 +6,7 @@ extends RefCounted
 ## Type variations available to scenes:
 ##   Label:  "Title", "Heading", "Subheading", "Dim", "Mono", "Small", "Caps", "CapsBright", "Readout"
 ##   Button: "Accent", "Danger", "Flat", "Go", "Caution", "Blocked", "Bar"
-## "Caps" is the wide label face (Michroma) for panel titles, bars and lamps: set the
+## "Caps" is the wide label face (RISLabel, a renamed Michroma) for panel titles, bars and lamps: set the
 ## label's text in capitals. Go / Caution / Blocked follow the colour rules in
 ## docs/specs/ui-style-guide.md section 6.
 ##   PanelContainer: "Raised", "Sunken", "Card"
@@ -15,7 +15,7 @@ const FONT_BODY := "res://assets/fonts/SourceSans3-Regular.otf"
 const FONT_BODY_SEMIBOLD := "res://assets/fonts/SourceSans3-Semibold.otf"
 const FONT_BODY_BOLD := "res://assets/fonts/SourceSans3-Bold.otf"
 const FONT_HEADING := "res://assets/fonts/Oswald-Variable.ttf"
-const FONT_LABEL := "res://assets/fonts/Michroma-Regular.ttf"
+const FONT_LABEL := "res://assets/fonts/RISLabel-Regular.ttf"
 
 ## Sizes in logical pixels at the 1920x1080 design resolution.
 const SIZE_BODY := 18
@@ -63,6 +63,10 @@ static func build(side: String) -> Theme:
 	var bold := font(FONT_BODY_BOLD)
 	var heading := font(FONT_HEADING)
 	var label_font := font(FONT_LABEL)
+	# The label face has no % sign of its own (Michroma's reads as "o/o"); it falls back
+	# to the body face for that and any other missing glyph.
+	if label_font is FontFile and not semibold in label_font.fallbacks:
+		label_font.fallbacks = [semibold]
 
 	t.default_font = body
 	t.default_font_size = SIZE_BODY

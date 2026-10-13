@@ -151,12 +151,13 @@ class LineGraph extends Control:
 func _init() -> void:
 	super()
 	title = "Budget Office"
+	show_rival_prestige = true
 
 
 func _ready() -> void:
 	super()
 	UiHelp.attach(content, "I007")
-	# Ledger sheet: a column per figure, a row per side.
+	# The gold banner: the one main subject of the screen.
 	var banner := PanelContainer.new()
 	banner.theme_type_variation = "Sunken"
 	content.add_child(banner)
@@ -166,35 +167,38 @@ func _ready() -> void:
 	_ledger_title.clip_text = true
 	_ledger_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	banner.add_child(_ledger_title)
-	var sheet := PanelContainer.new()
-	sheet.theme_type_variation = "Card"
+	# Ledger sheet: a column per figure, a row per side.
+	var sheet := UiPanel.new("This season", "I007")
 	content.add_child(sheet)
 	_ledger = GridContainer.new()
 	_ledger.columns = LEDGER_KEYS.size() + 1
 	_ledger.add_theme_constant_override("h_separation", 24)
 	_ledger.add_theme_constant_override("v_separation", 6)
-	sheet.add_child(_ledger)
+	sheet.body.add_child(_ledger)
 	var corner := Control.new()
 	corner.custom_minimum_size.x = 200
 	_ledger.add_child(corner)
 	for key in LEDGER_KEYS:
 		var k := Label.new()
 		k.text = key
-		k.theme_type_variation = "Dim"
+		k.theme_type_variation = "Caps"
 		k.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		k.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		_ledger.add_child(k)
 	for side in ["usa", "ussr"]:
 		var h := Label.new()
 		h.text = SIDE_TITLES[side].to_upper()
-		h.theme_type_variation = "Subheading"
+		h.theme_type_variation = "CapsBright"
 		h.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
+		h.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		_ledger.add_child(h)
 		var cells: Array = []
 		for key in LEDGER_KEYS:
 			var v := Label.new()
 			v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-			v.theme_type_variation = "Subheading"
+			v.theme_type_variation = "Readout"
+			v.tooltip_text = "%s: %s" % [SIDE_TITLES[side], str(key).capitalize()]
+			v.mouse_filter = Control.MOUSE_FILTER_PASS
 			_ledger.add_child(v)
 			cells.append(v)
 		_ledger_cells[side] = cells
@@ -205,9 +209,10 @@ func _ready() -> void:
 	graphs.add_theme_constant_override("separation", 16)
 	content.add_child(graphs)
 	_prestige_graph = LineGraph.new()
-	graphs.add_child(_graph_box("PRESTIGE PER SEASON", _prestige_graph))
+	graphs.add_child(_graph_box("Prestige per season", _prestige_graph))
 	_budget_graph = LineGraph.new()
-	graphs.add_child(_graph_box("BUDGET PER SEASON (MB)", _budget_graph))
+	graphs.add_child(_graph_box("Budget per season (MB)", _budget_graph))
+	set_room("room_office")
 	_refresh()
 
 
@@ -220,24 +225,12 @@ func on_resume() -> void:
 
 
 func _graph_box(heading: String, graph: LineGraph) -> Control:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = "Card"
-	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var panel := UiPanel.new(heading, "I007")
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 6)
-	panel.add_child(box)
 	var head := HBoxContainer.new()
 	head.add_theme_constant_override("separation", 18)
-	box.add_child(head)
-	var label := Label.new()
-	label.theme_type_variation = "Subheading"
-	label.add_theme_color_override("font_color", UiPalette.GOLD)
-	label.text = heading
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	label.clip_text = true
-	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	head.add_child(label)
+	head.alignment = BoxContainer.ALIGNMENT_END
+	panel.body.add_child(head)
 	for side in ["usa", "ussr"]:
 		var item := HBoxContainer.new()
 		item.add_theme_constant_override("separation", 6)
@@ -247,11 +240,13 @@ func _graph_box(heading: String, graph: LineGraph) -> Control:
 		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		item.add_child(swatch)
 		var text := Label.new()
-		text.text = SIDE_TITLES[side]
+		text.text = SIDE_TITLES[side].to_upper()
+		text.theme_type_variation = "Caps"
 		text.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
 		item.add_child(text)
 		head.add_child(item)
-	box.add_child(graph)
+	panel.tooltip_text = "%s for both sides, one point per season." % heading
+	panel.body.add_child(graph)
 	return panel
 
 

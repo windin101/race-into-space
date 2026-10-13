@@ -28,14 +28,9 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	set_room("room_admin")
 	var side := Session.human_side if Session.has_game() else "usa"
 	UiHelp.attach(content, BUILDING_HELP.get(side, "I702"))
-
-	var intro := Label.new()
-	intro.theme_type_variation = "Dim"
-	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	intro.text = "The offices that run the programme between launches. Hover an office for help."
-	content.add_child(intro)
 
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -45,30 +40,34 @@ func _ready() -> void:
 	centre.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	centre.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.add_child(centre)
+	var board := UiPanel.new("The offices", BUILDING_HELP.get(side, "I702"))
+	board.custom_minimum_size.x = 1080
+	centre.add_child(board)
+	var intro := Label.new()
+	intro.theme_type_variation = "Dim"
+	intro.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	intro.text = "The offices that run the programme between launches. Hover an office for help."
+	board.body.add_child(intro)
 	var column := VBoxContainer.new()
-	column.add_theme_constant_override("separation", 12)
-	column.custom_minimum_size.x = 900
-	centre.add_child(column)
-
+	column.add_theme_constant_override("separation", 10)
+	board.body.add_child(column)
 	for office in OFFICES:
 		column.add_child(_entry(office, side))
 
 
 func _entry(office: Dictionary, side: String) -> Control:
-	var card := PanelContainer.new()
-	card.theme_type_variation = "Card"
 	var row := HBoxContainer.new()
-	row.add_theme_constant_override("separation", 18)
-	card.add_child(row)
+	row.add_theme_constant_override("separation", 20)
 	var button := Button.new()
-	button.text = office_title(office, side)
-	button.theme_type_variation = "Accent"
-	button.custom_minimum_size = Vector2(300, 64)
+	button.text = office_title(office, side).to_upper()
+	button.theme_type_variation = "Bar"
+	button.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	button.custom_minimum_size = Vector2(420, 72)
 	var glyph := ArtAssets.icon(office["id"])
 	if glyph != null:
 		button.icon = glyph
-		button.add_theme_constant_override("icon_max_width", 32)
-		button.add_theme_constant_override("h_separation", 12)
+		button.add_theme_constant_override("icon_max_width", 40)
+		button.add_theme_constant_override("h_separation", 16)
 	button.pressed.connect(_open.bind(office))
 	row.add_child(button)
 	_buttons[office["id"]] = button
@@ -77,10 +76,12 @@ func _entry(office: Dictionary, side: String) -> Control:
 	text.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	text.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	text.mouse_filter = Control.MOUSE_FILTER_PASS
 	row.add_child(text)
-	UiHelp.attach(card, office["help"])
+	button.tooltip_text = office["text"]
+	UiHelp.attach(text, office["help"])
 	UiHelp.attach(button, office["help"])
-	return card
+	return row
 
 
 ## Soviet side recruits cosmonauts; everything else reads the same.

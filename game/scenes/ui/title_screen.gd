@@ -40,13 +40,14 @@ func _ready() -> void:
 	sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	v.add_child(sub)
 	v.add_child(_spacer(20))
-	var new_game := _button("New game", func(): Screens.push(load(SETUP)))
-	new_game.theme_type_variation = "Accent"
+	var new_game := _button("New game", "Choose a side and settings, then start the race", func(): Screens.push(load(SETUP)))
+	UiAction.style(new_game, "go", "New game")
+	new_game.custom_minimum_size.y = 56
 	v.add_child(new_game)
-	v.add_child(_button("Load game", func(): Screens.push(load(PREFERENCES))))
-	v.add_child(_button("Widget gallery", func(): Screens.push(load(GALLERY))))
-	v.add_child(_button("Settings", func(): Screens.push(load(SETTINGS))))
-	v.add_child(_button("Quit", func(): get_tree().quit()))
+	v.add_child(_button("Load game", "Continue from a saved game", func(): Screens.push(load(PREFERENCES))))
+	v.add_child(_button("Widget gallery", "The interface components on one page", func(): Screens.push(load(GALLERY))))
+	v.add_child(_button("Settings", "Display, sound and playback settings", func(): Screens.push(load(SETTINGS))))
+	v.add_child(_button("Quit", "Close the game", func(): get_tree().quit()))
 	var ver := Label.new()
 	ver.theme_type_variation = "Small"
 	ver.text = "Phase 3 build   Godot %s" % Engine.get_version_info()["string"]
@@ -58,10 +59,14 @@ func _ready() -> void:
 	add_child(ver)
 
 
-func _button(text: String, on_pressed: Callable) -> Button:
+## A menu button: a Bar in the wide caps face.
+func _button(text: String, tip: String, on_pressed: Callable) -> Button:
 	var b := Button.new()
-	b.text = text
+	b.text = text.to_upper()
+	b.theme_type_variation = "Bar"
+	b.custom_minimum_size.y = 48
 	b.pressed.connect(on_pressed)
+	b.tooltip_text = tip
 	return b
 
 

@@ -1,10 +1,12 @@
 extends ScreenPanel
 ## Future Missions office, laid out like the original: launch facility tabs A/B/C, the
-## mission list with its filters, and for the selected mission a banner with arrows to
-## cycle the list, the mission diagram (its steps as a path of nodes around the Earth and,
-## for lunar missions, the Moon), the brief, the hardware the planner would use and the
-## penalties, then the plan board (duration, joint launch, rush) with Assign and Clear.
-## Rushing itself is set in Mission Control once the mission is scheduled.
+## mission list with its filters as card rows carrying the deciding numbers (crew seats,
+## duration, prestige, requirement penalty), and for the selected mission a banner with
+## arrows to cycle the list, the mission diagram (its steps as a path of nodes around the
+## Earth and, for lunar missions, the Moon), the brief, the hardware the planner would use
+## and the penalties, then the plan panel (duration, joint launch, rush) whose action bar
+## assigns or clears the facility. Rushing itself is set in Mission Control once the
+## mission is scheduled.
 
 const FIRST_PLANNABLE := 1
 const LAST_PLANNABLE := SimPlanner.RESCUE_FIRST - 1
@@ -17,12 +19,22 @@ const FILTER_DEFS := [
 ]
 ## Manned/unmanned are inclusive categories; the rest are "only missions with this".
 const DEFAULT_FILTERS := {"manned": true, "unmanned": true, "lunar": false, "docking": false, "eva": false, "joint": false}
+## Orders for the mission list: key, button title, tooltip.
+const SORT_DEFS := [
+	{"key": "index", "title": "#", "tip": "Mission number, as the original listed them"},
+	{"key": "penalty", "title": "Penalty", "tip": "Smallest requirement penalty first"},
+	{"key": "prestige", "title": "Prestige", "tip": "Largest prestige for a first first"},
+	{"key": "seats", "title": "Seats", "tip": "Fewest crew seats first"},
+]
 const BAND_TITLES := {"a-ok": "A-OK", "caution": "Caution", "danger": "Danger"}
 const KEEP_UPPER := ["JT", "LM", "LEM", "EVA", "L.L.", "U."]
 const FACILITY := ["A", "B", "C"]
 const CASE_BG := Color("0a1424")
 ## Which vehicles carry a crew, by mission crew_mode (as SimPlanner.assemble reads it).
 const MANNED_BY_VEHICLE := {2: [true], 3: [false, true], 4: [true, true]}
+## Seats of the capsule slots (one-man, two-man, three-man, minishuttle, four-man), as
+## SimProgram.crew_capacity gives them.
+const CAPSULE_SEATS := [1, 2, 3, 3, 4]
 const MANNED_COLOR := UiPalette.GOLD
 const UNMANNED_COLOR := UiPalette.INFO
 const EARTH := Color("2b5d9c")
@@ -30,6 +42,10 @@ const EARTH_LAND := Color("4f8a4f")
 const MOON := Color("a7a9ad")
 const MOON_DARK := Color("85878c")
 const PLANET := Color("c9824a")
+const ROW_HEIGHT := 84.0
+
+## The list order is remembered for the session (ui-style-guide 9.3).
+static var _sort_key := "index"
 
 var _pad := 0
 var _filters: Dictionary = DEFAULT_FILTERS.duplicate()
@@ -39,7 +55,11 @@ var _duration := 0
 var _pad_buttons: Array = []
 var _pad_labels: Array = []
 var _filter_buttons: Dictionary = {}
-var _table: DataTable
+var _sort_buttons: Dictionary = {}
+var _list_scroll: ScrollContainer
+var _list_box: VBoxContainer
+var _rows: Array = []              ## the mission rows as shown, in list order
+var _row_nodes: Array = []         ## card-row Buttons, parallel to _rows
 var _banner: Label
 var _patch: TextureRect
 var _prev: Button
@@ -74,12 +94,12 @@ func _ready() -> void:
 	UiHelp.attach(content, "I011")
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_theme_constant_override("separation", 20)
+	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
 
-	# Left: facility tabs, filters and the mission list.
+	# Left: facility tabs, filters, order and the mission cards.
 	var left := VBoxContainer.new()
-	left.custom_minimum_size.x = 580
+	left.custom_minimum_size.x = 640
 	left.add_theme_constant_override("separation", 10)
 	split.add_child(left)
 	var pads := HBoxContainer.new()
@@ -119,24 +139,43 @@ func _ready() -> void:
 		cb.toggle_mode = true
 		cb.theme_type_variation = "Flat"
 		cb.button_pressed = _filters[f["key"]]
+		cb.tooltip_text = ("Show %s missions" if f["key"] in ["manned", "unmanned"] else "Only missions with %s") % f["title"].to_lower()
 		cb.toggled.connect(_set_filter.bind(f["key"]))
 		filters.add_child(cb)
 		_filter_buttons[f["key"]] = cb
-	_table = DataTable.new()
-	_table.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_table.set_columns([
-		{"key": "index", "title": "#", "numeric": true, "stretch": 0.6},
-		{"key": "name", "title": "Mission", "stretch": 4, "color": func(row): return UiPalette.TEXT if row["_ok"] else UiPalette.TEXT_MUTED},
-		{"key": "crew", "title": "Crew", "stretch": 1.1, "color": func(row): return MANNED_COLOR if row["crew"] == "Manned" else UiPalette.TEXT_DIM},
-		{"key": "duration", "title": "Dur.", "stretch": 0.7},
-	])
-	_table.row_selected.connect(_on_row)
-	left.add_child(_table)
+	var list := UiPanel.new("Missions", "I011")
+	list.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(list)
+	var sort_row := HBoxContainer.new()
+	sort_row.add_theme_constant_override("separation", 6)
+	list.body.add_child(sort_row)
+	var sort_label := Label.new()
+	sort_label.theme_type_variation = "Caps"
+	sort_label.text = "ORDER"
+	sort_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sort_row.add_child(sort_label)
+	for sd in SORT_DEFS:
+		var sb := Button.new()
+		sb.text = sd["title"]
+		sb.toggle_mode = true
+		sb.theme_type_variation = "Flat"
+		sb.tooltip_text = "Order by: " + sd["tip"]
+		sb.pressed.connect(_set_sort.bind(sd["key"]))
+		sort_row.add_child(sb)
+		_sort_buttons[sd["key"]] = sb
+	_list_scroll = ScrollContainer.new()
+	_list_scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_list_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	list.body.add_child(_list_scroll)
+	_list_box = VBoxContainer.new()
+	_list_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list_box.add_theme_constant_override("separation", 6)
+	_list_scroll.add_child(_list_box)
 
-	# Right: banner, diagram and brief, plan board.
+	# Right: banner, diagram and brief, plan panel.
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.add_theme_constant_override("separation", 10)
+	right.add_theme_constant_override("separation", 12)
 	split.add_child(right)
 	var banner_panel := PanelContainer.new()
 	banner_panel.theme_type_variation = "Sunken"
@@ -160,6 +199,8 @@ func _ready() -> void:
 	_banner.add_theme_color_override("font_color", UiPalette.GOLD)
 	_banner.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_banner.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	_banner.clip_text = true
+	_banner.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	banner_row.add_child(_banner)
 	_next = Button.new()
 	_next.text = "▶"
@@ -172,61 +213,65 @@ func _ready() -> void:
 	mid.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	mid.add_theme_constant_override("separation", 16)
 	right.add_child(mid)
-	var diagram_box := VBoxContainer.new()
-	diagram_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	diagram_box.add_theme_constant_override("separation", 6)
-	mid.add_child(diagram_box)
-	var case_panel := PanelContainer.new()
-	case_panel.theme_type_variation = "Sunken"
-	case_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	diagram_box.add_child(case_panel)
+	var diagram_panel := UiPanel.new("Mission diagram", "I011")
+	diagram_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	mid.add_child(diagram_panel)
 	_diagram = Control.new()
 	_diagram.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_diagram.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_diagram.clip_contents = true
 	_diagram.draw.connect(_draw_diagram)
 	_diagram.resized.connect(_diagram.queue_redraw)
-	case_panel.add_child(_diagram)
+	diagram_panel.body.add_child(_diagram)
 	_legend = HFlowContainer.new()
 	_legend.add_theme_constant_override("h_separation", 14)
 	_legend.add_theme_constant_override("v_separation", 0)
-	diagram_box.add_child(_legend)
+	diagram_panel.body.add_child(_legend)
 
+	var info_scroll := ScrollContainer.new()
+	info_scroll.custom_minimum_size.x = 430
+	info_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	mid.add_child(info_scroll)
 	var info := VBoxContainer.new()
-	info.custom_minimum_size.x = 430
-	info.add_theme_constant_override("separation", 8)
-	mid.add_child(info)
+	info.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	info.add_theme_constant_override("separation", 12)
+	info_scroll.add_child(info)
+	var brief_panel := UiPanel.new("Brief", "I011")
+	info.add_child(brief_panel)
 	_brief = Label.new()
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_brief.add_theme_color_override("font_color", UiPalette.INFO)
-	info.add_child(_brief)
+	brief_panel.body.add_child(_brief)
 	_readiness = Label.new()
 	_readiness.theme_type_variation = "Subheading"
 	_readiness.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	info.add_child(_readiness)
-	var hw_box := _card(info, "MISSION HARDWARE")
+	brief_panel.body.add_child(_readiness)
+	var hw_panel := UiPanel.new("Mission hardware")
+	info.add_child(hw_panel)
 	_hardware = Label.new()
 	_hardware.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_hardware.theme_type_variation = "Small"
-	hw_box.add_child(_hardware)
-	var pen_box := _card(info, "SAFETY PENALTIES")
+	hw_panel.body.add_child(_hardware)
+	var pen_panel := UiPanel.new("Safety penalties")
+	info.add_child(pen_panel)
 	_penalties = GridContainer.new()
 	_penalties.columns = 2
 	_penalties.add_theme_constant_override("h_separation", 18)
 	_penalties.add_theme_constant_override("v_separation", 2)
-	pen_box.add_child(_penalties)
+	pen_panel.body.add_child(_penalties)
 
-	# Plan board and the Assign / Clear commands.
-	var bottom := HBoxContainer.new()
-	bottom.add_theme_constant_override("separation", 16)
-	right.add_child(bottom)
-	var board := _card(bottom, "MISSION PLAN")
-	board.get_parent().size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# Plan panel with the Assign / Clear bar.
+	var board := UiPanel.new("Mission plan", "I011")
+	right.add_child(board)
+	var board_row := HBoxContainer.new()
+	board_row.add_theme_constant_override("separation", 24)
+	board.body.add_child(board_row)
 	var grid := GridContainer.new()
 	grid.columns = 2
+	grid.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	grid.add_theme_constant_override("h_separation", 18)
 	grid.add_theme_constant_override("v_separation", 6)
-	board.add_child(grid)
+	board_row.add_child(grid)
 	_key(grid, "DURATION:")
 	var dur_row := HBoxContainer.new()
 	dur_row.add_theme_constant_override("separation", 4)
@@ -251,27 +296,17 @@ func _ready() -> void:
 	_rush_value.theme_type_variation = "Dim"
 	_rush_value.text = "Set in Mission Control once scheduled"
 	grid.add_child(_rush_value)
-
-	var actions := VBoxContainer.new()
-	actions.custom_minimum_size.x = 430
-	actions.add_theme_constant_override("separation", 8)
-	bottom.add_child(actions)
 	_reason = Label.new()
 	_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_reason.theme_type_variation = "Small"
-	_reason.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_reason.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	actions.add_child(_reason)
-	_plan = Button.new()
-	_plan.theme_type_variation = "Accent"
-	_plan.pressed.connect(_on_plan)
-	actions.add_child(_plan)
-	_cancel = Button.new()
-	_cancel.theme_type_variation = "Danger"
-	_cancel.pressed.connect(_on_cancel)
-	actions.add_child(_cancel)
-	_detail_boxes = [mid, bottom]
+	_reason.custom_minimum_size.x = 360
+	_reason.size_flags_vertical = Control.SIZE_SHRINK_END
+	board_row.add_child(_reason)
+	_plan = board.add_action("Assign", "go", _on_plan)
+	_cancel = board.add_action("Clear", "caution", _on_cancel)
+	_detail_boxes = [mid, board]
 	_refresh()
+	set_room("room_office")
 
 
 func setup(_args: Dictionary) -> void:
@@ -282,29 +317,111 @@ func on_resume() -> void:
 	_refresh()
 
 
-## A Card with a gold title; returns the box to fill.
-func _card(parent: Control, heading: String) -> VBoxContainer:
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = "Card"
-	parent.add_child(panel)
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 4)
-	panel.add_child(box)
-	var l := Label.new()
-	l.text = heading
-	l.theme_type_variation = "Subheading"
-	l.add_theme_color_override("font_color", UiPalette.GOLD)
-	box.add_child(l)
-	return box
-
-
 func _key(parent: Control, text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.theme_type_variation = "Dim"
+	l.theme_type_variation = "Caps"
 	l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	parent.add_child(l)
 	return l
+
+
+## A card row: the mission patch, its name strip in caps and the chips the player
+## chooses on (crew seats, duration, prestige for a first, requirement penalty).
+func _make_card(row: Dictionary, side: String) -> Button:
+	var b := Button.new()
+	b.toggle_mode = true
+	b.custom_minimum_size.y = ROW_HEIGHT
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.tooltip_text = title_case(row["_m"]["name"]) + ("" if row["_ok"] else "\nCannot plan on this facility: %s." % row["reason"])
+	b.pressed.connect(_on_row.bind(row))
+	var pad := MarginContainer.new()
+	pad.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	for s in ["left", "right"]:
+		pad.add_theme_constant_override("margin_" + s, 10)
+	for s in ["top", "bottom"]:
+		pad.add_theme_constant_override("margin_" + s, 7)
+	b.add_child(pad)
+	var h := HBoxContainer.new()
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_theme_constant_override("separation", 12)
+	pad.add_child(h)
+	var patch := TextureRect.new()
+	patch.texture = ArtAssets.patch(side, int(row["index"]))
+	patch.custom_minimum_size = Vector2(52, 52)
+	patch.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	patch.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	patch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	patch.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if not row["_ok"]:
+		patch.modulate.a = 0.5
+	h.add_child(patch)
+	var box := VBoxContainer.new()
+	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_theme_constant_override("separation", 6)
+	box.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(box)
+	var name := Label.new()
+	name.theme_type_variation = "CapsBright" if row["_ok"] else "Caps"
+	name.text = "%d. %s" % [row["index"], str(row["_m"]["name"]).to_upper()]
+	name.clip_text = true
+	name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	name.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(name)
+	var chips := HBoxContainer.new()
+	chips.add_theme_constant_override("separation", 8)
+	chips.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	box.add_child(chips)
+	var seats := int(row["seats"])
+	_chip(chips, "seats", "-" if seats == 0 else str(seats), "Crew seats needed (unmanned when -)",
+			MANNED_COLOR if seats > 0 else Color(0, 0, 0, 0))
+	_chip(chips, "date", str(row["duration"]), "Duration level (+ means that level or longer)")
+	_chip(chips, "star", "+%d" % int(row["prestige"]), "Prestige for a first")
+	var pen := int(row["penalty"])
+	_chip(chips, "safety", "0%" if pen == 0 else "-%d%%" % pen, "Requirement penalty on every step if flown now",
+			UiPalette.WARN if pen > 0 else UiPalette.OK)
+	if not row["_ok"]:
+		var why := StatChip.new("info", "", "Cannot plan on this facility: %s" % row["reason"])
+		why.set_value(str(row["reason"]).capitalize(), true)
+		why.mouse_filter = Control.MOUSE_FILTER_PASS
+		chips.add_child(why)
+	return b
+
+
+func _chip(parent: Control, icon: String, value: String, tip: String, colour := Color(0, 0, 0, 0)) -> void:
+	var c := StatChip.new(icon, "", tip)
+	c.set_value(value, false, colour)
+	# Pass clicks through to the card while keeping the chip's tooltip.
+	c.mouse_filter = Control.MOUSE_FILTER_PASS
+	parent.add_child(c)
+
+
+## Fewest crew seats the mission needs: the smallest allowed capsule on each manned vehicle.
+static func min_seats(m: Dictionary) -> int:
+	if not is_manned(m):
+		return 0
+	var smallest := 99
+	for slot in SimPlanner._capsule_slots(int(m["m_eq"])):
+		smallest = mini(smallest, CAPSULE_SEATS[slot])
+	if smallest == 99:
+		return 0
+	var n := 0
+	for manned in MANNED_BY_VEHICLE.get(int(m["crew_mode"]), [true]):
+		if manned:
+			n += 1
+	return smallest * maxi(n, 1)
+
+
+## The largest prestige award for a first among the mission's categories.
+static func first_prestige(m: Dictionary) -> int:
+	var best := 0
+	for row in m.get("prestige_categories", []):
+		var r := int(row)
+		if r >= 0 and r < GameData.prestige.size():
+			best = maxi(best, int(GameData.prestige[r].get("first", 0)))
+	return best
 
 
 # --- state -----------------------------------------------------------------------------
@@ -324,10 +441,16 @@ func _set_filter(on: bool, key: String) -> void:
 	_refresh()
 
 
+func _set_sort(key: String) -> void:
+	_sort_key = key
+	_refresh()
+
+
 func _on_row(row: Dictionary) -> void:
 	if _selected != int(row["index"]):
 		_selected = int(row["index"])
 		_duration = int(row["_m"]["days"])
+	_select_in_table()
 	_refresh_detail()
 
 
@@ -338,7 +461,7 @@ func _set_duration(level: int) -> void:
 
 ## Cycle the selection through the list as shown (the banner arrows).
 func _step(delta: int) -> void:
-	var rows: Array = _table.rows
+	var rows: Array = _rows
 	if rows.is_empty():
 		return
 	var at := -1
@@ -355,13 +478,14 @@ func _step(delta: int) -> void:
 
 func _select_in_table() -> void:
 	var found := -1
-	for i in _table.rows.size():
-		if int(_table.rows[i]["index"]) == _selected:
+	for i in _rows.size():
+		var on := int(_rows[i]["index"]) == _selected
+		if on:
 			found = i
-			break
-	_table.select_index(found)
-	if found >= 0 and found < _table._row_nodes.size():
-		_scroll_to(_table._row_nodes[found])
+		if i < _row_nodes.size():
+			_row_nodes[i].button_pressed = on
+	if found >= 0 and found < _row_nodes.size():
+		_scroll_to(_row_nodes[found])
 
 
 ## Bring a list row into view once the freshly built rows have been laid out.
@@ -370,11 +494,11 @@ func _scroll_to(row_node: Control) -> void:
 		return
 	await get_tree().process_frame
 	if is_instance_valid(row_node) and row_node.is_inside_tree():
-		_table._scroll.ensure_control_visible(row_node)
+		_list_scroll.ensure_control_visible(row_node)
 
 
 func _refresh() -> void:
-	if not Session.has_game() or _table == null:
+	if not Session.has_game() or _list_box == null:
 		return
 	var state := Session.state()
 	var p := Session.me()
@@ -392,16 +516,39 @@ func _refresh() -> void:
 		b.tooltip_text = "Launch Facility %s: %s" % [FACILITY[i], pad_status(p, i, missions)]
 		var layer := "pad_site" if p.pads[i] == SimPlayer.PAD_NONE else ("pad_ok" if p.pads[i] == SimPlayer.PAD_OK else "pad_damaged")
 		b.icon = ArtAssets.spaceport_layer(p.side, layer)
+	for key in _sort_buttons:
+		_sort_buttons[key].button_pressed = key == _sort_key
 	var rows: Array = []
 	for mi in filter_missions(missions, _filters):
 		var m: Dictionary = missions[mi]
 		var dur := int(m["days"]) if m["dur"] == 1 else 0
+		var check := SimPlanner.can_plan(state, p, mi, _pad, dur)
 		rows.append({
-			"index": mi, "name": title_case(m["name"]), "crew": "Manned" if is_manned(m) else "Unmanned",
-			"duration": duration_text(m), "_m": m,
-			"_ok": SimPlanner.can_plan(state, p, mi, _pad, dur)["ok"],
+			"index": mi, "duration": duration_text(m), "_m": m,
+			"_ok": check["ok"], "reason": check["reason"],
+			"seats": min_seats(m), "prestige": first_prestige(m),
+			"penalty": int(SimPlanner.requirement_penalty(state, p, mi, int(m["days"]))["total"]),
 		})
-	_table.set_rows(rows)
+	match _sort_key:
+		"penalty":
+			rows.sort_custom(func(a, b): return a["penalty"] < b["penalty"] or (a["penalty"] == b["penalty"] and a["index"] < b["index"]))
+		"prestige":
+			rows.sort_custom(func(a, b): return a["prestige"] > b["prestige"] or (a["prestige"] == b["prestige"] and a["index"] < b["index"]))
+		"seats":
+			rows.sort_custom(func(a, b): return a["seats"] < b["seats"] or (a["seats"] == b["seats"] and a["index"] < b["index"]))
+	_rows = rows
+	for c in _list_box.get_children():
+		c.queue_free()
+	_row_nodes = []
+	for row in rows:
+		var card := _make_card(row, p.side)
+		_list_box.add_child(card)
+		_row_nodes.append(card)
+	if rows.is_empty():
+		var none := Label.new()
+		none.theme_type_variation = "Dim"
+		none.text = "No missions match these filters."
+		_list_box.add_child(none)
 	var pl = p.future[_pad]
 	if _selected < FIRST_PLANNABLE and pl != null and pl.get("part", 1) == 1:
 		_selected = int(pl["mission_index"])
@@ -419,10 +566,16 @@ func _refresh_detail() -> void:
 	var has := _selected >= FIRST_PLANNABLE and _selected <= LAST_PLANNABLE
 	for box in _detail_boxes:
 		box.visible = has
-	_prev.disabled = _table.rows.size() < 2
-	_next.disabled = _table.rows.size() < 2
-	_cancel.text = "Clear Facility %s" % FACILITY[_pad]
-	_cancel.disabled = p.future[_pad] == null
+	_prev.disabled = _rows.size() < 2
+	_next.disabled = _rows.size() < 2
+	# Clear only appears when the facility has a plan; Assign then takes the whole bar.
+	var planned: bool = p.future[_pad] != null
+	_cancel.visible = planned
+	_plan.set_meta("bar_corners", Vector2i(1, 0 if planned else 1))
+	UiAction.apply_corners(_plan)
+	if planned:
+		UiAction.style(_cancel, "caution", "Clear Facility %s" % FACILITY[_pad])
+		_cancel.tooltip_text = "Remove the plan from Launch Facility %s" % FACILITY[_pad]
 	if not has:
 		_banner.text = "NO MISSION SELECTED"
 		_patch.texture = null
@@ -503,9 +656,10 @@ func _refresh_detail() -> void:
 
 	# Assign.
 	var check := SimPlanner.can_plan(state, p, _selected, _pad, _duration)
-	_plan.disabled = not check["ok"]
-	_plan.text = "Assign to Facility %s" % FACILITY[_pad]
+	var why: String = "" if check["ok"] else str(check["reason"]).capitalize() + "."
+	UiAction.go_or_blocked(_plan, "Assign to Facility %s" % FACILITY[_pad], why)
 	if check["ok"]:
+		_plan.tooltip_text = "Plan this mission on Launch Facility %s for next season" % FACILITY[_pad]
 		var notes: PackedStringArray = ["Flies %s %d." % ["Spring" if when[1] == SimState.SEASON_SPRING else "Fall", 1900 + when[0]]]
 		var cur = p.future[_pad]
 		if cur != null and cur.get("part", 1) == 1 and int(cur["mission_index"]) != _selected:
@@ -732,7 +886,7 @@ func _draw_diagram() -> void:
 		c.draw_arc(pos[i], node_r, 0, TAU, 32, col, 2.0, true)
 		c.draw_string(font, pos[i] + Vector2(-node_r, UiTheme.SIZE_SMALL * 0.35), n["letter"], HORIZONTAL_ALIGNMENT_CENTER, node_r * 2.0, UiTheme.SIZE_SMALL, col)
 		if int(n["count"]) > 1:
-			c.draw_string(font, pos[i] + Vector2(node_r * 0.8, node_r * 1.6), "x%d" % n["count"], HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SMALL - 3, UiPalette.TEXT_DIM)
+			c.draw_string(font, pos[i] + Vector2(node_r * 0.8, node_r * 1.6), "x%d" % n["count"], HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
 	# Key.
 	var y := 22.0
 	for entry in [[MANNED_COLOR, "Manned step"], [UNMANNED_COLOR, "Unmanned step"]]:

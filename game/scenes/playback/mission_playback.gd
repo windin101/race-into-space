@@ -5,6 +5,11 @@ extends Control
 ## and the telemetry chart and mission log as console panels over the room. Skip, speed
 ## and a "Full stage" toggle that gives the vignette the whole screen. Pops itself when
 ## done; TurnFlow pushes the results table beneath it.
+##
+## ui-style-guide section 10: the controller lamp column on the left (roles lit for the
+## active step), the flight crew as portrait lamps and the three status lamps on the
+## right, a vertical safety gauge beside the main screen and the step name as a caption
+## strip along its top. The roles are presentation only; the sim has no controllers.
 
 const WALL_COLOR := Color(0.05, 0.06, 0.08, 0.80)
 const BEZEL := Color("1b1e24")
@@ -15,6 +20,43 @@ const FEED_AMBER := Color(1.0, 0.85, 0.5)
 const FEED_GREY := Color(0.85, 0.9, 1.0)
 const FEED_NAMES := ["CAPSULE", "BOOSTER", "CREW", "TRACKING"]
 var _feed_names: Array = FEED_NAMES.duplicate()
+const GAUGE_W := 76.0
+## Controller roles on the left lamp column, top to bottom, with what each watches.
+const ROLES := {
+	"FLIGHT": "Flight director: runs the mission",
+	"BOOSTER": "Booster systems engineer",
+	"FIDO": "Flight dynamics: trajectory",
+	"GUIDO": "Guidance and navigation",
+	"RETRO": "Retrofire: return and re-entry",
+	"EECOM": "Electrical, environment and consumables",
+	"NETWORK": "Tracking network and communications",
+	"CAPCOM": "Capsule communicator: the voice to the crew",
+	"SURGEON": "Flight surgeon: crew health",
+	"EVA": "Spacewalk systems",
+	"LM": "Lunar module systems",
+}
+## Roles at the console for each vignette family (Vignettes.FAMILY).
+const FAMILY_ROLES := {
+	"launch": ["BOOSTER", "FIDO", "GUIDO"],
+	"insertion": ["FIDO", "GUIDO", "BOOSTER"],
+	"power_on": ["EECOM", "NETWORK"],
+	"reentry": ["RETRO", "FIDO", "SURGEON"],
+	"landing": ["RETRO", "CAPCOM", "SURGEON"],
+	"orbit": ["CAPCOM", "EECOM"],
+	"lunar_pass": ["FIDO", "GUIDO", "NETWORK"],
+	"eva": ["EVA", "CAPCOM", "SURGEON"],
+	"lunar_eva": ["EVA", "LM", "CAPCOM", "SURGEON"],
+	"docking": ["GUIDO", "FIDO", "CAPCOM"],
+	"lm_ops": ["LM", "CAPCOM", "EECOM"],
+	"lm_descent": ["LM", "GUIDO", "FIDO"],
+	"lm_landing": ["LM", "GUIDO", "CAPCOM"],
+	"lm_liftoff": ["LM", "GUIDO", "FIDO"],
+	"lm_test": ["LM", "EECOM"],
+	"photo": ["NETWORK", "EECOM"],
+	"planetary": ["NETWORK", "FIDO", "GUIDO"],
+	"duration": ["SURGEON", "EECOM", "CAPCOM"],
+}
+const CREW_ROLES := ["CAPCOM", "SURGEON", "EVA"]
 
 var _report: Dictionary = {}
 var _launches: Array = []
@@ -53,6 +95,16 @@ var _skip_btn: Button
 var _continue_btn: Button
 var _steps: Array = []
 var _revealed := 0
+var _gauge: Gauge
+var _caption: PanelContainer
+var _left_col: Control
+var _right_col: Control
+var _role_lamps: Dictionary = {}     ## role -> Lamp
+var _crew_box: VBoxContainer
+var _crew_lamps: Dictionary = {}     ## astronaut id -> Lamp
+var _status: StatusLamps
+var _manned := false
+var _failed := false
 
 
 func _ready() -> void:
@@ -75,14 +127,22 @@ func _ready() -> void:
 	root.add_theme_constant_override("separation", 0)
 	add_child(root)
 
-	# The monitor wall.
+	# The middle row: controller lamps, the monitor wall, crew and status lamps.
+	var middle := HBoxContainer.new()
+	middle.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	middle.size_flags_stretch_ratio = 3.2
+	middle.add_theme_constant_override("separation", 0)
+	root.add_child(middle)
+	_left_col = _build_controllers()
+	middle.add_child(_left_col)
 	_wall = Control.new()
-	_wall.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_wall.size_flags_stretch_ratio = 3.2
+	_wall.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_wall.clip_contents = true
 	_wall.draw.connect(_draw_wall)
 	_wall.resized.connect(_layout_wall)
-	root.add_child(_wall)
+	middle.add_child(_wall)
+	_right_col = _build_crew_column()
+	middle.add_child(_right_col)
 	_stage = Control.new()
 	_stage.clip_contents = true
 	_stage.draw.connect(_draw_stage)
@@ -93,6 +153,10 @@ func _ready() -> void:
 		feed.draw.connect(_draw_feed.bind(i))
 		_wall.add_child(feed)
 		_feeds.append(feed)
+	_gauge = Gauge.new(true, "Safety of the hardware on this step")
+	_gauge.tooltip_text = "Safety of the hardware on this step"
+	_gauge.mouse_filter = Control.MOUSE_FILTER_PASS
+	_wall.add_child(_gauge)
 	_flash = NewsFlash.new()
 	_flash.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
 	_flash.anchor_left = 0.08
@@ -103,31 +167,46 @@ func _ready() -> void:
 	_flash.offset_right = 0
 	_flash.grow_vertical = Control.GROW_DIRECTION_BOTH
 	_stage.add_child(_flash)
+	# The step name as a caption strip along the top of the main screen.
+	_caption = PanelContainer.new()
+	var cap_sb := UiTheme.flat(Color(UiPalette.BG_DEEP, 0.78), Color.TRANSPARENT, 0, 0)
+	cap_sb.border_width_bottom = 1
+	cap_sb.border_color = Color(UiPalette.GOLD, 0.5)
+	cap_sb.content_margin_left = 14
+	cap_sb.content_margin_right = 14
+	cap_sb.content_margin_top = 4
+	cap_sb.content_margin_bottom = 4
+	_caption.add_theme_stylebox_override("panel", cap_sb)
+	_caption.set_anchors_and_offsets_preset(Control.PRESET_TOP_WIDE)
+	_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_stage.add_child(_caption)
+	_step_title = Label.new()
+	_step_title.theme_type_variation = "CapsBright"
+	_step_title.add_theme_color_override("font_color", UiPalette.GOLD)
+	_step_title.clip_text = true
+	_step_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	_caption.add_child(_step_title)
 
-	# Status strip: step title, step lights, mission name.
+	# Status strip: mission name, step lights, launch counter.
 	_strip = HBoxContainer.new()
 	_strip.add_theme_constant_override("separation", 20)
 	var strip_bg := PanelContainer.new()
 	strip_bg.add_theme_stylebox_override("panel", UiTheme.flat(Color("0d1117", 0.92), BEZEL_EDGE, 0, 1))
 	strip_bg.add_child(_strip)
 	root.add_child(strip_bg)
-	_step_title = Label.new()
-	_step_title.theme_type_variation = "Heading"
-	_step_title.add_theme_color_override("font_color", UiPalette.GOLD)
-	_step_title.custom_minimum_size.x = 360
-	_strip.add_child(_step_title)
-	_lights = Control.new()
-	_lights.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_lights.custom_minimum_size.y = 44
-	_lights.draw.connect(_draw_lights)
-	_strip.add_child(_lights)
 	_mission_label = Label.new()
 	_mission_label.theme_type_variation = "Subheading"
 	_strip.add_child(_mission_label)
+	_lights = Control.new()
+	_lights.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_lights.custom_minimum_size.y = 44
+	_lights.tooltip_text = "Step lights: green passed, red failed, white the step in flight"
+	_lights.draw.connect(_draw_lights)
+	_strip.add_child(_lights)
 	_subtitle = Label.new()
 	_subtitle.theme_type_variation = "Dim"
 	_strip.add_child(_subtitle)
-	for i in [0, 3]:
+	for i in [0, 4]:
 		var pad := Control.new()
 		pad.custom_minimum_size.x = 12
 		_strip.add_child(pad)
@@ -170,40 +249,189 @@ func _ready() -> void:
 	var slower := Button.new()
 	slower.text = "Slower"
 	slower.theme_type_variation = "Flat"
+	slower.tooltip_text = "Slow the playback down"
 	slower.pressed.connect(func(): _set_speed(_speed / 1.5))
 	controls.add_child(slower)
 	var faster := Button.new()
 	faster.text = "Faster"
 	faster.theme_type_variation = "Flat"
+	faster.tooltip_text = "Speed the playback up"
 	faster.pressed.connect(func(): _set_speed(_speed * 1.5))
 	controls.add_child(faster)
 	var mosaic := Button.new()
 	mosaic.text = "Full stage"
 	mosaic.theme_type_variation = "Flat"
 	mosaic.toggle_mode = true
+	mosaic.tooltip_text = "Give the main screen the whole display"
 	mosaic.toggled.connect(_set_mosaic)
 	controls.add_child(mosaic)
 	var spacer := Control.new()
 	spacer.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	controls.add_child(spacer)
 	_skip_btn = Button.new()
-	_skip_btn.text = "Skip launch"
+	UiAction.style(_skip_btn, "neutral", "Skip launch")
+	_skip_btn.tooltip_text = "Jump to the end of this launch  (Esc)"
+	_skip_btn.custom_minimum_size.x = 170
 	_skip_btn.pressed.connect(func(): _skip_requested = true)
 	controls.add_child(_skip_btn)
 	var skip_all := Button.new()
-	skip_all.text = "Skip all"
+	UiAction.style(skip_all, "neutral", "Skip all")
+	skip_all.tooltip_text = "Jump to the end of every launch this season"
+	skip_all.custom_minimum_size.x = 140
 	skip_all.pressed.connect(func():
 		_skip_all = true
 		_skip_requested = true)
 	controls.add_child(skip_all)
 	_continue_btn = Button.new()
-	_continue_btn.text = "Continue"
-	_continue_btn.theme_type_variation = "Accent"
+	UiAction.style(_continue_btn, "go", "Continue")
+	_continue_btn.tooltip_text = "On to the launch results"
+	_continue_btn.custom_minimum_size.x = 170
 	_continue_btn.visible = false
 	_continue_btn.pressed.connect(func(): Screens.pop())
 	controls.add_child(_continue_btn)
 	_set_speed(_speed)
 	_set_room(Session.human_side if Session.has_game() else "usa")
+	_light_roles("", true)
+	_status.set_level(StatusLamps.Level.NONE)
+	_crew_placeholder("NO FLIGHT")
+
+
+func _build_controllers() -> Control:
+	var panel := UiPanel.new("Controllers")
+	panel.size_flags_horizontal = Control.SIZE_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.custom_minimum_size.x = 200
+	for role in ROLES:
+		var lamp := Lamp.new(role)
+		lamp.tooltip_text = ROLES[role]
+		lamp.custom_minimum_size = Vector2(170, 32)
+		panel.body.add_child(lamp)
+		_role_lamps[role] = lamp
+	return _margin(panel)
+
+
+func _build_crew_column() -> Control:
+	var col := VBoxContainer.new()
+	col.add_theme_constant_override("separation", 12)
+	var crew := UiPanel.new("Flight crew")
+	crew.size_flags_horizontal = Control.SIZE_FILL
+	crew.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	crew.custom_minimum_size.x = 230
+	_crew_box = VBoxContainer.new()
+	_crew_box.add_theme_constant_override("separation", 6)
+	crew.body.add_child(_crew_box)
+	col.add_child(crew)
+	var status := UiPanel.new("Status")
+	status.size_flags_horizontal = Control.SIZE_FILL
+	_status = StatusLamps.new()
+	_status.tooltip_text = "Nominal while steps pass, warning when a step is saved or recovered, failure when a step fails"
+	status.body.add_child(_status)
+	col.add_child(status)
+	return _margin(col)
+
+
+func _margin(c: Control) -> MarginContainer:
+	var m := MarginContainer.new()
+	for side in ["left", "right", "top", "bottom"]:
+		m.add_theme_constant_override("margin_" + side, 14)
+	m.add_child(c)
+	return m
+
+
+## Controller roles at the console for a step letter (presentation only). `manned` keeps
+## the crew-facing roles; unmanned flights drop them.
+static func controller_roles(letter: String, manned := true) -> Array:
+	var roles: Array = ["FLIGHT"]
+	if letter == "":
+		return roles
+	for r in FAMILY_ROLES.get(Vignettes.family_for(letter), ["CAPCOM"]):
+		if manned or r not in CREW_ROLES:
+			roles.append(r)
+	return roles
+
+
+## Light the roles for the active step: green when it passes, amber when saved or
+## recovered, red when it fails.
+func _light_roles(letter: String, idle: bool, state: int = Lamp.State.ON) -> void:
+	var lit: Array = [] if idle else controller_roles(letter, _manned)
+	for role in _role_lamps:
+		_role_lamps[role].set_state(state if role in lit else Lamp.State.OFF)
+
+
+## Status level for one step record: failure, warning (saved by a card, or a problem the
+## mission recovered from), or nominal.
+static func step_level(step: Dictionary) -> int:
+	if step.get("success", false):
+		return StatusLamps.Level.WARNING if step.get("save_card", false) else StatusLamps.Level.NOMINAL
+	if int(step.get("step_info", 0)) < SimMission.INFO_MISSION_END:
+		return StatusLamps.Level.WARNING
+	return StatusLamps.Level.FAILURE
+
+
+func _show_step_result(step: Dictionary) -> void:
+	var level := step_level(step)
+	if level == StatusLamps.Level.FAILURE:
+		_failed = true
+	_status.set_level(StatusLamps.Level.FAILURE if _failed else level)
+	var lamp_state: int = [Lamp.State.ON, Lamp.State.WARN, Lamp.State.FAIL][level]
+	_light_roles(str(step.get("letter", "")), false, lamp_state)
+
+
+func _build_crew(launch: Dictionary, state: SimState) -> void:
+	for c in _crew_box.get_children():
+		c.queue_free()
+	_crew_lamps.clear()
+	var p := state.player(int(launch.get("player", 0)))
+	var ids: Array = launch.get("crew_outcomes", {}).keys()
+	_manned = not ids.is_empty()
+	if ids.is_empty():
+		_crew_placeholder("UNMANNED")
+		return
+	for id in ids:
+		var a: SimAstronaut = null
+		for cand in p.astronauts:
+			if cand.id == int(id):
+				a = cand
+		if a == null:
+			continue
+		var row := HBoxContainer.new()
+		row.add_theme_constant_override("separation", 8)
+		var tile := TextureRect.new()
+		tile.texture = ArtAssets.portrait(a.name)
+		tile.custom_minimum_size = Vector2(48, 48)
+		tile.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		tile.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		tile.clip_contents = true
+		row.add_child(tile)
+		var lamp := Lamp.new(a.name, Lamp.State.ON)
+		lamp.custom_minimum_size = Vector2(150, 40)
+		lamp.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		lamp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		lamp.mouse_filter = Control.MOUSE_FILTER_PASS
+		lamp.tooltip_text = "%s: in flight" % a.name
+		row.add_child(lamp)
+		_crew_box.add_child(row)
+		_crew_lamps[int(id)] = lamp
+
+
+func _crew_placeholder(text: String) -> void:
+	var none := Label.new()
+	none.text = text
+	none.theme_type_variation = "Caps"
+	none.tooltip_text = "No crew aboard"
+	_crew_box.add_child(none)
+
+
+## Crew lamps at the end of a launch: green home safe, amber injured, red lost.
+func _show_crew_outcomes(launch: Dictionary) -> void:
+	var outcomes: Dictionary = launch.get("crew_outcomes", {})
+	for id in outcomes:
+		var lamp: Lamp = _crew_lamps.get(int(id))
+		if lamp == null:
+			continue
+		var o := str(outcomes[id])
+		lamp.set_state({"injured": Lamp.State.WARN, "dead": Lamp.State.FAIL}.get(o, Lamp.State.ON))
+		lamp.tooltip_text = "%s: %s" % [lamp.text.capitalize(), {"injured": "injured", "dead": "lost", "retired": "retired"}.get(o, "safe")]
 
 
 func _console_panel(title: String) -> PanelContainer:
@@ -245,14 +473,16 @@ func _layout_wall() -> void:
 		_stage.size = _wall.size
 		for f in _feeds:
 			f.visible = false
+		_gauge.visible = false
 		_wall.queue_redraw()
 		return
 	var m := 18.0
 	var caption := 22.0
+	var g := GAUGE_W
 	var big_h := h - m * 2 - caption
-	var big_w := minf(w * 0.56, big_h * 16.0 / 9.0)
+	var big_w := minf((w - g) * 0.58, big_h * 16.0 / 9.0)
 	big_h = big_w * 9.0 / 16.0
-	_big_rect = Rect2((w - big_w) / 2.0, m + (h - m * 2 - caption - big_h) / 2.0, big_w, big_h)
+	_big_rect = Rect2((w - g - big_w) / 2.0, m + (h - m * 2 - caption - big_h) / 2.0, big_w, big_h)
 	var col_w := _big_rect.position.x - m * 2
 	var small_h := (h - m * 2 - caption * 2 - m) / 2.0
 	var small_w := minf(col_w, small_h * 4.0 / 3.0)
@@ -262,9 +492,12 @@ func _layout_wall() -> void:
 	_small_rects = [
 		Rect2(m + (col_w - small_w) / 2.0, y0, small_w, small_h),
 		Rect2(m + (col_w - small_w) / 2.0, y0 + small_h + caption + m, small_w, small_h),
-		Rect2(_big_rect.end.x + m + (col_w - small_w) / 2.0, y0, small_w, small_h),
-		Rect2(_big_rect.end.x + m + (col_w - small_w) / 2.0, y0 + small_h + caption + m, small_w, small_h),
+		Rect2(_big_rect.end.x + g + m + (col_w - small_w) / 2.0, y0, small_w, small_h),
+		Rect2(_big_rect.end.x + g + m + (col_w - small_w) / 2.0, y0 + small_h + caption + m, small_w, small_h),
 	]
+	_gauge.visible = true
+	_gauge.position = Vector2(_big_rect.end.x + 14, _big_rect.position.y)
+	_gauge.size = Vector2(g - 18, _big_rect.size.y)
 	var inset := 12.0
 	_stage.position = _big_rect.position + Vector2(inset, inset)
 	_stage.size = _big_rect.size - Vector2(inset * 2, inset * 2)
@@ -287,6 +520,7 @@ func _draw_wall() -> void:
 		_draw_bezel(r)
 		_wall.draw_string(font, Vector2(r.position.x, r.end.y + 17), _feed_names[i], HORIZONTAL_ALIGNMENT_CENTER, r.size.x, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
 	_wall.draw_string(font, Vector2(_big_rect.position.x, _big_rect.end.y + 17), "MAIN SCREEN", HORIZONTAL_ALIGNMENT_CENTER, _big_rect.size.x, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
+	_wall.draw_string(font, Vector2(_gauge.position.x - 8, _big_rect.end.y + 17), "SAFETY", HORIZONTAL_ALIGNMENT_CENTER, _gauge.size.x + 16, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
 
 
 func _draw_bezel(r: Rect2) -> void:
@@ -321,8 +555,6 @@ func _draw_stage() -> void:
 		_stage.draw_rect(Rect2(Vector2.ZERO, _stage.size), Vignettes.SPACE)
 		return
 	Vignettes.paint(_stage, _stage_letter, _stage_t, _stage_ok, _stage.size, _stage_ctx)
-	if _mosaic:
-		_stage.draw_string(get_theme_default_font(), Vector2(16, 30), Vignettes.title_for(_stage_letter), HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SUBHEADING, UiPalette.TEXT)
 
 
 func _draw_feed(index: int) -> void:
@@ -424,11 +656,11 @@ func _prepare_feeds(launch: Dictionary, state: SimState) -> void:
 			_feed_names[0] = "PAYLOAD" if found["group"] == "probe" else "CAPSULE"
 	var p := state.player(pidx)
 	for id in launch.get("crew_outcomes", {}).keys():
-		var idx := int(id)
-		if idx >= 0 and idx < p.astronauts.size():
-			var tex := ArtAssets.portrait(p.astronauts[idx].name)
-			if tex != null:
-				_crew_tex.append(tex)
+		for a in p.astronauts:
+			if a.id == int(id):
+				var tex := ArtAssets.portrait(a.name)
+				if tex != null:
+					_crew_tex.append(tex)
 	for f in _feeds:
 		f.queue_redraw()
 	_wall.queue_redraw()
@@ -478,6 +710,8 @@ func _set_speed(v: float) -> void:
 
 func _set_mosaic(on: bool) -> void:
 	_mosaic = on
+	_left_col.visible = not on
+	_right_col.visible = not on
 	_strip.get_parent().visible = not on
 	_bottom.get_parent().visible = not on
 	_layout_wall()
@@ -514,6 +748,10 @@ func _play_launch(launch: Dictionary) -> void:
 	_mission_progress = 0.0
 	_chart.set_steps(_steps)
 	_prepare_feeds(launch, state)
+	_build_crew(launch, state)
+	_failed = false
+	_status.set_level(StatusLamps.Level.NOMINAL)
+	_light_roles("", true)
 	var items := PlaybackScript.sequence(launch, state)
 	var shown := 0
 	for item in items:
@@ -527,6 +765,7 @@ func _play_launch(launch: Dictionary) -> void:
 				if not item["step"].get("success", false):
 					Sound.sfx("explosion", -6.0)
 				await _play_step(item["step"])
+				_show_step_result(item["step"])
 				_revealed = shown
 				_chart.reveal(shown)
 				_append_log(item["step"])
@@ -550,15 +789,25 @@ func _play_launch(launch: Dictionary) -> void:
 		var verdict: Dictionary = items.back() if not items.is_empty() else {}
 		if verdict.get("kind", "") == "verdict":
 			_log.append_text("[color=#%s]%s: %s[/color]\n" % [verdict["color"].to_html(false), verdict["headline"], verdict["body"]])
+		var worst: int = StatusLamps.Level.NOMINAL
+		for st in _steps:
+			worst = maxi(worst, step_level(st))
+		_status.set_level(worst)
+		_light_roles("", true)
+		_gauge.value = 0.0
 		if not _skip_all:
 			await get_tree().create_timer(0.6).timeout
+	_show_crew_outcomes(launch)
 
 
 func _play_step(step: Dictionary) -> void:
 	_stage_letter = str(step.get("letter", "A"))
 	_stage_ok = step.get("success", false)
 	_stage_ctx["hardware_kind"] = PlaybackScript.hardware_kind(step)
-	_step_title.text = Vignettes.title_for(_stage_letter).to_upper()
+	var hw := str(step.get("hardware", ""))
+	_step_title.text = (Vignettes.title_for(_stage_letter) + ("  ·  " + hw if hw != "" else "")).to_upper()
+	_gauge.value = float(step.get("safety", 0))
+	_light_roles(_stage_letter, false, Lamp.State.ON)
 	_stage_t = 0.0
 	var index := int(step.get("index", _revealed))
 	var n := maxi(_steps.size(), 1)

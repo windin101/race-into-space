@@ -91,6 +91,7 @@ func add_action(text: String, kind := "go", callback: Callable = Callable(), rea
 				callback.call())
 	_bar.add_child(b)
 	_bar.visible = true
+	b.visibility_changed.connect(refresh_bar)
 	_round_bar()
 	return b
 
@@ -102,17 +103,25 @@ func clear_actions() -> void:
 
 
 func _round_bar() -> void:
-	# Bar buttons are square except the outer bottom corners, which follow the panel.
-	var n := _bar.get_child_count()
-	for i in n:
-		var b: Button = _bar.get_child(i)
-		for state in ["normal", "hover", "pressed", "disabled"]:
-			var sb := b.get_theme_stylebox(state)
-			if sb is StyleBoxFlat:
-				var c := (sb as StyleBoxFlat).duplicate() as StyleBoxFlat
-				c.set_corner_radius_all(0)
-				if i == 0:
-					c.corner_radius_bottom_left = 10
-				if i == n - 1:
-					c.corner_radius_bottom_right = 10
-				b.add_theme_stylebox_override(state, c)
+	# Bar buttons are square except the outer bottom corners of the first and last
+	# visible button, which follow the panel. Recorded on each button so UiAction.style()
+	# keeps them when it restyles.
+	var shown: Array = []
+	for c in _bar.get_children():
+		if c is Button and c.visible and not c.is_queued_for_deletion():
+			shown.append(c)
+	_bar.visible = not shown.is_empty()
+	for i in shown.size():
+		var b: Button = shown[i]
+		b.set_meta("bar_corners", Vector2i(1 if i == 0 else 0, 1 if i == shown.size() - 1 else 0))
+		UiAction.apply_corners(b)
+
+
+## Re-round the bar after showing or hiding an action (also runs automatically).
+func refresh_bar() -> void:
+	_round_bar()
+
+
+## Restyle an action created with add_action (kept for callers that used the workaround).
+func restyle_action(b: Button, kind: String, text: String, reason := "") -> void:
+	UiAction.style(b, kind, text, reason)

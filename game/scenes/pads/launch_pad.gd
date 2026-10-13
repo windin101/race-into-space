@@ -13,6 +13,9 @@ var _pad_state := SimPlayer.PAD_OK
 var _banner: Label
 var _case: Control
 var _caption: Label
+var _status_panel: UiPanel
+var _now_panel: UiPanel
+var _next_panel: UiPanel
 var _sheet: GridContainer
 var _values: Dictionary = {}
 var _now_brief: Label
@@ -33,60 +36,54 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	set_room("room_hangar")
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_theme_constant_override("separation", 20)
+	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
 	UiHelp.attach(split, "I013")
 
 	# Left: banner and the pad on display.
-	var left := VBoxContainer.new()
-	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	var left := UiPanel.new("The pad", "I013")
 	left.size_flags_stretch_ratio = 1.3
-	left.add_theme_constant_override("separation", 10)
 	split.add_child(left)
 	var banner_panel := PanelContainer.new()
 	banner_panel.theme_type_variation = "Sunken"
-	left.add_child(banner_panel)
+	left.body.add_child(banner_panel)
 	_banner = Label.new()
 	_banner.theme_type_variation = "Heading"
 	_banner.add_theme_color_override("font_color", UiPalette.GOLD)
 	banner_panel.add_child(_banner)
-	var case_panel := PanelContainer.new()
-	case_panel.theme_type_variation = "Sunken"
-	case_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.add_child(case_panel)
 	_case = Control.new()
 	_case.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_case.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_case.clip_contents = true
 	_case.draw.connect(_draw_case)
 	_case.resized.connect(_case.queue_redraw)
-	case_panel.add_child(_case)
+	left.body.add_child(_case)
 	_caption = Label.new()
 	_caption.theme_type_variation = "Subheading"
 	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	left.add_child(_caption)
+	left.body.add_child(_caption)
 
-	# Right: status sheet, briefs, commands.
+	# Right: status sheet with build/repair, this season with scrub, next season with cancel.
 	var right := VBoxContainer.new()
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	right.custom_minimum_size.x = 560
-	right.add_theme_constant_override("separation", 10)
+	right.custom_minimum_size.x = 620
+	right.add_theme_constant_override("separation", 12)
 	split.add_child(right)
-	var sheet_panel := PanelContainer.new()
-	sheet_panel.theme_type_variation = "Card"
-	right.add_child(sheet_panel)
+	_status_panel = UiPanel.new("Pad status", "I013")
+	right.add_child(_status_panel)
 	_sheet = GridContainer.new()
 	_sheet.columns = 2
 	_sheet.add_theme_constant_override("h_separation", 24)
-	_sheet.add_theme_constant_override("v_separation", 4)
-	sheet_panel.add_child(_sheet)
+	_sheet.add_theme_constant_override("v_separation", 6)
+	_status_panel.body.add_child(_sheet)
 	for key in ["status", "cost", "now", "month", "readiness", "next"]:
 		var k := Label.new()
-		k.theme_type_variation = "Dim"
-		k.text = {"status": "STATUS:", "cost": "REPAIR COST:", "now": "THIS SEASON:", "month": "LAUNCH:",
-				  "readiness": "READINESS:", "next": "NEXT SEASON:"}[key]
+		k.theme_type_variation = "Caps"
+		k.text = {"status": "STATUS", "cost": "REPAIR COST", "now": "THIS SEASON", "month": "LAUNCH",
+				  "readiness": "READINESS", "next": "NEXT SEASON"}[key]
 		_sheet.add_child(k)
 		var v := Label.new()
 		v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
@@ -95,34 +92,22 @@ func _ready() -> void:
 		v.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		_sheet.add_child(v)
 		_values[key] = v
+	_hint = _note(_status_panel.body)
 
-	_board_title(right, "THIS SEASON")
-	_now_brief = _brief(right)
-	_now_notes = _note(right)
-	_board_title(right, "NEXT SEASON")
-	_next_brief = _brief(right)
-	_next_notes = _note(right)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	right.add_child(spacer)
+	_now_panel = UiPanel.new("This season", "I013")
+	_now_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	right.add_child(_now_panel)
+	_now_brief = _brief(_now_panel.body)
+	_now_notes = _note(_now_panel.body)
 
-	_board_title(right, "PAD COMMANDS")
-	_build = Button.new()
-	_build.theme_type_variation = "Accent"
-	_build.pressed.connect(_on_build)
-	right.add_child(_build)
-	_repair = Button.new()
-	_repair.theme_type_variation = "Accent"
-	_repair.pressed.connect(_on_repair)
-	right.add_child(_repair)
-	_scrub = Button.new()
-	_scrub.theme_type_variation = "Danger"
-	_scrub.pressed.connect(_on_scrub)
-	right.add_child(_scrub)
-	_cancel = Button.new()
-	_cancel.pressed.connect(_on_cancel)
-	right.add_child(_cancel)
-	_hint = _note(right)
+	_next_panel = UiPanel.new("Next season", "I013")
+	right.add_child(_next_panel)
+	_next_brief = _brief(_next_panel.body)
+	_next_notes = _note(_next_panel.body)
+	_build = _status_panel.add_action("Build pad", "go", _on_build)
+	_repair = _status_panel.add_action("Repair pad", "go", _on_repair)
+	_scrub = _now_panel.add_action("Scrub mission", "caution", _on_scrub)
+	_cancel = _next_panel.add_action("Cancel next season's plan", "caution", _on_cancel)
 	_refresh()
 
 
@@ -134,14 +119,6 @@ func setup(args: Dictionary) -> void:
 
 func on_resume() -> void:
 	_refresh()
-
-
-func _board_title(parent: Control, text: String) -> void:
-	var l := Label.new()
-	l.text = text
-	l.theme_type_variation = "Subheading"
-	l.add_theme_color_override("font_color", UiPalette.GOLD)
-	parent.add_child(l)
 
 
 func _brief(parent: Control) -> Label:
@@ -191,13 +168,24 @@ func _refresh() -> void:
 	_values["status"].text = status
 	_values["status"].add_theme_color_override("font_color", status_color)
 	_values["cost"].text = cost_text
-	_sheet.get_child(2).text = "BUILD COST:" if _pad_state == SimPlayer.PAD_NONE else "REPAIR COST:"
+	_sheet.get_child(2).text = "BUILD COST" if _pad_state == SimPlayer.PAD_NONE else "REPAIR COST"
 	_caption.text = status
 	_caption.add_theme_color_override("font_color", status_color)
-	_build.text = "Build pad  (%d MB)" % SimEconomy.PAD_COST
-	_build.disabled = _pad_state != SimPlayer.PAD_NONE or not _is_next_to_build(p) or not SimEconomy.can_buy_pad(p)
-	_repair.text = "Repair pad  (%d MB)" % damage_cost if damage_cost > 0 else "Repair pad"
-	_repair.disabled = damage_cost <= 0 or p.cash < damage_cost
+	var build_why := ""
+	if _pad_state != SimPlayer.PAD_NONE:
+		build_why = "Already built. This pad stands; damage is put right with Repair."
+	elif not _is_next_to_build(p):
+		build_why = "Build pad %d first. Pads are built in order." % _first_unbuilt(p)
+	elif not SimEconomy.can_buy_pad(p):
+		build_why = "Need %d MB. Building a pad costs %d MB; you have %d MB." % [SimEconomy.PAD_COST, SimEconomy.PAD_COST, p.cash]
+	var repair_why := ""
+	if _pad_state == SimPlayer.PAD_NONE:
+		repair_why = "Not built. There is no pad here to repair."
+	elif damage_cost <= 0:
+		repair_why = "No damage. The pad is operational."
+	elif p.cash < damage_cost:
+		repair_why = "Need %d MB. The repair costs %d MB; you have %d MB." % [damage_cost, damage_cost, p.cash]
+	_status_panel_actions(build_why, repair_why, damage_cost)
 
 	# This season.
 	_vehicle = {}
@@ -209,7 +197,6 @@ func _refresh() -> void:
 		_values["now"].text = "Nothing scheduled"
 		_now_brief.text = "NO LAUNCH SCHEDULED FOR %s" % state.date_string().to_upper()
 		_now_notes.text = "" if _pad_state == SimPlayer.PAD_OK else "The pad must be operational for a mission to fly from it."
-		_scrub.text = "Scrub mission"
 	elif pl.get("part", 1) == 2:
 		var primary_pad: int = int(pl.get("primary_pad", _pad))
 		var m := SimPlanner.mission_def(state, int(pl["mission_index"]))
@@ -225,7 +212,6 @@ func _refresh() -> void:
 				lines.append_array(_vehicle_lines(_vehicle))
 		_now_brief.text = "\n".join(lines)
 		_now_notes.text = "This is part two of the joint mission launched from Pad %d; the plan and its crews are managed there." % (primary_pad + 1)
-		_scrub.text = "Scrub the joint mission"
 	else:
 		var m := SimPlanner.mission_def(state, int(pl["mission_index"]))
 		_values["now"].text = str(m["name"]).capitalize()
@@ -241,15 +227,20 @@ func _refresh() -> void:
 				lines.append_array(_vehicle_lines(launch["vehicles"][i]))
 		_now_brief.text = "\n".join(lines)
 		_now_notes.text = "\n".join(_preview_notes(state, p, launch))
-		_scrub.text = "Scrub mission"
-	_scrub.disabled = pl == null or state.ended
+	var scrub_why := ""
+	if state.ended:
+		scrub_why = "Game over. There are no more seasons to play."
+	elif pl == null:
+		scrub_why = "Nothing scheduled. No mission flies from this pad this season."
+	_restyle(_scrub, "Scrub the joint mission" if pl != null and pl.get("part", 1) == 2 else "Scrub mission", scrub_why)
+	if scrub_why == "":
+		_scrub.tooltip_text = "Take the mission off the pad. Hardware stays in inventory; scrubbing costs %d prestige." % absi(SimGame.SCRUB_PRESTIGE)
 
 	# Next season.
 	var when := SimPlanner.launch_date(state)
 	var when_text := "%s %d" % ["Spring" if when[1] == SimState.SEASON_SPRING else "Fall", 1900 + when[0]]
 	var fut = p.future[_pad]
-	_cancel.disabled = fut == null
-	_cancel.text = "Cancel next season's plan"
+	var cancel_text := "Cancel next season's plan"
 	if fut == null:
 		_values["next"].text = "No plan"
 		_next_brief.text = "NO PLAN FOR %s" % when_text.to_upper()
@@ -260,7 +251,7 @@ func _refresh() -> void:
 		if fut.get("part", 1) == 2:
 			_next_brief.text = "%s: SECOND VEHICLE OF %s" % [when_text.to_upper(), str(m["name"]).to_upper()]
 			_next_notes.text = "Reserved for the joint mission planned on Pad %d." % (int(fut.get("primary_pad", _pad)) + 1)
-			_cancel.text = "Cancel the joint plan"
+			cancel_text = "Cancel the joint plan"
 		else:
 			_next_brief.text = "%s: %s" % [when_text.to_upper(), str(m["name"]).to_upper()]
 			var bits: PackedStringArray = []
@@ -273,12 +264,37 @@ func _refresh() -> void:
 			if int(pen["total"]) > 0 or int(pen["lm"]) > 0:
 				bits.append("Requirement penalty -%d%%%s." % [int(pen["total"]), ("; LM penalty -%d%%" % int(pen["lm"])) if int(pen["lm"]) > 0 else ""])
 			_next_notes.text = " ".join(bits)
+	_restyle(_cancel, cancel_text, "" if fut != null else "No plan. Nothing is planned for this pad next season.")
+	if fut != null:
+		_cancel.tooltip_text = "Drop the plan for next season; plan again in the Future Missions Office."
 	if not _vehicle.is_empty() or pl != null:
 		_caption.text = _values["now"].text
 		_caption.add_theme_color_override("font_color", UiPalette.TEXT)
 	_hint.text = "\n".join(hints)
 	_hint.visible = not hints.is_empty()
 	_case.queue_redraw()
+
+
+## Build and repair on the status panel: each go, or blocked with its reason.
+func _status_panel_actions(build_why: String, repair_why: String, damage_cost: int) -> void:
+	UiAction.go_or_blocked(_build, "Build pad  (%d MB)" % SimEconomy.PAD_COST, build_why)
+	if build_why == "":
+		_build.tooltip_text = "Build launch pad %d for %d MB." % [_pad + 1, SimEconomy.PAD_COST]
+	UiAction.go_or_blocked(_repair, ("Repair pad  (%d MB)" % damage_cost) if damage_cost > 0 else "Repair pad", repair_why)
+	if repair_why == "":
+		_repair.tooltip_text = "Repair the pad for %d MB." % damage_cost
+
+
+## A cautious action (scrub, cancel): caution when `why` is empty, otherwise blocked.
+func _restyle(b: Button, text: String, why: String) -> void:
+	UiAction.style(b, "caution" if why == "" else "blocked", text, why)
+
+
+func _first_unbuilt(p: SimPlayer) -> int:
+	for i in 3:
+		if p.pads[i] == SimPlayer.PAD_NONE:
+			return i + 1
+	return _pad + 1
 
 
 func _show_readiness(launch: Dictionary) -> void:

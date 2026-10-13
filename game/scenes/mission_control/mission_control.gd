@@ -28,6 +28,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	set_room("mission_control_" + (Session.human_side if Session.has_game() else "usa"))
 	_empty = Label.new()
 	_empty.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_empty.theme_type_variation = "Dim"
@@ -38,8 +39,8 @@ func _ready() -> void:
 	content.add_child(_bays)
 	UiHelp.attach(_bays, "I010")
 	_flag = Button.new()
-	_flag.theme_type_variation = "Accent"
-	_flag.text = "Lower the flag: end the season"
+	_flag.custom_minimum_size = Vector2(170, 40)
+	UiAction.style(_flag, "go", "Lower the flag: end the season")
 	_flag.pressed.connect(_on_lower_flag)
 	footer.add_child(_flag)
 	_refresh()
@@ -56,30 +57,26 @@ func _refresh() -> void:
 		c.queue_free()
 	var state := Session.state()
 	var p := Session.me()
-	_flag.disabled = state.ended
+	if state.ended:
+		UiAction.style(_flag, "blocked", "Lower the flag", "The game is over. There are no more seasons to play.")
+	else:
+		UiAction.style(_flag, "go", "Lower the flag: end the season")
+		_flag.tooltip_text = "End %s: every scheduled launch flies, then the season's news and review." % state.date_string()
 	var pads := OpsView.scheduled_pads(p)
 	_empty.visible = pads.is_empty()
 	if pads.is_empty():
 		_empty.text = "No launches are scheduled for %s. Lower the flag to end the season, or plan next season's missions in the Future Missions Office." % state.date_string()
 	for pad in 3:
-		_bays.add_child(_make_bay(state, p, pad))
+		_make_bay(state, p, pad)
 
 
 # ----------------------------------------------------------------- bays
 
 func _make_bay(state: SimState, p: SimPlayer, pad: int) -> Control:
-	var bay := VBoxContainer.new()
-	bay.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	bay.add_theme_constant_override("separation", 8)
-
-	var banner := PanelContainer.new()
-	banner.theme_type_variation = "Sunken"
-	bay.add_child(banner)
-	var banner_label := Label.new()
-	banner_label.theme_type_variation = "Heading"
-	banner_label.add_theme_color_override("font_color", UiPalette.GOLD)
-	banner_label.text = "LAUNCH FACILITY: %s" % FACILITY[pad]
-	banner.add_child(banner_label)
+	var bay := UiPanel.new("Launch facility %s" % FACILITY[pad], "I010")
+	bay.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	# In the tree before its action bar is added, so the bar picks up its theme colours.
+	_bays.add_child(bay)
 
 	# What flies from this pad: a primary plan, the second vehicle of a joint plan, or nothing.
 	var pl = p.missions[pad]
@@ -94,65 +91,98 @@ func _make_bay(state: SimState, p: SimPlayer, pad: int) -> Control:
 	var vehicle: Dictionary = {}
 	if launch.has("vehicles") and vehicle_index < launch["vehicles"].size():
 		vehicle = launch["vehicles"][vehicle_index]
+	var pad_state: int = p.pads[pad]
 
-	var case_panel := PanelContainer.new()
-	case_panel.theme_type_variation = "Sunken"
-	case_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	case_panel.custom_minimum_size.y = 220
-	bay.add_child(case_panel)
+	# Banner: the bay's one subject, the mission (or the pad's state when nothing flies).
+	var banner := PanelContainer.new()
+	banner.theme_type_variation = "Sunken"
+	bay.body.add_child(banner)
+	var banner_label := Label.new()
+	banner_label.theme_type_variation = "Heading"
+	banner_label.add_theme_color_override("font_color", UiPalette.GOLD)
+	banner_label.clip_text = true
+	banner_label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	banner_label.mouse_filter = Control.MOUSE_FILTER_PASS
+	if primary != null:
+		banner_label.text = str(SimPlanner.mission_def(state, int(primary["mission_index"]))["name"]).to_upper()
+	elif pad_state == SimPlayer.PAD_NONE:
+		banner_label.text = "NOT BUILT"
+	else:
+		banner_label.text = "NO LAUNCH"
+	banner_label.tooltip_text = banner_label.text.capitalize()
+	banner.add_child(banner_label)
+
 	var case := Control.new()
 	case.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	case.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	case.custom_minimum_size.y = 220
 	case.clip_contents = true
 	var side := p.side
-	var pad_state: int = p.pads[pad]
 	case.draw.connect(func(): paint_pad(case, Rect2(Vector2.ZERO, case.size), side, pad_state, vehicle))
 	case.resized.connect(case.queue_redraw)
-	case_panel.add_child(case)
+	bay.body.add_child(case)
 
+	# Brief on the left, readiness lamps on the right.
+	var brief_row := HBoxContainer.new()
+	brief_row.add_theme_constant_override("separation", 12)
+	bay.body.add_child(brief_row)
 	var brief := Label.new()
 	brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	brief.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	brief.add_theme_color_override("font_color", UiPalette.INFO)
 	brief.custom_minimum_size.y = 140
-	bay.add_child(brief)
+	brief_row.add_child(brief)
+	var ready_col := VBoxContainer.new()
+	ready_col.add_theme_constant_override("separation", 6)
+	ready_col.custom_minimum_size.x = 180
+	brief_row.add_child(ready_col)
 	var ready_label := Label.new()
-	ready_label.theme_type_variation = "Subheading"
-	bay.add_child(ready_label)
+	ready_label.theme_type_variation = "Caps"
+	ready_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ready_col.add_child(ready_label)
+	var lamps := StatusLamps.new()
+	lamps.tooltip_text = "Readiness: the lowest step safety after penalties. Nominal at %d%% and above, warning from %d%%, failure below." % [SimPlanner.READY_AOK, SimPlanner.READY_CAUTION]
+	ready_col.add_child(lamps)
 	var notes := Label.new()
 	notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	notes.theme_type_variation = "Small"
 	notes.custom_minimum_size.y = 62
-	bay.add_child(notes)
+	bay.body.add_child(notes)
 
-	# Commands board: rush, fly as, scrub. Always shown; disabled when they do not apply.
-	var rush_title := _board_title(bay, "RUSH  (%d MB, -%d%% A MONTH)" % [SimPlanner.RUSH_COST_PER_MONTH, SimPlanner.RUSH_PENALTY_PER_MONTH])
+	# Why commands may be unavailable here.
+	var can_command: bool = pl != null and pl.get("part", 1) == 1 and not state.ended
+	var no_command := ""
+	if state.ended:
+		no_command = "Game over. There are no more seasons to play."
+	elif pl == null:
+		no_command = "Nothing scheduled. No launch is planned from this facility this season."
+	elif pl.get("part", 1) != 1:
+		no_command = "Commanded from %s. The joint mission's first vehicle flies from Facility %s." % [FACILITY[primary_pad], FACILITY[primary_pad]]
+
+	# Commands board: rush and fly as. Always shown; their tooltips say why when unavailable.
+	var rush_title := _board_title(bay.body, "RUSH  %d MB, -%d%% A MONTH" % [SimPlanner.RUSH_COST_PER_MONTH, SimPlanner.RUSH_PENALTY_PER_MONTH])
 	rush_title.tooltip_text = "Launch earlier in the season; each month costs cash and safety on every step."
 	var rush_row := HBoxContainer.new()
 	rush_row.add_theme_constant_override("separation", 6)
-	bay.add_child(rush_row)
+	bay.body.add_child(rush_row)
 	var current_rush: int = int(primary.get("rush_months", 0)) if primary != null else -1
-	var can_command: bool = pl != null and pl.get("part", 1) == 1 and not state.ended
 	for months in range(0, SimPlanner.RUSH_MAX_MONTHS + 1):
 		var b := Button.new()
-		b.text = "No rush" if months == 0 else "%d month%s" % [months, "" if months == 1 else "s"]
-		b.tooltip_text = OpsView.rush_label(months)
+		b.text = "NONE" if months == 0 else "%d MO" % months
+		b.theme_type_variation = "Bar"
+		b.custom_minimum_size.y = 36
+		b.tooltip_text = OpsView.rush_label(months) if can_command else "Unavailable: " + no_command
 		b.toggle_mode = true
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.button_pressed = months == current_rush
 		b.disabled = not can_command
 		b.pressed.connect(_set_rush.bind(pad, months))
 		rush_row.add_child(b)
-	_board_title(bay, "FLY AS")
+	_board_title(bay.body, "FLY AS")
 	var fly := OptionButton.new()
 	fly.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	fly.clip_text = true
-	bay.add_child(fly)
-	var scrub := Button.new()
-	scrub.theme_type_variation = "Danger"
-	scrub.text = "Scrub mission"
-	scrub.disabled = not can_command
-	scrub.pressed.connect(_on_scrub.bind(pad))
-	bay.add_child(scrub)
+	bay.body.add_child(fly)
 
 	# Fill in the brief.
 	var lines: PackedStringArray = []
@@ -165,8 +195,6 @@ func _make_bay(state: SimState, p: SimPlayer, pad: int) -> Control:
 		lines.append("NO LAUNCH SCHEDULED")
 		bits.append("Plan missions in the Future Missions Office in Administration.")
 	else:
-		var m := SimPlanner.mission_def(state, int(primary["mission_index"]))
-		lines.append("MISSION: %s" % str(m["name"]).to_upper())
 		if primary_pad != pad:
 			lines.append("SECOND VEHICLE, FROM FACILITY %s" % FACILITY[primary_pad])
 		lines.append("LAUNCH: %s" % OpsView.launch_month_name(state, p, primary_pad).to_upper())
@@ -185,19 +213,23 @@ func _make_bay(state: SimState, p: SimPlayer, pad: int) -> Control:
 	brief.text = "\n".join(lines)
 
 	if pl != null and launch.has("vehicles"):
-		ready_label.text = "Readiness  " + OpsView.readiness_text(launch)
+		var r := SimPlanner.readiness(launch)
+		var band := str(r["band"])
+		ready_label.text = "READINESS %d%%" % int(r["lowest_safety"])
 		ready_label.add_theme_color_override("font_color", OpsView.readiness_color(launch))
+		lamps.set_level(StatusLamps.Level.NOMINAL if band == "a-ok" else (StatusLamps.Level.WARNING if band == "caution" else StatusLamps.Level.FAILURE))
 		if launch.has("downgraded_from"):
 			bits.append("Hardware is missing for the plan; it would fly as the downgrade %s." % str(SimPlanner.mission_def(state, int(launch["mission_index"]))["name"]).capitalize())
 		bits.append("Penalties on every step: requirements -%d%%, lunar module -%d%%, rush -%d%%." % [
 			int(launch["requirement_penalty"]), int(launch["lm_penalty"]), int(launch["rush_penalty"])])
 	elif pl != null:
-		ready_label.text = "Cannot fly"
+		ready_label.text = "CANNOT FLY"
 		ready_label.add_theme_color_override("font_color", UiPalette.DANGER)
+		lamps.set_level(StatusLamps.Level.FAILURE)
 		bits.append("Not assembled: %s. It will be scrubbed at the end of the season." % launch.get("reason", "unknown"))
 	else:
-		ready_label.text = "Readiness  -"
-		ready_label.add_theme_color_override("font_color", UiPalette.TEXT_MUTED)
+		ready_label.text = "READINESS -"
+		lamps.set_level(StatusLamps.Level.NONE)
 	if pl != null and pl.get("part", 1) == 1 and pl.get("joint", false):
 		bits.append("Joint mission; the second vehicle flies from Facility %s." % FACILITY[mini(pad + 1, 2)])
 	elif primary_pad != pad:
@@ -214,14 +246,24 @@ func _make_bay(state: SimState, p: SimPlayer, pad: int) -> Control:
 	else:
 		fly.add_item("No mission")
 	fly.disabled = not can_command or fly.item_count < 2
+	if not can_command:
+		fly.tooltip_text = "Unavailable: " + no_command
+	elif fly.item_count < 2:
+		fly.tooltip_text = "This mission has no downgrade."
+
+	# Scrub: the cautious action, or blocked with the reason.
+	if can_command:
+		var scrub := bay.add_action("Scrub mission", "caution", _on_scrub.bind(pad))
+		scrub.tooltip_text = "Take this mission off the pad. Hardware stays in inventory; scrubbing costs %d prestige." % absi(SimGame.SCRUB_PRESTIGE)
+	else:
+		bay.add_action("Scrub mission", "blocked", Callable(), no_command)
 	return bay
 
 
 func _board_title(parent: Control, text: String) -> Label:
 	var l := Label.new()
 	l.text = text
-	l.theme_type_variation = "Subheading"
-	l.add_theme_color_override("font_color", UiPalette.GOLD)
+	l.theme_type_variation = "Caps"
 	l.mouse_filter = Control.MOUSE_FILTER_PASS
 	parent.add_child(l)
 	return l

@@ -63,6 +63,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	set_room("mission_control_" + (Session.human_side if Session.has_game() else "usa"))
 	_summary = Label.new()
 	_summary.theme_type_variation = "Dim"
 	_summary.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -77,8 +78,9 @@ func _ready() -> void:
 	scroll.add_child(_list)
 	UiHelp.attach(scroll, "I016")
 	var go := Button.new()
-	go.text = "Continue"
-	go.theme_type_variation = "Accent"
+	go.custom_minimum_size = Vector2(170, 40)
+	UiAction.style(go, "go", "Continue")
+	go.tooltip_text = "On to the season's news"
 	go.pressed.connect(func(): Screens.pop())
 	footer.add_child(go)
 	_refresh()
@@ -105,15 +107,17 @@ func _refresh() -> void:
 	var date := str(_report.get("date", Session.state().date_string()))
 	if shown.is_empty():
 		_summary.text = "%s: no launches to report." % date
-		var panel := PanelContainer.new()
-		panel.theme_type_variation = "Sunken"
+		var panel := UiPanel.new("Launch results", "I016")
 		_list.add_child(panel)
+		var banner := PanelContainer.new()
+		banner.theme_type_variation = "Sunken"
+		panel.body.add_child(banner)
 		var none := Label.new()
 		none.text = "NO LAUNCHES THIS SEASON"
 		none.theme_type_variation = "Heading"
 		none.add_theme_color_override("font_color", UiPalette.GOLD)
 		none.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		panel.add_child(none)
+		banner.add_child(none)
 		return
 	_summary.text = "%s: %d launch%s" % [date, shown.size(), "" if shown.size() == 1 else "es"]
 	for launch in shown:
@@ -129,11 +133,8 @@ func _section(launch: Dictionary) -> Control:
 	var p: SimPlayer = state.player(int(launch.get("player", 0)))
 	var mission := int(launch.get("mission_index", -1))
 	var oc := str(launch.get("outcome", ""))
-	var card := PanelContainer.new()
-	card.theme_type_variation = "Card"
-	var box := VBoxContainer.new()
-	box.add_theme_constant_override("separation", 8)
-	card.add_child(box)
+	var card := UiPanel.new("%s launch" % TurnLogic.side_name(p.side), "I016")
+	var box := card.body
 
 	# Head: patch, mission name banner, side and outcome.
 	var head := HBoxContainer.new()
@@ -158,25 +159,22 @@ func _section(launch: Dictionary) -> Control:
 	name.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 	name.text = TurnLogic.mission_name(mission).to_upper()
 	banner.add_child(name)
-	var sub := Label.new()
-	sub.theme_type_variation = "Small"
-	sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	var sub_text := TurnLogic.side_name(p.side).to_upper()
 	if launch.has("downgraded_from"):
-		sub_text += "   DOWNGRADED FROM %s" % TurnLogic.mission_name(int(launch["downgraded_from"])).to_upper()
-	sub.text = sub_text
-	sub.add_theme_color_override("font_color", UiPalette.accent(p.side).lightened(0.35))
-	words.add_child(sub)
+		var sub := Label.new()
+		sub.theme_type_variation = "Small"
+		sub.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		sub.text = "DOWNGRADED FROM %s" % TurnLogic.mission_name(int(launch["downgraded_from"])).to_upper()
+		sub.add_theme_color_override("font_color", UiPalette.WARN)
+		words.add_child(sub)
 	var awards := HFlowContainer.new()
 	awards.add_theme_constant_override("h_separation", 18)
 	awards.add_theme_constant_override("v_separation", 0)
 	words.add_child(awards)
-	var outcome := Label.new()
-	outcome.theme_type_variation = "Heading"
-	outcome.text = oc.to_upper()
-	outcome.custom_minimum_size.x = 200
-	outcome.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	outcome.add_theme_color_override("font_color", _outcome_color(oc))
+	var outcome := Lamp.new(oc, Lamp.State.ON if oc == "success" else (Lamp.State.WARN if oc == "scrubbed" else Lamp.State.FAIL))
+	outcome.mouse_filter = Control.MOUSE_FILTER_PASS
+	outcome.custom_minimum_size = Vector2(170, 40)
+	outcome.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	outcome.tooltip_text = "Mission outcome: %s" % oc
 	head.add_child(outcome)
 
 	if oc == "scrubbed":
@@ -224,8 +222,7 @@ func _section(launch: Dictionary) -> Control:
 		body.add_child(crew_box)
 		var ct := Label.new()
 		ct.text = "CREW"
-		ct.theme_type_variation = "Subheading"
-		ct.add_theme_color_override("font_color", UiPalette.GOLD)
+		ct.theme_type_variation = "Caps"
 		crew_box.add_child(ct)
 		var tiles := HBoxContainer.new()
 		tiles.add_theme_constant_override("separation", 8)
@@ -258,7 +255,7 @@ func _steps_grid(steps: Array) -> Control:
 	for h in ["STEP", "HARDWARE", "SAFETY", "ROLL", "RESULT", "FAILURE"]:
 		var l := Label.new()
 		l.text = h
-		l.theme_type_variation = "Dim"
+		l.theme_type_variation = "Caps"
 		if h in ["SAFETY", "ROLL"]:
 			l.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 		grid.add_child(l)
@@ -277,7 +274,16 @@ func _steps_grid(steps: Array) -> Control:
 			str(f.get("text", "")).capitalize() if f is Dictionary else "",
 		]
 		for i in cells.size():
+			if i == 4:
+				var lamp := Lamp.new(result, Lamp.State.ON if ok else (Lamp.State.WARN if saved else Lamp.State.FAIL))
+				lamp.custom_minimum_size = Vector2(96, 28)
+				lamp.mouse_filter = Control.MOUSE_FILTER_PASS
+				lamp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				lamp.tooltip_text = "Step %s: %s" % [str(s.get("letter", "")), "succeeded" if ok else ("failed, saved by a save card" if saved else "failed")]
+				grid.add_child(lamp)
+				continue
 			var l := Label.new()
+			l.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 			l.text = cells[i]
 			l.add_theme_color_override("font_color", col if i != 1 else col.lerp(UiPalette.TEXT, 0.5))
 			if i == 2 or i == 3:

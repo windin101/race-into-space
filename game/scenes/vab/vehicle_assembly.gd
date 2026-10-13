@@ -15,10 +15,17 @@ var _pad_tabs: HBoxContainer
 var _tab_buttons: Dictionary = {}
 var _banner: Label
 var _brief: Label
+var _chips: HBoxContainer
+var _weight_chip: StatChip
+var _crew_chip: StatChip
 var _ready_label: Label
+var _lamps: StatusLamps
+var _gauge: Gauge
+var _manifest_panel: UiPanel
 var _manifest: GridContainer
 var _choices: VBoxContainer
 var _notes: Label
+var _vehicle_panel: UiPanel
 var _case: Control
 var _launch: Dictionary = {}
 var _auto: Button
@@ -34,6 +41,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	set_room("room_hangar")
 	_pad_tabs = HBoxContainer.new()
 	_pad_tabs.add_theme_constant_override("separation", 8)
 	content.add_child(_pad_tabs)
@@ -45,15 +53,15 @@ func _ready() -> void:
 
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	split.add_theme_constant_override("separation", 20)
+	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
 	_split = split
 
-	# Left: banner, brief, manifest.
+	# Left: banner, brief with readiness, manifest.
 	var left := VBoxContainer.new()
 	left.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	left.custom_minimum_size.x = 560
-	left.add_theme_constant_override("separation", 10)
+	left.custom_minimum_size.x = 640
+	left.add_theme_constant_override("separation", 12)
 	split.add_child(left)
 	var banner_panel := PanelContainer.new()
 	banner_panel.theme_type_variation = "Sunken"
@@ -62,67 +70,80 @@ func _ready() -> void:
 	_banner.theme_type_variation = "Heading"
 	_banner.add_theme_color_override("font_color", UiPalette.GOLD)
 	banner_panel.add_child(_banner)
+
+	var brief_panel := UiPanel.new("Mission brief", "I012")
+	left.add_child(brief_panel)
 	var brief_row := HBoxContainer.new()
-	brief_row.add_theme_constant_override("separation", 12)
-	left.add_child(brief_row)
+	brief_row.add_theme_constant_override("separation", 16)
+	brief_panel.body.add_child(brief_row)
+	var brief_col := VBoxContainer.new()
+	brief_col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	brief_col.add_theme_constant_override("separation", 8)
+	brief_row.add_child(brief_col)
 	_brief = Label.new()
 	_brief.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_brief.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_brief.add_theme_color_override("font_color", UiPalette.INFO)
-	brief_row.add_child(_brief)
+	brief_col.add_child(_brief)
+	_chips = HBoxContainer.new()
+	_chips.add_theme_constant_override("separation", 8)
+	brief_col.add_child(_chips)
+	_weight_chip = StatChip.new("weight", "-", "Payload weight against the rocket's maximum payload")
+	_chips.add_child(_weight_chip)
+	_crew_chip = StatChip.new("crew", "-", "Crew flying on this launch")
+	_chips.add_child(_crew_chip)
+	var ready_col := VBoxContainer.new()
+	ready_col.add_theme_constant_override("separation", 6)
+	ready_col.custom_minimum_size.x = 210
+	ready_col.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	brief_row.add_child(ready_col)
 	_ready_label = Label.new()
-	_ready_label.theme_type_variation = "Subheading"
-	_ready_label.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
-	brief_row.add_child(_ready_label)
-	_auto = Button.new()
-	_auto.pressed.connect(_on_auto_purchase)
-	left.add_child(_auto)
+	_ready_label.theme_type_variation = "Caps"
+	_ready_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	ready_col.add_child(_ready_label)
+	_lamps = StatusLamps.new()
+	_lamps.tooltip_text = "Readiness: the lowest step safety after penalties. Nominal at %d%% and above, warning from %d%%, failure below." % [SimPlanner.READY_AOK, SimPlanner.READY_CAUTION]
+	ready_col.add_child(_lamps)
+	_gauge = Gauge.new(false, "Lowest safety on any step, after penalties")
+	_gauge.custom_minimum_size = Vector2(210, 40)
+	_gauge.mouse_filter = Control.MOUSE_FILTER_PASS
+	_gauge.tooltip_text = "Lowest safety on any step, after penalties"
+	ready_col.add_child(_gauge)
 
-	var manifest_panel := PanelContainer.new()
-	manifest_panel.theme_type_variation = "Card"
-	left.add_child(manifest_panel)
-	var manifest_box := VBoxContainer.new()
-	manifest_box.add_theme_constant_override("separation", 6)
-	manifest_panel.add_child(manifest_box)
-	var manifest_title := Label.new()
-	manifest_title.text = "MISSION HARDWARE"
-	manifest_title.theme_type_variation = "Subheading"
-	manifest_title.add_theme_color_override("font_color", UiPalette.GOLD)
-	manifest_box.add_child(manifest_title)
+	_manifest_panel = UiPanel.new("Mission hardware", "I012")
+	_manifest_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	left.add_child(_manifest_panel)
 	_manifest = GridContainer.new()
 	_manifest.columns = 4
 	_manifest.add_theme_constant_override("h_separation", 18)
 	_manifest.add_theme_constant_override("v_separation", 4)
-	manifest_box.add_child(_manifest)
+	_manifest_panel.body.add_child(_manifest)
 	_choices = VBoxContainer.new()
 	_choices.add_theme_constant_override("separation", 6)
-	manifest_box.add_child(_choices)
+	_manifest_panel.body.add_child(_choices)
+	var spacer := Control.new()
+	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_manifest_panel.body.add_child(spacer)
 	_notes = Label.new()
 	_notes.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_notes.theme_type_variation = "Small"
-	left.add_child(_notes)
-	var spacer := Control.new()
-	spacer.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	left.add_child(spacer)
-	_scrub = Button.new()
-	_scrub.text = "Scrub mission"
-	_scrub.theme_type_variation = "Danger"
-	_scrub.pressed.connect(_on_scrub)
-	left.add_child(_scrub)
+	_manifest_panel.body.add_child(_notes)
+	_auto = _manifest_panel.add_action("Autopurchase missing units", "go", _on_auto_purchase)
+	_scrub = _manifest_panel.add_action("Scrub mission", "caution", _on_scrub)
+	_scrub.tooltip_text = "Take this mission off the pad. Hardware stays in inventory; scrubbing costs %d prestige." % absi(SimGame.SCRUB_PRESTIGE)
 
 	# Right: the vehicle on display.
-	var case_panel := PanelContainer.new()
-	case_panel.theme_type_variation = "Sunken"
-	case_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	case_panel.size_flags_stretch_ratio = 1.2
-	split.add_child(case_panel)
+	_vehicle_panel = UiPanel.new("Vehicle on the pad", "I012")
+	_vehicle_panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_vehicle_panel.size_flags_stretch_ratio = 1.1
+	split.add_child(_vehicle_panel)
 	_case = Control.new()
 	_case.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_case.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_case.clip_contents = true
 	_case.draw.connect(_draw_case)
 	_case.resized.connect(_case.queue_redraw)
-	case_panel.add_child(_case)
+	_vehicle_panel.body.add_child(_case)
 	_refresh()
 
 
@@ -144,7 +165,10 @@ func _refresh() -> void:
 	for pad in _pads:
 		var b := Button.new()
 		var m := SimPlanner.mission_def(state, int(p.missions[pad]["mission_index"]))
-		b.text = "Launch Facility %s:  %s" % [FACILITY[pad], str(m["name"]).capitalize()]
+		b.text = "FACILITY %s:  %s" % [FACILITY[pad], str(m["name"]).to_upper()]
+		b.theme_type_variation = "Bar"
+		b.custom_minimum_size.y = 40
+		b.tooltip_text = "Show the launch from Launch Facility %s: %s" % [FACILITY[pad], str(m["name"]).capitalize()]
 		b.toggle_mode = true
 		b.pressed.connect(func():
 			_pad = pad
@@ -180,24 +204,42 @@ func _refresh_pad(state: SimState, p: SimPlayer) -> void:
 			crew_lines.append_array(OpsView.crew_lines(v))
 			weight += OpsView.payload_weight(v)
 			lift += OpsView.lift(v)
-		lines.append("CREW: %s" % ("UNMANNED" if crew_lines.is_empty() else "   ".join(crew_lines).to_upper()))
-		lines.append("CURRENT PAYLOAD: %d" % weight)
-		lines.append("MAXIMUM PAYLOAD: %d" % lift)
-		_ready_label.text = "Readiness\n" + OpsView.readiness_text(_launch)
+		lines.append("CREW: %s" % ("UNMANNED" if crew_lines.is_empty() else "\n".join(crew_lines).to_upper()))
+		_weight_chip.set_value("%d / %d" % [weight, lift], weight > lift)
+		_crew_chip.set_value(str(crew_lines.size()) if not crew_lines.is_empty() else "None")
+		var r := SimPlanner.readiness(_launch)
+		var band := str(r["band"])
+		_ready_label.text = "READINESS  %d%%" % int(r["lowest_safety"])
 		_ready_label.add_theme_color_override("font_color", OpsView.readiness_color(_launch))
+		_lamps.set_level(StatusLamps.Level.NOMINAL if band == "a-ok" else (StatusLamps.Level.WARNING if band == "caution" else StatusLamps.Level.FAILURE))
+		_gauge.value = maxi(0, int(r["lowest_safety"]))
 	else:
 		lines.append("CREW: -")
-		_ready_label.text = "Cannot fly"
+		_weight_chip.set_value("-")
+		_crew_chip.set_value("-")
+		_ready_label.text = "CANNOT FLY"
 		_ready_label.add_theme_color_override("font_color", UiPalette.DANGER)
+		_lamps.set_level(StatusLamps.Level.FAILURE)
+		_gauge.value = 0
 	_brief.text = "\n".join(lines)
 
-	# Auto-purchase cost.
+	# Actions: auto-purchase (go, or blocked with the reason) and scrub (caution).
 	var wanted := OpsView.shopping_list(state, p, pl)
 	var cost := 0
+	var cheapest := -1
 	for prog in wanted:
-		cost += SimHardware.unit_price(p, prog)
-	_auto.text = "Autopurchase missing units  (%d of %d MB)" % [cost, p.cash]
-	_auto.disabled = wanted.is_empty()
+		var price := SimHardware.unit_price(p, prog)
+		cost += price
+		cheapest = price if cheapest < 0 else mini(cheapest, price)
+	var why := ""
+	if wanted.is_empty():
+		why = "Nothing missing. Every program on this launch already has a unit in inventory, or the launch cannot be assembled for another reason."
+	elif p.cash < cheapest:
+		why = "Not enough cash. The missing units cost %d MB; you have %d MB." % [cost, p.cash]
+	_set_actions("Autopurchase missing units  (%d MB)" % cost, why)
+	if why == "":
+		_auto.tooltip_text = "Buy one unit of each program the launch is missing: %d MB of your %d MB.%s" % [
+			cost, p.cash, "  Not everything is affordable; what can be bought is bought." if cost > p.cash else ""]
 
 	_refresh_manifest(state, p, pl, m)
 	var notes: PackedStringArray = []
@@ -215,26 +257,36 @@ func _refresh_pad(state: SimState, p: SimPlayer) -> void:
 	_case.queue_redraw()
 
 
+## Auto-purchase on the manifest's action bar: go, or blocked with the reason.
+func _set_actions(auto_text: String, auto_reason: String) -> void:
+	UiAction.go_or_blocked(_auto, auto_text, auto_reason)
+
+
 func _manifest_row(label: String, prog: SimProgram) -> void:
 	var k := Label.new()
-	k.text = label.to_upper() + ":"
-	k.theme_type_variation = "Dim"
+	k.text = label.to_upper()
+	k.theme_type_variation = "Caps"
+	k.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	_manifest.add_child(k)
 	var name := Label.new()
 	name.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	name.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	name.text = prog.display_name().capitalize() if prog != null else "None"
 	_manifest.add_child(name)
-	var safety := Label.new()
-	safety.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	safety.custom_minimum_size.x = 60
-	safety.text = ("%d%%" % prog.safety) if prog != null else "0%"
 	if prog != null:
-		safety.add_theme_color_override("font_color", UiPalette.safety_color(prog.safety))
-	_manifest.add_child(safety)
+		var safety := StatChip.new("safety", "", "Safety of this program")
+		safety.size_flags_horizontal = Control.SIZE_SHRINK_END
+		safety.set_value("%d%%" % prog.safety, false, UiPalette.safety_color(prog.safety))
+		_manifest.add_child(safety)
+	else:
+		_manifest.add_child(Control.new())
 	var units := Label.new()
 	units.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	units.custom_minimum_size.x = 70
+	units.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	units.text = ("%d unit%s" % [prog.units, "" if prog.units == 1 else "s"]) if prog != null else "-"
+	units.tooltip_text = "Units in inventory; each launch uses one"
+	units.mouse_filter = Control.MOUSE_FILTER_PASS
 	if prog != null and prog.units == 0:
 		units.add_theme_color_override("font_color", UiPalette.DANGER)
 	_manifest.add_child(units)
@@ -250,8 +302,8 @@ func _refresh_manifest(state: SimState, p: SimPlayer, pl: Dictionary, m: Diction
 		var v: Dictionary = vehicles[vi]
 		if vehicles.size() > 1:
 			var sub := Label.new()
-			sub.text = "Vehicle %d" % (vi + 1)
-			sub.theme_type_variation = "Subheading"
+			sub.text = "VEHICLE %d" % (vi + 1)
+			sub.theme_type_variation = "CapsBright"
 			_manifest.add_child(sub)
 			for i in 3:
 				_manifest.add_child(Control.new())
@@ -292,11 +344,13 @@ func _refresh_manifest(state: SimState, p: SimPlayer, pl: Dictionary, m: Diction
 		row.add_theme_constant_override("separation", 10)
 		_choices.add_child(row)
 		var cap_label := Label.new()
-		cap_label.text = "Capsule choice"
-		cap_label.theme_type_variation = "Dim"
+		cap_label.text = "CAPSULE"
+		cap_label.theme_type_variation = "Caps"
+		cap_label.custom_minimum_size.x = 120
 		row.add_child(cap_label)
 		var cap := OptionButton.new()
 		cap.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		cap.tooltip_text = "Which capsule flies. Automatic picks the safest one with a unit in inventory."
 		cap.add_item("Automatic (safest)", AUTO_CAPSULE)
 		for prog in candidates:
 			cap.add_item("%s  %d%%  (%d unit%s)" % [prog.display_name().capitalize(), prog.safety, prog.units, "" if prog.units == 1 else "s"], prog.slot)
@@ -315,11 +369,13 @@ func _refresh_manifest(state: SimState, p: SimPlayer, pl: Dictionary, m: Diction
 		row.add_theme_constant_override("separation", 10)
 		_choices.add_child(row)
 		var crew_label := Label.new()
-		crew_label.text = "Crew" if n_vehicles == 1 else "Crew (vehicle %d)" % (vi + 1)
-		crew_label.theme_type_variation = "Dim"
+		crew_label.text = "CREW" if n_vehicles == 1 else "CREW %d" % (vi + 1)
+		crew_label.theme_type_variation = "Caps"
+		crew_label.custom_minimum_size.x = 120
 		row.add_child(crew_label)
 		var opt := OptionButton.new()
 		opt.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		opt.tooltip_text = "Which assigned crew flies%s" % ("" if n_vehicles == 1 else " in vehicle %d" % (vi + 1))
 		var crews: Array = SimPersonnel.crews_of(p, capsule_slot)
 		var choice: Array = pl.get("crew_choice", [0, 0])
 		var current: int = int(choice[vi]) if vi < choice.size() else 0
@@ -331,6 +387,7 @@ func _refresh_manifest(state: SimState, p: SimPlayer, pl: Dictionary, m: Diction
 		if crews.is_empty():
 			opt.add_item("No crews assigned to this capsule", -1)
 			opt.disabled = true
+			opt.tooltip_text = "No crews are assigned to this capsule. Assign crews in the Astronaut Complex."
 		elif opt.get_item_index(current) >= 0:
 			opt.select(opt.get_item_index(current))
 		else:

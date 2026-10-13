@@ -237,20 +237,18 @@ and 7:
 - No copying of an SPM screen's arrangement. Where our layouts resemble the 1993
   original, `screen-style.md` already records that lineage.
 
-## 12. Gap list: our screens against this guide
+## 12. Status (2026-10-13)
 
-| area | now | to do |
-|---|---|---|
-| frame | header with status text; no bottom bar | top bar with breadcrumb, prestige, date; bottom resource bar with clickable chips and one context action |
-| backdrops | flat panel colour on offices | monotone tinted room paintings per office, shader-based |
-| panels | plain cards; gold banners | title strips with `(i)`, full-width action bars |
-| typography | Oswald and Source Sans | add the wide label face; enforce 15 px floor |
-| colour | green/red used; amber rarely | amber for secondary actions; red bars that explain |
-| cards | DataTable rows for missions and candidates | card rows with stat chips where a choice is made |
-| lamps | step lights on playback only | lamp columns for crew seats and controllers |
-| playback | monitor wall | controller and crew lamps, status lamps, gauge, numbered trajectory |
-| navigation | back button and Esc | breadcrumb, right-click and mouse-back, three-click rule audit |
-| story cards | newscast panel | event, first and unlock cards with the side tint |
+Applied to every screen. The shared pieces live in `game/scripts/ui/widgets/`:
+`screen_panel.gd` and `frame_bars.gd` (the frame), `ui_panel.gd`, `ui_action.gd`,
+`stat_chip.gd`, `lamp.gd`, `status_lamps.gd`, `gauge.gd`, `story_card.gd`; the monotone
+shader is `game/scripts/ui/monotone.gdshader`; the label face is `RISLabel-Regular.ttf`
+(Michroma, renamed, with % falling back to Source Sans). The widget gallery shows each one.
+
+Still open: F1 and Enter shortcuts (section 9.5), a shared Viewer widget (the case, name
+strip and gauge marker are repeated in Research, Purchase and Intelligence), per-milestone
+art for story cards, and a screenshot fixture with recruits, firsts and a launch report so
+those states can be checked without a scratch harness.
 
 ## Sources
 

@@ -9,6 +9,9 @@ extends RefCounted
 
 
 static func style(b: Button, kind: String, text: String, reason := "") -> void:
+	# Drop any stylebox overrides left by an earlier style so the new variation shows.
+	for st in ["normal", "hover", "pressed", "disabled", "focus"]:
+		b.remove_theme_stylebox_override(st)
 	b.set_meta("blocked_reason", "")
 	b.disabled = false
 	match kind:
@@ -35,6 +38,29 @@ static func style(b: Button, kind: String, text: String, reason := "") -> void:
 		if b.tooltip_text == "" or b.tooltip_text == b.get_meta("last_reason", ""):
 			b.tooltip_text = ""
 	b.set_meta("last_reason", reason)
+	if b.has_meta("bar_corners"):
+		apply_corners(b)
+
+
+## Square a bar button's corners except those recorded in its "bar_corners" meta
+## (Vector2i(left, right) as 0/1), matching the panel's rounded bottom edge.
+static func apply_corners(b: Button) -> void:
+	# Out of the tree the theme is not resolved yet, so the variation's styleboxes would
+	# read as the plain button style. Defer until the button is in the tree.
+	if not b.is_inside_tree():
+		if not b.is_connected("tree_entered", apply_corners.bind(b)):
+			b.tree_entered.connect(apply_corners.bind(b), CONNECT_ONE_SHOT)
+		return
+	var corners: Vector2i = b.get_meta("bar_corners", Vector2i.ZERO)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		b.remove_theme_stylebox_override(state)
+		var sb := b.get_theme_stylebox(state)
+		if sb is StyleBoxFlat:
+			var c := (sb as StyleBoxFlat).duplicate() as StyleBoxFlat
+			c.set_corner_radius_all(0)
+			c.corner_radius_bottom_left = 10 if corners.x == 1 else 0
+			c.corner_radius_bottom_right = 10 if corners.y == 1 else 0
+			b.add_theme_stylebox_override(state, c)
 
 
 ## Convenience: go when `reason` is empty, otherwise blocked with that reason.

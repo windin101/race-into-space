@@ -20,33 +20,33 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	var result := UiPanel.new("Result")
+	content.add_child(result)
 	_headline = Label.new()
 	_headline.theme_type_variation = "Title"
 	_headline.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_headline.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_headline)
+	result.body.add_child(_headline)
 	_reason = Label.new()
 	_reason.theme_type_variation = "Dim"
 	_reason.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_reason.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	content.add_child(_reason)
+	result.body.add_child(_reason)
 
-	var panel := PanelContainer.new()
-	panel.theme_type_variation = "Sunken"
+	var panel := UiPanel.new("How history remembers it")
 	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	content.add_child(panel)
 	var scroll := ScrollContainer.new()
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
-	panel.add_child(scroll)
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	panel.body.add_child(scroll)
 	_story = VBoxContainer.new()
 	_story.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_story.add_theme_constant_override("separation", 12)
 	scroll.add_child(_story)
 
-	var scores_title := Label.new()
-	scores_title.theme_type_variation = "Subheading"
-	scores_title.text = "Final standings"
-	content.add_child(scores_title)
+	var standings := UiPanel.new("Final standings", "I030")
+	content.add_child(standings)
 	_scores = DataTable.new()
 	# Header row plus one line per side; the header button is about two row heights tall.
 	_scores.custom_minimum_size.y = DataTable.ROW_MIN_HEIGHT * 4 + 12
@@ -58,16 +58,19 @@ func _ready() -> void:
 		{"key": "score", "title": "Director score", "numeric": true},
 		{"key": "review", "title": "Review index", "numeric": true},
 	])
-	content.add_child(_scores)
+	standings.body.add_child(_scores)
 	UiHelp.attach(_scores, "I030")
 
 	var stats := Button.new()
-	stats.text = "Statistics"
+	stats.custom_minimum_size = Vector2(170, 40)
+	UiAction.style(stats, "neutral", "Statistics")
+	stats.tooltip_text = "Open the museum's records of the race"
 	stats.pressed.connect(func(): Screens.push(load(MUSEUM)))
 	footer.add_child(stats)
 	var back := Button.new()
-	back.text = "Return to title"
-	back.theme_type_variation = "Accent"
+	back.custom_minimum_size = Vector2(220, 40)
+	UiAction.style(back, "go", "Return to title")
+	back.tooltip_text = "End this game and return to the title screen"
 	back.pressed.connect(func(): Screens.reset(load(TITLE)))
 	footer.add_child(back)
 	_refresh()

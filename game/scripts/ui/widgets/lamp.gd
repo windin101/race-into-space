@@ -28,7 +28,8 @@ func set_state(s: int) -> void:
 			c.border_color = Color.WHITE
 		add_theme_stylebox_override(st, c)
 	add_theme_font_override("font", UiTheme.font(UiTheme.FONT_LABEL))
-	add_theme_font_size_override("font_size", 13 if text.length() > 14 else UiTheme.SIZE_SMALL)
+	add_theme_font_size_override("font_size", UiTheme.SIZE_SMALL)
+	clip_text = false
 	var fc := Color.WHITE if lit else UiPalette.TEXT_MUTED
 	for k in ["font_color", "font_hover_color", "font_pressed_color", "font_disabled_color", "font_focus_color"]:
 		add_theme_color_override(k, fc)

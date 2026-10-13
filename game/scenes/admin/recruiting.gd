@@ -1,9 +1,10 @@
 extends ScreenPanel
 ## Astronaut / Cosmonaut Recruiting, laid out like the Astronaut Complex dossier: the
 ## selected candidate's name banner, big portrait and the ratings the astronaut
-## difficulty level lets you see on the left; the candidate list in the middle (click a
-## row to view, click it again to pick); and on the right the group board with the pick
-## counter, the picks as portrait tiles, the running cost and the Recruit command.
+## difficulty level lets you see on the left; the candidate list in the middle as card
+## rows with the visible skills as stat chips, sortable (click a row to view, click it
+## again or its pick lamp to pick); and on the right the group panel with the pick
+## counter, the picks as portrait tiles, the running cost and the Recruit action.
 
 const SKILL_TITLES := {"capsule": "Capsule", "lm": "LM", "eva": "EVA", "docking": "Docking", "endurance": "Endurance"}
 const SKILL_SHORT := {"capsule": "Cap", "lm": "LM", "eva": "EVA", "docking": "Dock", "endurance": "End"}
@@ -13,13 +14,19 @@ const UNPICK_MARK := "[  ]"
 const CASE_BG := Color("0a1424")
 const TILE := Vector2(62, 74)
 const TILE_W := 84.0
+const HELP := "I012"
+
+## The candidate list's sort, remembered for the session: a row key ("" = group order).
+static var sort_key := ""
+static var sort_desc := true
 
 var _picked: Array = []       ## candidate names in pick order
 var _shown := ""              ## candidate name in the dossier
 var _pool: Array = []         ## candidate dictionaries on offer
 var _quota := 0
 
-var _table: DataTable
+var _list: VBoxContainer
+var _sort_bar: HBoxContainer
 var _info: Label
 var _note: Label
 # dossier
@@ -29,11 +36,12 @@ var _ratings: Dictionary = {}  ## key -> value Label
 var _pick: Button
 var _hidden_note: Label
 # group board
-var _group_title: Label
+var _group_panel: UiPanel
 var _picked_title: Label
 var _tiles: HFlowContainer
 var _picked_list: Label
-var _cost: Label
+var _cost_chip: StatChip
+var _cash_chip: StatChip
 var _recruit: Button
 var _clear: Button
 
@@ -45,7 +53,7 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
-	UiHelp.attach(content, "I012")
+	UiHelp.attach(content, HELP)
 	_info = Label.new()
 	_info.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_info.add_theme_color_override("font_color", UiPalette.INFO)
@@ -60,23 +68,17 @@ func _ready() -> void:
 	split.add_theme_constant_override("separation", 16)
 	content.add_child(split)
 	split.add_child(_build_dossier())
-	_table = DataTable.new()
-	_table.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	_table.size_flags_stretch_ratio = 1.2
-	_table.custom_minimum_size.x = 440
-	_table.row_selected.connect(_on_row)
-	_table.row_activated.connect(_on_row_activated)
-	split.add_child(_table)
+	split.add_child(_build_list())
 	split.add_child(_build_board())
+	set_room("room_crew")
 	_refresh()
 
 
 func _build_dossier() -> Control:
-	var side := VBoxContainer.new()
-	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	side.size_flags_stretch_ratio = 0.9
-	side.custom_minimum_size.x = 440
-	side.add_theme_constant_override("separation", 8)
+	var panel := UiPanel.new("Candidate", HELP)
+	panel.size_flags_stretch_ratio = 0.7
+	panel.custom_minimum_size.x = 400
+	var side := panel.body
 	var banner_panel := PanelContainer.new()
 	banner_panel.theme_type_variation = "Sunken"
 	side.add_child(banner_panel)
@@ -94,57 +96,63 @@ func _build_dossier() -> Control:
 	frame.theme_type_variation = "Sunken"
 	body.add_child(frame)
 	_portrait = Control.new()
-	_portrait.custom_minimum_size = Vector2(210, 250)
+	_portrait.custom_minimum_size = Vector2(200, 240)
 	_portrait.draw.connect(_draw_portrait)
 	frame.add_child(_portrait)
 	var ratings := GridContainer.new()
 	ratings.columns = 2
 	ratings.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	ratings.add_theme_constant_override("h_separation", 14)
+	ratings.add_theme_constant_override("h_separation", 12)
 	ratings.add_theme_constant_override("v_separation", 6)
 	body.add_child(ratings)
 	var keys: Array = ["sex", "service"]
 	keys.append_array(SimAstronaut.SKILLS)
 	for key in keys:
 		var k := Label.new()
-		k.text = {"sex": "SEX:", "service": "FROM:"}.get(key, SKILL_SHORT.get(key, key).to_upper() + ":")
-		k.theme_type_variation = "Dim"
+		k.text = {"sex": "SEX", "service": "FROM"}.get(key, SKILL_SHORT.get(key, key).to_upper())
+		k.theme_type_variation = "Caps"
+		k.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		k.mouse_filter = Control.MOUSE_FILTER_PASS
+		k.tooltip_text = {"sex": "Sex", "service": "Civilian or military background"}.get(key, "%s skill" % SKILL_TITLES.get(key, key))
 		ratings.add_child(k)
 		var v := Label.new()
 		v.theme_type_variation = "Subheading"
 		v.add_theme_color_override("font_color", UiPalette.GOLD)
 		ratings.add_child(v)
 		_ratings[key] = v
-	_pick = Button.new()
-	_pick.toggle_mode = true
-	_pick.pressed.connect(_on_pick_pressed)
-	side.add_child(_pick)
 	_hidden_note = Label.new()
 	_hidden_note.theme_type_variation = "Small"
+	_hidden_note.add_theme_color_override("font_color", UiPalette.TEXT_DIM)
 	_hidden_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_hidden_note.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	side.add_child(_hidden_note)
-	return side
+	_pick = panel.add_action("Pick candidate", "go", _on_pick_pressed)
+	return panel
+
+
+func _build_list() -> Control:
+	var panel := UiPanel.new("Candidates", HELP)
+	panel.size_flags_stretch_ratio = 1.4
+	panel.custom_minimum_size.x = 640
+	_sort_bar = HBoxContainer.new()
+	_sort_bar.add_theme_constant_override("separation", 4)
+	panel.body.add_child(_sort_bar)
+	var scroll := ScrollContainer.new()
+	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+	panel.body.add_child(scroll)
+	_list = VBoxContainer.new()
+	_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_list.add_theme_constant_override("separation", 4)
+	scroll.add_child(_list)
+	return panel
 
 
 func _build_board() -> Control:
-	var side := VBoxContainer.new()
-	side.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	side.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	side.custom_minimum_size.x = 380
-	side.add_theme_constant_override("separation", 8)
-	var board := PanelContainer.new()
-	board.theme_type_variation = "Card"
-	board.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	side.add_child(board)
-	var v := VBoxContainer.new()
-	v.add_theme_constant_override("separation", 8)
-	board.add_child(v)
-	_group_title = Label.new()
-	_group_title.theme_type_variation = "Subheading"
-	_group_title.add_theme_color_override("font_color", UiPalette.GOLD)
-	_group_title.clip_text = true
-	_group_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	v.add_child(_group_title)
+	_group_panel = UiPanel.new("Group selection", HELP)
+	_group_panel.size_flags_stretch_ratio = 0.7
+	_group_panel.custom_minimum_size.x = 380
+	var v := _group_panel.body
 	var counter_panel := PanelContainer.new()
 	counter_panel.theme_type_variation = "Sunken"
 	v.add_child(counter_panel)
@@ -170,18 +178,16 @@ func _build_board() -> Control:
 	_picked_list.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_picked_list.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	inner.add_child(_picked_list)
-	_cost = Label.new()
-	_cost.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	v.add_child(_cost)
-	_recruit = Button.new()
-	_recruit.theme_type_variation = "Accent"
-	_recruit.pressed.connect(_on_recruit)
-	v.add_child(_recruit)
-	_clear = Button.new()
-	_clear.text = "Clear picks"
-	_clear.pressed.connect(_on_clear)
-	v.add_child(_clear)
-	return side
+	var chips := HBoxContainer.new()
+	chips.add_theme_constant_override("separation", 8)
+	v.add_child(chips)
+	_cost_chip = StatChip.new("cost", "-", "Cost of recruiting this group")
+	chips.add_child(_cost_chip)
+	_cash_chip = StatChip.new("money", "-", "Cash on hand")
+	chips.add_child(_cash_chip)
+	_recruit = _group_panel.add_action("Recruit", "go", _on_recruit)
+	_clear = _group_panel.add_action("Clear picks", "caution", _on_clear)
+	return _group_panel
 
 
 func setup(_args: Dictionary) -> void:
@@ -250,6 +256,7 @@ func _pick_tile(name: String, index: int) -> Control:
 	return v
 
 
+
 # --- refresh -----------------------------------------------------------------------
 
 func _refresh() -> void:
@@ -271,16 +278,7 @@ func _refresh() -> void:
 	if not names.has(_shown):
 		_shown = names[0] if not names.is_empty() else ""
 
-	var cols: Array = [
-		{"key": "pick", "title": "Pick", "stretch": 0.6},
-		{"key": "name", "title": "Name", "stretch": 2.2, "color": func(r): return UiPalette.GOLD if _picked.has(r["_name"]) else UiPalette.TEXT},
-		{"key": "sex", "title": "Sex", "stretch": 0.6},
-	]
-	for key in visible_skills(p.astronaut_level):
-		cols.append({"key": key, "title": SKILL_SHORT[key], "numeric": true, "stretch": 0.6})
-	_table.set_columns(cols)
-	_table.set_rows(candidate_rows(pool, _picked, p.astronaut_level))
-	_mark_shown_row()
+	_refresh_list(pool, p.astronaut_level)
 
 	if p.recruit_delay > 0:
 		_info.text = "No candidates are available. Next group available in %d season%s." % [p.recruit_delay, "" if p.recruit_delay == 1 else "s"]
@@ -291,15 +289,133 @@ func _refresh() -> void:
 			int(group.get("group", p.recruit_group + 1)), quota, pool.size(), SimPersonnel.recruit_cost(p, state)]
 	_note.visible = not pool.is_empty() and SimPersonnel.woman_required(p)
 	_note.text = "At least one woman must be in this group's pick."
-	_group_title.text = "GROUP %d SELECTION" % int(group.get("group", p.recruit_group + 1)) if not group.is_empty() else "NO GROUP OPEN"
+	_group_panel.set_title("Group %d selection" % int(group.get("group", p.recruit_group + 1)) if not group.is_empty() else "No group open")
 	_refresh_dossier(p)
 	_refresh_side(p, state, quota, pool.is_empty())
 
 
+## Sort the candidate rows by `key` ("" keeps the group order). Numbers sort high first
+## when `desc`; names and sex alphabetically (reversed when not `desc`).
+static func sort_rows(rows: Array, key: String, desc: bool) -> Array:
+	var out := rows.duplicate()
+	if key == "":
+		return out
+	out.sort_custom(func(a, b):
+		var va: Variant = a.get(key, 0)
+		var vb: Variant = b.get(key, 0)
+		if typeof(va) == TYPE_STRING:
+			return str(va) > str(vb) if desc else str(va) < str(vb)
+		return int(va) > int(vb) if desc else int(va) < int(vb))
+	return out
+
+
+func _refresh_list(pool: Array, level: int) -> void:
+	var shown := visible_skills(level)
+	# Sort bar: one button per sortable column; the active one shows its direction.
+	for c in _sort_bar.get_children():
+		c.queue_free()
+	var sort_label := Label.new()
+	sort_label.text = "SORT"
+	sort_label.theme_type_variation = "Caps"
+	sort_label.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_sort_bar.add_child(sort_label)
+	var keys: Array = ["", "name", "sex"]
+	keys.append_array(shown)
+	if not shown.has(sort_key) and not ["", "name", "sex"].has(sort_key):
+		sort_key = ""
+	for key in keys:
+		var b := Button.new()
+		var t: String = {"": "Group", "name": "Name", "sex": "Sex"}.get(key, SKILL_SHORT.get(key, key))
+		if key == sort_key and key != "":
+			t += " ▼" if sort_desc else " ▲"
+		b.text = t
+		b.toggle_mode = true
+		b.set_pressed_no_signal(key == sort_key)
+		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		b.tooltip_text = "Show the candidates in the group's own order" if key == "" else \
+			"Sort by %s; click again to reverse" % ({"name": "name", "sex": "sex"}.get(key, SKILL_TITLES.get(key, key).to_lower() + " skill"))
+		b.pressed.connect(_on_sort.bind(key))
+		_sort_bar.add_child(b)
+
+	for c in _list.get_children():
+		c.queue_free()
+	var rows := sort_rows(candidate_rows(pool, _picked, level), sort_key, sort_desc)
+	for row in rows:
+		_list.add_child(_candidate_row(row, shown))
+	if rows.is_empty():
+		var none := Label.new()
+		none.text = "No candidates on offer this season."
+		none.theme_type_variation = "Dim"
+		_list.add_child(none)
+
+
+func _on_sort(key: String) -> void:
+	if key == sort_key and key != "":
+		sort_desc = not sort_desc
+	else:
+		sort_key = key
+		sort_desc = key != "name" and key != "sex"
+	_refresh_list(_pool, Session.me().astronaut_level)
+
+
+## One card row: the pick lamp, the name, sex and a chip per visible skill.
+func _candidate_row(row: Dictionary, shown: Array) -> Control:
+	var name: String = row["_name"]
+	var picked := _picked.has(name)
+	var b := Button.new()
+	b.toggle_mode = true
+	b.set_pressed_no_signal(name == _shown)
+	b.custom_minimum_size.y = 46
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.tooltip_text = "Click to view %s; click again to %s" % [name.capitalize(), "remove from the picks" if picked else "pick"]
+	b.set_meta("candidate", name)
+	b.pressed.connect(_on_row_pressed.bind(name))
+	var h := HBoxContainer.new()
+	h.set_anchors_preset(Control.PRESET_FULL_RECT)
+	h.offset_left = 8
+	h.offset_right = -8
+	h.add_theme_constant_override("separation", 10)
+	h.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	b.add_child(h)
+	var lamp := Lamp.new("Pick %d" % (_picked.find(name) + 1) if picked else "Pick", Lamp.State.ON if picked else Lamp.State.OFF)
+	lamp.custom_minimum_size = Vector2(96, 30)
+	lamp.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	lamp.tooltip_text = "Remove %s from the picks" % name.capitalize() if picked else "Pick %s" % name.capitalize()
+	lamp.pressed.connect(func():
+		_shown = name
+		_toggle_pick(name))
+	h.add_child(lamp)
+	var n := Label.new()
+	n.text = str(row["name"])
+	n.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	n.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	n.custom_minimum_size.x = 120
+	n.clip_text = true
+	n.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	n.add_theme_color_override("font_color", UiPalette.GOLD if picked else UiPalette.TEXT)
+	n.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	h.add_child(n)
+	var sex := Label.new()
+	sex.text = str(row["sex"])
+	sex.tooltip_text = "Female" if row["sex"] == "F" else "Male"
+	sex.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	sex.mouse_filter = Control.MOUSE_FILTER_PASS
+	sex.add_theme_color_override("font_color", UiPalette.INFO if row["sex"] == "F" else UiPalette.TEXT_DIM)
+	h.add_child(sex)
+	for key in shown:
+		var level := int(row.get(key, 0))
+		var chip := StatChip.new("", "", "%s skill" % SKILL_TITLES[key])
+		chip.set_value("%s %d" % [SKILL_SHORT[key].to_upper(), level], false, UiPalette.OK if level >= 3 else Color(0, 0, 0, 0))
+		chip.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		chip.mouse_filter = Control.MOUSE_FILTER_PASS
+		h.add_child(chip)
+	return b
+
+
 func _mark_shown_row() -> void:
-	for i in _table.rows.size():
-		if _table.rows[i].get("_name") == _shown:
-			_table.select_index(i)
+	for b in _list.get_children():
+		if b is Button and b.has_meta("candidate"):
+			b.set_pressed_no_signal(b.get_meta("candidate") == _shown)
 
 
 func _refresh_dossier(p: SimPlayer) -> void:
@@ -309,9 +425,7 @@ func _refresh_dossier(p: SimPlayer) -> void:
 		_banner.text = "NAME: -"
 		for key in _ratings:
 			_ratings[key].text = "-"
-		_pick.text = "Pick candidate"
-		_pick.set_pressed_no_signal(false)
-		_pick.disabled = true
+		UiAction.style(_pick, "blocked", "Pick candidate", "No candidate selected. Candidates appear when a recruitment group opens.")
 		_hidden_note.text = ""
 		return
 	_banner.text = "NAME: %s" % str(c["name"]).to_upper()
@@ -327,11 +441,35 @@ func _refresh_dossier(p: SimPlayer) -> void:
 			v.text = "?"
 			v.add_theme_color_override("font_color", UiPalette.TEXT_MUTED)
 	var picked := _picked.has(_shown)
-	_pick.set_pressed_no_signal(picked)
-	_pick.text = "Remove from picks" if picked else "Pick candidate"
-	_pick.disabled = not picked and _picked.size() >= _quota
-	_hidden_note.text = "Click a row to view a candidate, click it again to pick. Skills marked ? are hidden at this difficulty until basic training ends." \
-		if shown.size() < SimAstronaut.SKILLS.size() else "Click a row to view a candidate, click it again to pick."
+	if picked:
+		UiAction.style(_pick, "caution", "Remove from picks")
+		_pick.tooltip_text = "Take %s out of the group" % str(c["name"]).capitalize()
+	elif _picked.size() >= _quota:
+		UiAction.style(_pick, "blocked", "Pick candidate", "Group full. You may pick at most %d candidates from this group." % _quota)
+	else:
+		UiAction.style(_pick, "go", "Pick candidate")
+		_pick.tooltip_text = "Add %s to the group" % str(c["name"]).capitalize()
+	_hidden_note.text = "Click a row to view a candidate, click it again or its lamp to pick. Skills marked ? are hidden at this difficulty until basic training ends." \
+		if shown.size() < SimAstronaut.SKILLS.size() else "Click a row to view a candidate, click it again or its lamp to pick."
+
+
+## Why the group cannot be recruited now; "" when it can.
+func recruit_reason(p: SimPlayer, state: SimState, empty: bool) -> String:
+	if empty:
+		return "No candidates. None are on offer this season."
+	if _picked.is_empty():
+		return "No picks yet. Click a candidate twice, or its pick lamp, to add them."
+	var cost := SimPersonnel.recruit_cost(p, state)
+	if p.cash < cost:
+		return "Not enough cash. Recruiting costs %d MB and you have %d MB." % [cost, p.cash]
+	if SimPersonnel.woman_required(p):
+		var any_woman := false
+		for c in _pool:
+			if _picked.has(c["name"]) and c.get("female", false):
+				any_woman = true
+		if not any_woman:
+			return "Pick at least one woman. " + UiHelp.text_for("I100")
+	return ""
 
 
 func _refresh_side(p: SimPlayer, state: SimState, quota: int, empty: bool) -> void:
@@ -342,12 +480,20 @@ func _refresh_side(p: SimPlayer, state: SimState, quota: int, empty: bool) -> vo
 	for i in _picked.size():
 		_tiles.add_child(_pick_tile(str(_picked[i]), i))
 	_picked_list.visible = _picked.is_empty()
-	_picked_list.text = "No candidates on offer this season." if empty else "Click a candidate twice, or use Pick candidate, to add them to the group."
+	_picked_list.text = "No candidates on offer this season." if empty else "Click a candidate twice, or its pick lamp, to add them to the group."
 	var cost := SimPersonnel.recruit_cost(p, state)
-	_cost.text = "Cost: %d MB for the group   (cash %d MB)" % [cost, p.cash]
-	_recruit.text = "Recruit  (%d MB)" % cost
-	_recruit.disabled = empty or _picked.is_empty() or p.cash < cost
-	_clear.disabled = _picked.is_empty()
+	_cost_chip.set_value("%d MB" % cost, p.cash < cost)
+	_cash_chip.set_value("%d MB" % p.cash)
+	var why := recruit_reason(p, state, empty)
+	UiAction.go_or_blocked(_recruit, "Recruit (%d MB)" % cost, why)
+	if why == "":
+		_recruit.tooltip_text = "Hire the %d picked candidate%s; they start basic training" % [_picked.size(), "" if _picked.size() == 1 else "s"]
+	# Clear picks only shares the bar when there is something to clear.
+	_clear.visible = not _picked.is_empty()
+	UiAction.style(_clear, "caution", "Clear picks")
+	_clear.tooltip_text = "Empty the group and start the picks again"
+	_recruit.set_meta("bar_corners", Vector2i(1, 0 if _clear.visible else 1))
+	UiAction.apply_corners(_recruit)
 
 
 func _show(name: String) -> void:
@@ -358,13 +504,12 @@ func _show(name: String) -> void:
 		t.get_child(0).queue_redraw()
 
 
-func _on_row(row: Dictionary) -> void:
-	_show(row["_name"])
-
-
-func _on_row_activated(row: Dictionary) -> void:
-	_shown = row["_name"]
-	_toggle_pick(row["_name"])
+## Click a row to view the candidate; click the shown row again to pick or unpick.
+func _on_row_pressed(name: String) -> void:
+	if name == _shown:
+		_toggle_pick(name)
+	else:
+		_show(name)
 
 
 func _on_pick_pressed() -> void:

@@ -5,16 +5,18 @@ extends ScreenPanel
 ## records and hardware stay read-only tables.
 
 const CASE_BG := Color("0a1424")
+## [tab name, banner, help code, panel title]
 const HALLS := [
-	["Firsts", "HALL OF FIRSTS", "I029"],
-	["Director rating", "DIRECTOR RATING", "I030"],
-	["Mission records", "MISSION RECORDS", "I031"],
-	["Hardware", "HARDWARE EFFICIENCY", "I032"],
-	["Astronauts", "ASTRONAUT HALL", "I033"],
+	["Firsts", "HALL OF FIRSTS", "I029", "Exhibits"],
+	["Director rating", "DIRECTOR RATING", "I030", "Directors"],
+	["Mission records", "MISSION RECORDS", "I031", "Flights"],
+	["Hardware", "HARDWARE EFFICIENCY", "I032", "Programmes"],
+	["Astronauts", "ASTRONAUT HALL", "I033", "Corps"],
 ]
 
 var _tabs: TabContainer
-var _pages: Dictionary = {}       ## tab name -> VBoxContainer
+var _pages: Dictionary = {}       ## tab name -> the hall panel's body (VBoxContainer)
+var _firsts_chips: HBoxContainer
 var _firsts_grid: GridContainer
 var _firsts_note: Label
 var _rating: DataTable
@@ -77,6 +79,7 @@ class PortraitTile extends Control:
 func _init() -> void:
 	super()
 	title = "Space Museum"
+	show_rival_prestige = true
 
 
 func _ready() -> void:
@@ -90,10 +93,15 @@ func _ready() -> void:
 		page.add_theme_constant_override("separation", 10)
 		_tabs.add_child(page)
 		page.add_child(_banner(hall[1]))
-		UiHelp.attach(page, hall[2])
-		_pages[hall[0]] = page
+		var panel := UiPanel.new(hall[3], hall[2])
+		panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		page.add_child(panel)
+		_pages[hall[0]] = panel.body
 
-	# Hall of Firsts: two columns of exhibits, each with its patch.
+	# Hall of Firsts: a tally per side, then two columns of exhibits, each with its patch.
+	_firsts_chips = HBoxContainer.new()
+	_firsts_chips.add_theme_constant_override("separation", 8)
+	_pages["Firsts"].add_child(_firsts_chips)
 	var scroll := ScrollContainer.new()
 	scroll.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -137,8 +145,7 @@ func _ready() -> void:
 	# Astronaut hall: heroes as portrait tiles, then the history table.
 	var heroes_title := Label.new()
 	heroes_title.text = "HEROES"
-	heroes_title.theme_type_variation = "Subheading"
-	heroes_title.add_theme_color_override("font_color", UiPalette.GOLD)
+	heroes_title.theme_type_variation = "Caps"
 	_pages["Astronauts"].add_child(heroes_title)
 	_hero_scroll = ScrollContainer.new()
 	_hero_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
@@ -153,6 +160,7 @@ func _ready() -> void:
 		{"key": "hero", "title": "Hero"},
 		{"key": "mood", "title": "Mood", "numeric": true, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
 	])
+	set_room("room_museum")
 	_refresh()
 
 
@@ -172,6 +180,7 @@ func _banner(text: String) -> Control:
 func _table(hall: String, columns: Array) -> DataTable:
 	var table := DataTable.new()
 	table.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	table.tooltip_text = "Click a column heading to sort."
 	table.set_columns(columns)
 	_pages[hall].add_child(table)
 	return table
@@ -233,6 +242,19 @@ func _refresh_firsts(state: SimState) -> void:
 		var side: String = state.player(first).side if first >= 0 and first < state.players.size() else "usa"
 		var mission := _first_mission(state, i, first, year, season)
 		_firsts_grid.add_child(_first_exhibit(state, def, ledger, side, mission))
+	for c in _firsts_chips.get_children():
+		c.queue_free()
+	for pi in state.players.size():
+		var won := 0
+		for i in GameData.prestige.size():
+			var ledger: Dictionary = state.prestige_rows[i] if i < state.prestige_rows.size() else {}
+			if int(ledger.get("first", -1)) == pi:
+				won += 1
+		var side: String = state.player(pi).side
+		var chip := StatChip.new("star", "%s  %d" % [TurnLogic.side_name(side).to_upper(), won], "Firsts claimed by %s" % TurnLogic.side_name(side))
+		chip.set_value("%s  %d" % [TurnLogic.side_name(side).to_upper(), won], false, UiPalette.accent(side).lightened(0.35))
+		_firsts_chips.add_child(chip)
+	_firsts_chips.add_child(StatChip.new("info", "UNCLAIMED  %d" % (GameData.prestige.size() - claimed), "Firsts nobody has claimed yet"))
 	_firsts_note.text = "%d of %d firsts claimed. The number on each exhibit is the prestige paid for the first." % [claimed, GameData.prestige.size()]
 
 
@@ -287,7 +309,7 @@ func _first_exhibit(state: SimState, def: Dictionary, ledger: Dictionary, side: 
 	when.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	when.clip_text = true
 	when.text = TurnLogic.date_of(int(ledger.get("first_year", 0)), int(ledger.get("first_season", 0))) if first >= 0 else "Not yet"
-	when.add_theme_color_override("font_color", UiPalette.INFO if first >= 0 else UiPalette.TEXT_MUTED)
+	when.add_theme_color_override("font_color", UiPalette.INFO if first >= 0 else UiPalette.TEXT_DIM)
 	who.add_child(when)
 	var pts := Label.new()
 	pts.custom_minimum_size.x = 64
@@ -299,7 +321,7 @@ func _first_exhibit(state: SimState, def: Dictionary, ledger: Dictionary, side: 
 	pts.add_theme_color_override("font_color", UiPalette.GOLD if first >= 0 else UiPalette.TEXT_MUTED)
 	row.add_child(pts)
 	if first < 0:
-		panel.modulate = Color(1, 1, 1, 0.6)
+		panel.modulate = Color(1, 1, 1, 0.75)
 	return panel
 
 

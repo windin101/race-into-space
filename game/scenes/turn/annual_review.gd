@@ -26,7 +26,7 @@ class ReviewChart extends Control:
 	## upward in the good colour, above it downward in the poor colour (review.json chart_rule).
 	var reviews: Array = []
 	var font: Font
-	var font_size := 14
+	var font_size := UiTheme.SIZE_SMALL
 
 	func _init() -> void:
 		custom_minimum_size = Vector2(240, 160)
@@ -83,16 +83,15 @@ func _ready() -> void:
 	content.add_child(split)
 
 	# The reviewer, large, with their office on a band beneath.
-	var left := VBoxContainer.new()
-	left.add_theme_constant_override("separation", 8)
-	split.add_child(left)
-	var frame := PanelContainer.new()
-	frame.theme_type_variation = "Sunken"
-	left.add_child(frame)
+	var left_panel := UiPanel.new("Reviewer")
+	left_panel.size_flags_horizontal = Control.SIZE_SHRINK_BEGIN
+	left_panel.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
+	split.add_child(left_panel)
+	var left := left_panel.body
 	_reviewer = Control.new()
 	_reviewer.custom_minimum_size = Vector2(400, 500)
 	_reviewer.draw.connect(_draw_reviewer)
-	frame.add_child(_reviewer)
+	left.add_child(_reviewer)
 	_portrait_sub = Label.new()
 	_portrait_sub.theme_type_variation = "Dim"
 	_portrait_sub.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -105,21 +104,16 @@ func _ready() -> void:
 	right.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	right.add_theme_constant_override("separation", 10)
 	split.add_child(right)
-	var banner := PanelContainer.new()
-	banner.theme_type_variation = "Sunken"
-	right.add_child(banner)
+	var brief := UiPanel.new("Verdict")
+	right.add_child(brief)
+	var rbox := brief.body
+	rbox.add_theme_constant_override("separation", 12)
 	_banner = Label.new()
 	_banner.theme_type_variation = "Heading"
 	_banner.add_theme_color_override("font_color", UiPalette.GOLD)
 	_banner.clip_text = true
 	_banner.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	banner.add_child(_banner)
-	var brief := PanelContainer.new()
-	brief.theme_type_variation = "Card"
-	right.add_child(brief)
-	var rbox := VBoxContainer.new()
-	rbox.add_theme_constant_override("separation", 12)
-	brief.add_child(rbox)
+	rbox.add_child(_banner)
 	_text = Label.new()
 	_text.theme_type_variation = "Subheading"
 	_text.add_theme_color_override("font_color", UiPalette.INFO)
@@ -145,22 +139,18 @@ func _ready() -> void:
 		_sheet.add_child(v)
 		_sheet_values.append(v)
 
-	var chart_title := Label.new()
-	chart_title.theme_type_variation = "Subheading"
-	chart_title.add_theme_color_override("font_color", UiPalette.GOLD)
-	chart_title.text = "REVIEW HISTORY"
-	right.add_child(chart_title)
-	var chart_panel := PanelContainer.new()
-	chart_panel.theme_type_variation = "Card"
+	var chart_panel := UiPanel.new("Review history", "I030")
 	chart_panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	right.add_child(chart_panel)
 	_chart = ReviewChart.new()
-	chart_panel.add_child(_chart)
+	_chart.tooltip_text = "Review index each spring: bars above the line are good years, below it poor ones"
+	chart_panel.body.add_child(_chart)
 	UiHelp.attach(_chart, "I030")
 
 	var go := Button.new()
-	go.text = "Continue"
-	go.theme_type_variation = "Accent"
+	go.custom_minimum_size = Vector2(170, 40)
+	UiAction.style(go, "go", "Continue")
+	go.tooltip_text = "Close the review"
 	go.pressed.connect(func(): Screens.pop())
 	footer.add_child(go)
 	_refresh()
