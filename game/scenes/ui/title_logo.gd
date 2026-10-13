@@ -6,7 +6,7 @@ extends PanelContainer
 ## artwork from the original is used.
 
 const FRAME := Color("e8a33c")
-const SUBTITLE := "U.S.-SOVIET SPACE RACE SIMULATION"
+const SUBTITLE := "SPACE RACE SIMULATION"
 
 
 func _init(scale_px := 128.0) -> void:
