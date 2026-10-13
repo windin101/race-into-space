@@ -63,6 +63,13 @@ INTENT = {
         "museum": (0.81, 0.745), "intelligence": (0.95, 0.70),
     },
 }
+# Hand-placed positions that bypass the solver: (centre x, centre y of the cutout) as canvas
+# fractions. Cape pads 2 and 3 stand in an evenly spaced line behind pad 1 up the coast,
+# as marked by the player on the painting.
+FIXED = {
+    "usa": {"pad_2": (0.726, 0.457), "pad_3": (0.887, 0.420)},
+    "ussr": {},
+}
 FRONT_Y = {"usa": 0.93, "ussr": 0.84}    # below this is foreground (dunes, scrub mound)
 GAP = 8                                 # pixels at analysis scale between buildings
 
@@ -154,6 +161,16 @@ def solve(side: str) -> dict:
         cw, chh = (bbox[2] - bbox[0], bbox[3] - bbox[1]) if bbox else cut.size
         aspect = chh / cw
         ix, iy = INTENT[side][bid]
+        if bid in FIXED[side]:
+            fx, fy = FIXED[side][bid]
+            by = fy
+            for _ in range(6):                     # base y and size depend on each other
+                w, h = size_at(side, bid, by, horizon, aspect)
+                by = fy + h / 2
+            x0, y0 = fx - w / 2, by - h
+            taken[max(0, int(y0 * H)):int(by * H), max(0, int(x0 * W)):int((x0 + w) * W)] = True
+            out[bid] = {"x": round(x0, 4), "y": round(y0, 4), "w": round(w, 4), "h": round(h, 4)}
+            continue
         best = None
         # Widen the search in stages, then allow the building to shrink a little, rather
         # than ever falling back onto a neighbour.
