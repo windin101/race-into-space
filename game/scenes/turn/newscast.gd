@@ -1,8 +1,14 @@
 extends ScreenPanel
-## Network News: the season card and this turn's newscast for the human side, with the
-## budget drift, the card's effect in plain English and a button to pay off event damage.
+## Network News, on the studio backdrop: the anchor as a portrait tile beside the season
+## card, then this turn's newscast for the human side, with the budget drift, the card's
+## effect in plain English and a button to pay off event damage.
+
+const ANCHOR := "Carter Walcrite"
+const CASE_BG := Color("0a1424")
 
 var _date_card: Label
+var _anchor_tile: Control
+var _anchor_side := "usa"
 var _anchor: Label
 var _news: Label
 var _budget: Label
@@ -18,12 +24,31 @@ func _init() -> void:
 
 func _ready() -> void:
 	super()
+	# The anchor's portrait tile beside the date card.
+	var top := HBoxContainer.new()
+	top.add_theme_constant_override("separation", 16)
+	content.add_child(top)
+	var frame := PanelContainer.new()
+	frame.theme_type_variation = "Sunken"
+	top.add_child(frame)
+	_anchor_tile = Control.new()
+	_anchor_tile.custom_minimum_size = Vector2(170, 204)
+	_anchor_tile.draw.connect(_draw_anchor)
+	frame.add_child(_anchor_tile)
 	var card := PanelContainer.new()
 	card.theme_type_variation = "Card"
-	content.add_child(card)
+	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	top.add_child(card)
 	var card_box := VBoxContainer.new()
 	card_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	card_box.add_theme_constant_override("separation", 6)
 	card.add_child(card_box)
+	var banner := Label.new()
+	banner.theme_type_variation = "Subheading"
+	banner.add_theme_color_override("font_color", UiPalette.GOLD)
+	banner.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	banner.text = "NETWORK NEWS"
+	card_box.add_child(banner)
 	_date_card = Label.new()
 	_date_card.theme_type_variation = "Title"
 	_date_card.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -85,7 +110,9 @@ func _refresh() -> void:
 	var news: Dictionary = p.last_news
 	set_backdrop("newscast_%s" % p.side)
 	_date_card.text = state.date_string()
-	_anchor.text = "Carter Walcrite reporting for the %s network" % TurnLogic.side_name(p.side)
+	_anchor.text = "%s reporting for the %s network" % [ANCHOR, TurnLogic.side_name(p.side)]
+	_anchor_side = p.side
+	_anchor_tile.queue_redraw()
 	var raw := str(news.get("text", ""))
 	_news.text = TurnLogic.resolve_placeholders(raw, news, p, state.year).capitalize() if raw != "" else "No news this season."
 	_news.add_theme_color_override("font_color", TurnLogic.news_colour(int(news.get("color", 0))))
@@ -95,6 +122,14 @@ func _refresh() -> void:
 	_effect.text = "Effect: " + effect if effect != "" else ""
 	_effect.visible = effect != ""
 	_refresh_damage(p)
+
+
+func _draw_anchor() -> void:
+	var size := _anchor_tile.size
+	_anchor_tile.draw_rect(Rect2(Vector2.ZERO, size), CASE_BG)
+	PortraitArt.paint(_anchor_tile, Rect2(Vector2.ZERO, size), ANCHOR, false, _anchor_side)
+	_anchor_tile.draw_rect(Rect2(0, size.y - 26, size.x, 26), Color(0, 0, 0, 0.6))
+	_anchor_tile.draw_string(get_theme_default_font(), Vector2(0, size.y - 8), ANCHOR.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SMALL, UiPalette.GOLD)
 
 
 func _refresh_damage(p: SimPlayer) -> void:

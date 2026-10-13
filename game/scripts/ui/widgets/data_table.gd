@@ -75,8 +75,7 @@ func sort_by(key: String, descending := false) -> void:
 ## Highlight a row by index without emitting signals (used to reflect state on open).
 func select_index(i: int) -> void:
 	selected_index = i if i >= 0 and i < rows.size() else -1
-	for j in _row_nodes.size():
-		_row_nodes[j].theme_type_variation = "Accent" if j == selected_index else "Flat"
+	_paint_selection()
 
 
 func selected_row() -> Dictionary:
@@ -147,10 +146,9 @@ func _rebuild() -> void:
 			l.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 			if col.has("color"):
 				var c = col["color"]
-				if c is Callable:
-					l.add_theme_color_override("font_color", c.call(row))
-				else:
-					l.add_theme_color_override("font_color", c)
+				var colour: Color = c.call(row) if c is Callable else c
+				l.set_meta("cell_color", colour)
+				l.add_theme_color_override("font_color", colour)
 			h.add_child(l)
 		line.add_child(h)
 		_body.add_child(line)
@@ -175,6 +173,18 @@ func _on_row_pressed(i: int) -> void:
 		row_activated.emit(rows[i])
 		return
 	selected_index = i
-	for j in _row_nodes.size():
-		_row_nodes[j].theme_type_variation = "Accent" if j == i else "Flat"
+	_paint_selection()
 	row_selected.emit(rows[i])
+
+
+## Highlight the selected row. Its cells drop their per-column colours so the text stays
+## readable on the accent fill; the other rows get their colours back.
+func _paint_selection() -> void:
+	for j in _row_nodes.size():
+		var line: Control = _row_nodes[j]
+		line.theme_type_variation = "Accent" if j == selected_index else "Flat"
+		for l in line.find_children("*", "Label", true, false):
+			if j == selected_index:
+				l.remove_theme_color_override("font_color")
+			elif l.has_meta("cell_color"):
+				l.add_theme_color_override("font_color", l.get_meta("cell_color"))

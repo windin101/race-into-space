@@ -111,7 +111,9 @@
       "endgame_ussr_win": "Celebration painting, {style}: cosmonauts on Red Square, red banners, a lunar lander silhouette above, triumphant, no text",
       "endgame_ussr_lose": "Sombre painting, {style}: an empty pad at Baikonur on the steppe at dusk, a lowered red flag, 1977, no text",
       "mission_control_usa": "Interior of a 1960s American mission control room, a wide shot from high up at the back of the room, {style}: four stepped rows of grey consoles with small glowing green and amber screens receding toward the front, many small flight controllers in white short-sleeved shirts and headsets seen from behind and far away, dark room lit by the screens, the far wall a plain dark panel with nothing on it, no text, no people's faces, no foreground figures",
-      "mission_control_ussr": "Interior of a 1960s Soviet flight control centre seen from the back of the room, {style}: stepped rows of grey-green consoles with small glowing screens, controllers in dark uniforms seen from behind, dark room lit by the screens, a small red banner on a side wall, the far wall a plain dark panel with nothing on it, no text, no people's faces"
+      "mission_control_ussr": "Interior of a 1960s Soviet flight control centre seen from the back of the room, {style}: stepped rows of grey-green consoles with small glowing screens, controllers in dark uniforms seen from behind, dark room lit by the screens, a small red banner on a side wall, the far wall a plain dark panel with nothing on it, no text, no people's faces",
+      "review_usa": "Interior of a grand 1960s American congressional hearing chamber, {style}: a long raised wooden dais with microphones and empty leather chairs, a flag on a pole, marble columns and a tall window, warm wood tones, seen from the witness table, no people, no text",
+      "review_ussr": "Interior of a grand 1960s Soviet Politburo meeting hall, {style}: a long green baize table with empty chairs, a huge red banner on the far wall, marble columns, chandeliers, seen from the end of the table, no people, no text"
     }
   },
   "spaceport": {

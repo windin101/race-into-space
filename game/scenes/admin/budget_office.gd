@@ -1,12 +1,17 @@
 extends ScreenPanel
-## Budget Office: prestige-per-season and budget-per-season line graphs for both sides,
-## drawn by a custom Control, and a table of the current season's numbers.
+## Budget Office: under a gold banner, a ledger sheet of this season's figures (a column per
+## figure, a row per side) in a Card, then the prestige-per-season and budget-per-season
+## line graphs (drawn by a custom Control), each with a side-coloured legend.
 
 const SIDE_TITLES := {"usa": "United States", "ussr": "Soviet Union"}
 
+const LEDGER_KEYS := ["CASH", "BUDGET", "SPENT THIS SEASON", "PRESTIGE THIS SEASON", "PRESTIGE TOTAL", "DIRECTOR SCORE"]
+
 var _prestige_graph: LineGraph
 var _budget_graph: LineGraph
-var _summary: DataTable
+var _ledger_title: Label
+var _ledger: GridContainer
+var _ledger_cells: Dictionary = {} ## side -> Label per summary row
 
 
 ## Line graph of one or more integer series over seasons. Series: {label, color, values}.
@@ -151,30 +156,58 @@ func _init() -> void:
 func _ready() -> void:
 	super()
 	UiHelp.attach(content, "I007")
+	# Ledger sheet: a column per figure, a row per side.
+	var banner := PanelContainer.new()
+	banner.theme_type_variation = "Sunken"
+	content.add_child(banner)
+	_ledger_title = Label.new()
+	_ledger_title.theme_type_variation = "Heading"
+	_ledger_title.add_theme_color_override("font_color", UiPalette.GOLD)
+	_ledger_title.clip_text = true
+	_ledger_title.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
+	banner.add_child(_ledger_title)
+	var sheet := PanelContainer.new()
+	sheet.theme_type_variation = "Card"
+	content.add_child(sheet)
+	_ledger = GridContainer.new()
+	_ledger.columns = LEDGER_KEYS.size() + 1
+	_ledger.add_theme_constant_override("h_separation", 24)
+	_ledger.add_theme_constant_override("v_separation", 6)
+	sheet.add_child(_ledger)
+	var corner := Control.new()
+	corner.custom_minimum_size.x = 200
+	_ledger.add_child(corner)
+	for key in LEDGER_KEYS:
+		var k := Label.new()
+		k.text = key
+		k.theme_type_variation = "Dim"
+		k.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		k.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		_ledger.add_child(k)
+	for side in ["usa", "ussr"]:
+		var h := Label.new()
+		h.text = SIDE_TITLES[side].to_upper()
+		h.theme_type_variation = "Subheading"
+		h.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
+		_ledger.add_child(h)
+		var cells: Array = []
+		for key in LEDGER_KEYS:
+			var v := Label.new()
+			v.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+			v.theme_type_variation = "Subheading"
+			_ledger.add_child(v)
+			cells.append(v)
+		_ledger_cells[side] = cells
+
+	# The two graphs side by side, each with a side-coloured legend.
 	var graphs := HBoxContainer.new()
 	graphs.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	graphs.size_flags_stretch_ratio = 3.0
 	graphs.add_theme_constant_override("separation", 16)
 	content.add_child(graphs)
 	_prestige_graph = LineGraph.new()
-	graphs.add_child(_graph_box("Prestige per season", _prestige_graph))
+	graphs.add_child(_graph_box("PRESTIGE PER SEASON", _prestige_graph))
 	_budget_graph = LineGraph.new()
-	graphs.add_child(_graph_box("Budget per season (MB)", _budget_graph))
-
-	var heading := Label.new()
-	heading.theme_type_variation = "Subheading"
-	heading.text = "This season"
-	content.add_child(heading)
-	_summary = DataTable.new()
-	_summary.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_summary.size_flags_stretch_ratio = 2.0
-	_summary.custom_minimum_size.y = 6 * DataTable.ROW_MIN_HEIGHT + 40
-	_summary.set_columns([
-		{"key": "metric", "title": "Figure", "stretch": 2},
-		{"key": "usa", "title": SIDE_TITLES["usa"], "numeric": true, "color": UiPalette.accent("usa").lightened(0.3)},
-		{"key": "ussr", "title": SIDE_TITLES["ussr"], "numeric": true, "color": UiPalette.accent("ussr").lightened(0.3)},
-	])
-	content.add_child(_summary)
+	graphs.add_child(_graph_box("BUDGET PER SEASON (MB)", _budget_graph))
 	_refresh()
 
 
@@ -187,33 +220,39 @@ func on_resume() -> void:
 
 
 func _graph_box(heading: String, graph: LineGraph) -> Control:
+	var panel := PanelContainer.new()
+	panel.theme_type_variation = "Card"
+	panel.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	panel.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	var box := VBoxContainer.new()
-	box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	box.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_theme_constant_override("separation", 6)
+	panel.add_child(box)
+	var head := HBoxContainer.new()
+	head.add_theme_constant_override("separation", 18)
+	box.add_child(head)
 	var label := Label.new()
 	label.theme_type_variation = "Subheading"
+	label.add_theme_color_override("font_color", UiPalette.GOLD)
 	label.text = heading
+	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	label.clip_text = true
 	label.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
-	box.add_child(label)
-	box.add_child(graph)
-	var legend := HBoxContainer.new()
-	legend.add_theme_constant_override("separation", 18)
+	head.add_child(label)
 	for side in ["usa", "ussr"]:
 		var item := HBoxContainer.new()
 		item.add_theme_constant_override("separation", 6)
 		var swatch := ColorRect.new()
 		swatch.color = UiPalette.accent(side)
-		swatch.custom_minimum_size = Vector2(14, 14)
+		swatch.custom_minimum_size = Vector2(22, 6)
 		swatch.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		item.add_child(swatch)
 		var text := Label.new()
-		text.theme_type_variation = "Small"
 		text.text = SIDE_TITLES[side]
+		text.add_theme_color_override("font_color", UiPalette.accent(side).lightened(0.3))
 		item.add_child(text)
-		legend.add_child(item)
-	box.add_child(legend)
-	return box
+		head.add_child(item)
+	box.add_child(graph)
+	return panel
 
 
 func _refresh() -> void:
@@ -230,7 +269,17 @@ func _refresh() -> void:
 		{"label": SIDE_TITLES["usa"], "color": UiPalette.accent("usa"), "values": Array(usa.budget_history)},
 		{"label": SIDE_TITLES["ussr"], "color": UiPalette.accent("ussr"), "values": Array(ussr.budget_history)},
 	])
-	_summary.set_rows(summary_rows(state))
+	_ledger_title.text = "LEDGER: %s" % state.date_string().to_upper()
+	var rows := summary_rows(state)
+	for j in 2:
+		var side: String = ["usa", "ussr"][j]
+		var mine := state.player(j) == Session.me()
+		for i in mini(rows.size(), _ledger_cells[side].size()):
+			var r: Dictionary = rows[i]
+			var lbl: Label = _ledger_cells[side][i]
+			var v := int(r[side])
+			lbl.text = ("%d MB" % v) if str(r["metric"]).ends_with("(MB)") else str(v)
+			lbl.add_theme_color_override("font_color", UiPalette.TEXT if mine else UiPalette.TEXT_DIM)
 
 
 ## The current-season table: one row per figure, a value per side.

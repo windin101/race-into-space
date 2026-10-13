@@ -28,7 +28,7 @@ also carries a `SOURCE.txt` with the clip, timecode and licence.
 
 Regenerate the audio with `python3 -I tools/gen_audio.py --out game/assets/audio`.
 `test_assets.gd` fails if a file under `assets/` is missing from this table.
-| art/portraits/*.png | 230 astronaut and cosmonaut portraits, 336x400 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from reference/art_source/portrait_features.json; seed = crc32(name), IVANOVA and PONOMARYOVA +1 | CC0 (AI output) |
+| art/portraits/*.png | 230 astronaut and cosmonaut portraits, 336x400 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from reference/art_source/portrait_features.json; seed = crc32(name), IVANOVA and PONOMARYOVA +1; plus five fictional figures (President, Vice President, General Secretary +1, Politburo, the news anchor), seed = crc32(figure/name) | CC0 (AI output) |
 | art/hardware/usa/*.png | US hardware icons, 512x512, green-screen keyed to alpha | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from the descriptions in tools/comfy_style.json; seed = crc32(side/group_slot), Ranger, Titan and Eagle +1, Saturn and Kicker-B +2 | CC0 (AI output) |
 | art/hardware/ussr/*.png | Soviet hardware icons, 512x512, green-screen keyed to alpha | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py from the descriptions in tools/comfy_style.json; seed = crc32(side/group_slot), Luna and UR-700 +1, Kicker-A +3 | CC0 (AI output) |
 | art/backdrops/*.png | title, newscast and end-game backdrops, 1920x1080 | Qwen-Image (Apache 2.0) text-to-image via tools/comfy_batch.py; seed = crc32(name), newscast_ussr +2, mission_control_usa +1 | CC0 (AI output) |
