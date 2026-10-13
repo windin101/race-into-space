@@ -21,7 +21,7 @@ static func after_end_turn(report: Dictionary) -> void:
 		var tree := Engine.get_main_loop() as SceneTree
 		if tree == null:
 			break
-		await StoryCard.show_card(tree.root, card["title"], card["text"], card["picture"], Session.human_side)
+		await StoryCard.show_card(tree.root, card["title"], card["text"], card["picture"], card.get("side", Session.human_side))
 	var chain: Array = []
 	if state.ended:
 		chain.append([END_GAME, {"report": report}])
@@ -81,7 +81,7 @@ static func firsts_for(report: Dictionary, state: SimState, player: int, side: S
 		var pic: Texture2D = ArtAssets.backdrop("endgame_%s_win" % side if landing and not rival else "title")
 		if pic == null and mi >= 0:
 			pic = ArtAssets.patch(flier_side, mi)
-		cards.append({"title": title, "text": text, "picture": pic, "rival": rival})
+		cards.append({"title": title, "text": text, "picture": pic, "rival": rival, "side": flier_side})
 	return cards
 
 

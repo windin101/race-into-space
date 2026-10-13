@@ -12,10 +12,14 @@ signal closed
 static func show_card(host: Node, title: String, text: String, picture: Texture2D, side: String) -> void:
 	var card := StoryCard.new()
 	card._build(title, text, picture, side)
-	var root: Node = host.get_tree().root
-	root.add_child(card)
+	# Its own layer above the screen stack (Screens is CanvasLayer 1), so the card is seen
+	# and clickable whatever screen is showing.
+	var layer := CanvasLayer.new()
+	layer.layer = 50
+	layer.add_child(card)
+	host.get_tree().root.add_child(layer)
 	await card.closed
-	card.queue_free()
+	layer.queue_free()
 
 
 func _build(title: String, text: String, picture: Texture2D, side: String) -> void:
