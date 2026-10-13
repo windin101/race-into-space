@@ -3,9 +3,22 @@ extends RefCounted
 ## Turns a season's launch report into the sequence of things the playback screen shows.
 ## Pure functions, so the sequencing is testable without a scene.
 
-const STEP_SECONDS := 1.6
-const FLASH_SECONDS := 2.2
-const VERDICT_SECONDS := 2.6
+## Seconds per mission step at speed 1 when the step has no animated clip; a step with a
+## clip plays for the clip's full length (frames at CLIP_FPS), so nothing is rushed.
+const STEP_SECONDS := 4.0
+const CLIP_FPS := 12.0
+## The pause on a step's last frame, with its result lit, before the next step starts.
+const STEP_HOLD_SECONDS := 1.0
+const FLASH_SECONDS := 3.0
+const VERDICT_SECONDS := 3.5
+
+
+## How long a step plays at speed 1: its clip's own length, or STEP_SECONDS.
+static func step_seconds(letter: String, ok: bool) -> float:
+	var frames := ArtAssets.vignette_frames(Vignettes.family_for(letter), ok)
+	if frames.size() > 1:
+		return maxf(frames.size() / CLIP_FPS, 2.5)
+	return STEP_SECONDS
 
 const PLANET_COLORS := {9: Color("e8d9a0"), 10: Color("c9603a"), 11: Color("a8a39b"), 12: Color("d9b48a"), 13: Color("e0cf9c")}
 
@@ -138,7 +151,7 @@ static func total_seconds(items: Array, speed: float) -> float:
 	var s := 0.0
 	for it in items:
 		match it["kind"]:
-			"step": s += STEP_SECONDS
+			"step": s += step_seconds(str(it["step"].get("letter", "A")), it["step"].get("success", false)) + STEP_HOLD_SECONDS
 			"flash": s += FLASH_SECONDS
 			"verdict": s += VERDICT_SECONDS
 	return s / maxf(speed, 0.1)

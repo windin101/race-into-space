@@ -780,6 +780,7 @@ func _play_launch(launch: Dictionary) -> void:
 				_revealed = shown
 				_chart.reveal(shown)
 				_append_log(item["step"])
+				await _hold(PlaybackScript.STEP_HOLD_SECONDS)
 			"flash", "verdict":
 				if item["kind"] == "verdict":
 					var won: bool = item["color"] == UiPalette.OK
@@ -814,6 +815,14 @@ func _play_launch(launch: Dictionary) -> void:
 	_show_crew_outcomes(launch)
 
 
+## Pause on the current frame (scaled by the playback speed) unless skipping.
+func _hold(seconds: float) -> void:
+	var held := 0.0
+	while held < seconds / _speed and not _skip_requested:
+		await get_tree().process_frame
+		held += get_process_delta_time()
+
+
 func _play_step(step: Dictionary) -> void:
 	_stage_letter = str(step.get("letter", "A"))
 	_stage_ok = step.get("success", false)
@@ -825,7 +834,7 @@ func _play_step(step: Dictionary) -> void:
 	_stage_t = 0.0
 	var index := int(step.get("index", _revealed))
 	var n := maxi(_steps.size(), 1)
-	var duration := PlaybackScript.STEP_SECONDS / _speed
+	var duration := PlaybackScript.step_seconds(_stage_letter, _stage_ok) / _speed
 	var elapsed := 0.0
 	while elapsed < duration and not _skip_requested:
 		await get_tree().process_frame
