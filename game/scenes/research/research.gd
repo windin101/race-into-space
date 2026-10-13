@@ -190,7 +190,7 @@ func _draw_case() -> void:
 	# A soft spotlight behind the exhibit.
 	var centre := size / 2.0
 	for i in range(6, 0, -1):
-		_case.draw_circle(centre, minf(size.x, size.y) * 0.08 * i, Color(UiPalette.ACCENT_USA, 0.025))
+		_case.draw_circle(centre, minf(size.x, size.y) * 0.08 * i, Color(UiPalette.accent(Session.human_side if Session.has_game() else "usa"), 0.025))
 	if _selected == null:
 		_case.draw_string(get_theme_default_font(), Vector2(0, centre.y), "No program selected", HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SUBHEADING, UiPalette.TEXT_MUTED)
 		return
