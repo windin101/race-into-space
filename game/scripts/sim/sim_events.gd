@@ -23,8 +23,17 @@ const PERIODS := [
 const POOLS := [[1, 3], [4, 43], [44, 62], [63, 79], [80, 99]]
 
 
-## Deal the whole game's event sequence. Called once at new game.
+## Deal the whole game's event sequence. Called once at new game. The upstream deck serves
+## two players (even and odd slots); a race of more sides deals one deck per pair, laid end
+## to end in state.event_deck, so a two-side game deals exactly as before.
 static func build_deck(state: SimState) -> void:
+	var all: Array[int] = []
+	for pair in ceili(state.players.size() / 2.0):
+		all.append_array(_deal_one(state))
+	state.event_deck = all
+
+
+static func _deal_one(state: SimState) -> Array[int]:
 	var pools: Array = []
 	for range_pair in POOLS:
 		var pool: Array[int] = []
@@ -43,7 +52,7 @@ static func build_deck(state: SimState) -> void:
 			if code < 0:
 				break
 			deck[slot] = code
-	state.event_deck = deck
+	return deck
 
 
 static func _draw_from_pools(state: SimState, pools: Array, cdf: Array) -> int:
@@ -70,8 +79,9 @@ static func _draw_from_pools(state: SimState, pools: Array, cdf: Array) -> int:
 	return -1
 
 
+## The deck slot a player reads this season: its pair's deck, then even or odd slots.
 static func slot_for(state: SimState, p: SimPlayer) -> int:
-	return 2 * state.turn_index() + p.index
+	return int(p.index / 2) * DECK_SIZE + 2 * state.turn_index() + p.index % 2
 
 
 static func card_for_code(state: SimState, code: int) -> Dictionary:
@@ -83,7 +93,7 @@ static func card_for_code(state: SimState, code: int) -> Dictionary:
 
 
 static func text_for(state: SimState, p: SimPlayer, text_index: int) -> Dictionary:
-	var lines: Array = state.data.text["events"][p.side]
+	var lines: Array = state.data.text["events"].get(p.side, state.data.text["events"].get("usa", []))
 	if text_index < 0 or text_index >= lines.size():
 		return {"text": "", "color": 0}
 	return lines[text_index]

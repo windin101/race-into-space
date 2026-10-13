@@ -230,9 +230,11 @@ def patch_entries(cfg: dict) -> list[dict]:
         if i == 0:
             continue
         for side in SIDES:
-            motif = patch_motif(m["name"]) + "; " + cfg["flag_motif"][side]
+            motif = patch_motif(m["name"])
+            if cfg["flag_motif"].get(side):
+                motif += "; " + cfg["flag_motif"][side]
             out.append({"name": f"{side}/{i}", "side": side, "index": i, "seed_key": f"patch/{side}/{i}",
-                        "prompt": cfg["prompt"].format(colours=cfg["colours"][side], motif=motif),
+                        "prompt": cfg.get("prompt_side", {}).get(side, cfg["prompt"]).format(colours=cfg["colours"][side], motif=motif),
                         "negative_side": cfg["negative_side"][side]})
     return out
 

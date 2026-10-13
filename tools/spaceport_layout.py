@@ -62,6 +62,16 @@ INTENT = {
         "astronaut_complex": (0.11, 0.835), "training": (0.56, 0.835),
         "museum": (0.81, 0.745), "intelligence": (0.95, 0.70),
     },
+    # Woomera. Two dirt roads cross in the middle of the red plain, a salt lake beyond.
+    # Pads stand in a line out toward the lake behind the crossroads; offices in the left
+    # quarter, assembly and control in the right, crew facilities and museum in front.
+    "cwth": {
+        "pad_1": (0.45, 0.62), "pad_2": (0.57, 0.575), "pad_3": (0.68, 0.535),
+        "vab": (0.76, 0.70), "mission_control": (0.91, 0.69),
+        "administration": (0.12, 0.70), "research": (0.25, 0.64), "programs": (0.37, 0.725),
+        "astronaut_complex": (0.40, 0.90), "training": (0.62, 0.90),
+        "museum": (0.84, 0.91), "intelligence": (0.95, 0.60),
+    },
 }
 # Hand-placed positions that bypass the solver: (centre x, centre y of the cutout) as canvas
 # fractions. Cape pads 2 and 3 stand in an evenly spaced line behind pad 1 up the coast,
@@ -69,8 +79,9 @@ INTENT = {
 FIXED = {
     "usa": {"pad_2": (0.726, 0.457), "pad_3": (0.887, 0.420)},
     "ussr": {},
+    "cwth": {},
 }
-FRONT_Y = {"usa": 0.93, "ussr": 0.84}    # below this is foreground (dunes, scrub mound)
+FRONT_Y = {"usa": 0.93, "ussr": 0.84, "cwth": 0.93}    # below this is foreground (dunes, scrub mound)
 GAP = 8                                 # pixels at analysis scale between buildings
 
 
@@ -82,6 +93,8 @@ def avoid_mask(side: str, img: np.ndarray, horizon: float) -> np.ndarray:
     if side == "ussr":
         road |= (r > g) & (g > b) & (r - b > 35) & (r - b < 90) & (mx > 170)
         road |= (r > g + 10) & (g > b) & (mx < 150) & (r - b > 30)   # brown earth
+    if side == "cwth":
+        road |= _pale_track(r, g, b)
     water = (b > r + 25) & (b > g)
     m = road | water
     ys = np.arange(H)[:, None] / H
@@ -97,7 +110,14 @@ def road_only(side: str, img: np.ndarray) -> np.ndarray:
     road = ((mx - mn) < 22) & (mx > 150)
     if side == "ussr":
         road |= (r > g) & (g > b) & (r - b > 35) & (r - b < 90) & (mx > 170)
+    if side == "cwth":
+        road |= _pale_track(r, g, b)
     return road
+
+
+def _pale_track(r, g, b):
+    """Woomera's dirt roads: pale peach against the red earth."""
+    return (r > 225) & (g > 170) & (b > 140) & (r - b > 30)
 
 
 def horizon_of(img: np.ndarray) -> float:

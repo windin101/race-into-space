@@ -133,3 +133,21 @@ static func block(source: Dictionary, id: String, what: String) -> Variant:
 		push_error("Side '%s' has no entry in %s" % [id, what])
 		return null
 	return source[id]
+
+
+## The data blocks a side needs to play, as [description, present?]. Missing ones are
+## reported once at game start with the file and key, instead of failing mid-game.
+static func missing_data(data, id: String) -> PackedStringArray:
+	var missing: PackedStringArray = []
+	for model in data.hardware.get("models", {}):
+		if not data.hardware["models"][model].has(id):
+			missing.append("hardware.json models.%s.%s" % [model, id])
+	if not data.roster.get("sides", {}).has(id):
+		missing.append("roster.json sides.%s" % id)
+	if not data.new_game.get("sides", {}).has(id):
+		missing.append("new_game.json sides.%s" % id)
+	if not data.text.get("events", {}).has(id):
+		missing.append("text/events.json %s" % id)
+	if not exists(id):
+		missing.append("sides.json entry %s" % id)
+	return missing

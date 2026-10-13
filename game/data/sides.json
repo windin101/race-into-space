@@ -53,7 +53,8 @@
           99,
           "Carter"
         ]
-      ]
+      ],
+      "anchor": "Carter Walcrite"
     },
     {
       "id": "ussr",
@@ -85,7 +86,57 @@
           99,
           "Brezhnev"
         ]
-      ]
+      ],
+      "anchor": "Carter Walcrite"
+    },
+    {
+      "id": "cwth",
+      "name": "Commonwealth",
+      "short": "CW",
+      "adjective": "Commonwealth",
+      "nation": "The Commonwealth",
+      "people": "astronaut",
+      "accent": "c9a227",
+      "accent_dark": "8a6d14",
+      "room_tint": "26386b",
+      "suit": "RAF blue-grey with a green collar stripe",
+      "site": "Woomera",
+      "capital_announces": "London announces",
+      "agency": "CIB",
+      "reviewer": "Prime Minister",
+      "reviewer_deputy": "Minister of Aviation",
+      "reviewer_deputy_from": 5,
+      "reviewer_deputy_to": 10,
+      "review_body": "Cabinet",
+      "text_slot": 2,
+      "rules": "usa",
+      "heads_of_state": [
+        [
+          63,
+          "Macmillan"
+        ],
+        [
+          64,
+          "Douglas-Home"
+        ],
+        [
+          70,
+          "Wilson"
+        ],
+        [
+          74,
+          "Heath"
+        ],
+        [
+          76,
+          "Wilson"
+        ],
+        [
+          99,
+          "Callaghan"
+        ]
+      ],
+      "anchor": "Roland Ashcombe"
     }
   ]
 }

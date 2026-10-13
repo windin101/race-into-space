@@ -195,6 +195,9 @@ static func _setup(state: SimState, launch: Dictionary) -> Dictionary:
 	var mission: Dictionary = state.data.missions[launch["mission_index"]]
 	var ctx := {
 		"state": state, "p": p, "pidx": pidx, "launch": launch, "mission": mission,
+		# Upstream picks failure tables by side (USA player 0, USSR player 1); here the
+		# side's rules decide, so the tables follow the faction, not its seat.
+		"soviet_rules": Sides.rules(p.side) == "ussr",
 		"mission_index": int(launch["mission_index"]),
 		"vehicles": [], "steps": [], "attempts": [],
 		"programs": [], "succ": {}, "fail": {},
@@ -492,7 +495,7 @@ static func _step_anim_name(ctx: Dictionary, s: Dictionary) -> String:
 	var letter: String = s["letter"]
 	if letter == "H" and (ctx["mission_index"] == MISSION_LUNAR_ORBITAL_LM_TEST or s["past_bang"]):
 		return "HMOON"
-	var side := "U" if ctx["pidx"] == 0 else "S"
+	var side := "S" if ctx["soviet_rules"] else "U"
 	var name := letter + side + _hw_id(s["hardware"])
 	if s["class"] == CLASS_EVA:
 		var vehicles: Array = ctx["vehicles"]
@@ -528,7 +531,7 @@ static func _failure_key(ctx: Dictionary, s: Dictionary) -> String:
 		variant = "1"          # minishuttle launch
 	elif loc == LOC_LANDING and hw != null and hw.is_capsule() and hw.slot == 3:
 		variant = "3"          # minishuttle landing
-	elif ctx["pidx"] == 1 and loc == LOC_LANDING:
+	elif ctx["soviet_rules"] and loc == LOC_LANDING:
 		variant = "1" if (hw != null and hw.is_capsule() and hw.slot == 0) else "2"
 	var n2 := _char_at(name, 2)
 	var n3 := _char_at(name, 3)

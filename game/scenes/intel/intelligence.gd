@@ -16,6 +16,8 @@ var _programs: Array = []      ## rival SimPrograms in briefing order
 var _estimates: Dictionary = {}
 var _index := -1
 var _rival_side := "ussr"
+var _rival_pick := -1            ## player index of the rival being briefed (-1: the leader)
+var _rival_tabs: HBoxContainer
 
 var _banner: Label
 var _case: Control
@@ -51,6 +53,26 @@ func _ready() -> void:
 	_accuracy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_accuracy.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	head.add_child(_accuracy)
+	# One tab per rival when more than one side is racing against us.
+	_rival_tabs = HBoxContainer.new()
+	_rival_tabs.add_theme_constant_override("separation", 10)
+	content.add_child(_rival_tabs)
+	if Session.has_game() and Session.rivals().size() > 1:
+		for r in Session.rivals():
+			var b := Button.new()
+			b.toggle_mode = true
+			b.text = "%s PROGRAMME" % Sides.name(r.side).to_upper()
+			b.theme_type_variation = "Bar"
+			b.icon = ArtAssets.icon("flag_%s" % r.side)
+			b.add_theme_constant_override("icon_max_width", 34)
+			b.custom_minimum_size = Vector2(260, 44)
+			b.tooltip_text = "Brief on the %s space programme" % Sides.adjective(r.side)
+			b.set_meta("player", r.index)
+			b.pressed.connect(func():
+				_rival_pick = r.index
+				_refresh())
+			_rival_tabs.add_child(b)
+	_rival_tabs.visible = _rival_tabs.get_child_count() > 0
 
 	var split := HBoxContainer.new()
 	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
@@ -255,6 +277,12 @@ func _refresh() -> void:
 	var state := Session.state()
 	var me := Session.me()
 	var rival := Session.rival()
+	for r in Session.rivals():
+		if r.index == _rival_pick:
+			rival = r
+	_rival_pick = rival.index
+	for b in _rival_tabs.get_children():
+		b.button_pressed = int(b.get_meta("player")) == rival.index
 	_rival_side = rival.side
 	var agency: String = TurnLogic.agency(me.side)
 	title = "%s Intelligence" % agency

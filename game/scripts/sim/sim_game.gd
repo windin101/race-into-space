@@ -104,12 +104,17 @@ func _ordered_launches() -> Array:
 			launch["month"] = maxi(0, int(months[i]) - int(pl.get("rush_months", 0)))
 			launch["plan"] = pl
 			launches.append(launch)
-	# Same-month launches alternate priority by season so neither side always wins ties.
-	var first_player := state.turn_index() % 2
+	# Same-month launches rotate priority by season so no side always wins ties. With an
+	# even number of sides a plain rotation would tie each side to one season (in a two-side
+	# race the same side would win every autumn tie), so the rotation also steps each year.
+	var n := state.players.size()
+	var t := state.turn_index()
+	if n % 2 == 0:
+		t += t / 2
 	launches.sort_custom(func(a, b):
 		if a["month"] != b["month"]:
 			return a["month"] < b["month"]
-		return (a["player"] == first_player) and (b["player"] != first_player))
+		return posmod(int(a["player"]) - t, n) < posmod(int(b["player"]) - t, n))
 	return launches
 
 

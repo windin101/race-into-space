@@ -73,8 +73,11 @@ func test_endgame_text_index_selection() -> void:
 	assert_int(TurnLogic.endgame_text_index(75, 1, 1)).is_equal(9)
 	assert_int(TurnLogic.endgame_text_index(77, -1, 0)).is_equal(10)   # no landing: USA line
 	assert_int(TurnLogic.endgame_text_index(77, -1, 1)).is_equal(11)   # no landing: USSR line
+	assert_int(TurnLogic.endgame_text_index(63, 2, 0)).is_equal(12)    # third slot's own block
+	assert_int(TurnLogic.endgame_text_index(75, 2, 2)).is_equal(16)
+	assert_int(TurnLogic.endgame_text_index(77, -1, 2)).is_equal(17)
 	var lines: Array = data.text["endgame"]["endgame"]
-	assert_int(lines.size()).is_equal(12)
+	assert_int(lines.size()).is_equal(12 + 6 * (Sides.ids().size() - 2))
 
 
 # ------------------------------------------------------------- intelligence

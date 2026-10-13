@@ -3,7 +3,7 @@ extends ScreenPanel
 ## card, then this turn's newscast for the human side, with the budget drift, the card's
 ## effect in plain English and a button to pay off event damage.
 
-const ANCHOR := "Carter Walcrite"
+const ANCHOR := "Carter Walcrite"   ## fallback; each side names its own newsreader in data/sides.json
 const CASE_BG := Color("0a1424")
 
 var _date_card: Label
@@ -33,7 +33,7 @@ func _ready() -> void:
 	top.add_child(anchor_panel)
 	_anchor_tile = Control.new()
 	_anchor_tile.custom_minimum_size = Vector2(170, 204)
-	_anchor_tile.tooltip_text = ANCHOR
+	_anchor_tile.tooltip_text = _anchor_name()
 	_anchor_tile.draw.connect(_draw_anchor)
 	anchor_panel.body.add_child(_anchor_tile)
 	var card := UiPanel.new("Network news", "I001")
@@ -110,7 +110,7 @@ func _refresh() -> void:
 	var news: Dictionary = p.last_news
 	set_backdrop("newscast_%s" % p.side)
 	_date_card.text = state.date_string()
-	_anchor.text = "%s reporting for the %s network" % [ANCHOR, TurnLogic.side_name(p.side)]
+	_anchor.text = "%s reporting for the %s network" % [_anchor_name(), TurnLogic.side_name(p.side)]
 	_anchor_side = p.side
 	_anchor_tile.queue_redraw()
 	var raw := str(news.get("text", ""))
@@ -127,9 +127,9 @@ func _refresh() -> void:
 func _draw_anchor() -> void:
 	var size := _anchor_tile.size
 	_anchor_tile.draw_rect(Rect2(Vector2.ZERO, size), CASE_BG)
-	PortraitArt.paint(_anchor_tile, Rect2(Vector2.ZERO, size), ANCHOR, false, _anchor_side)
+	PortraitArt.paint(_anchor_tile, Rect2(Vector2.ZERO, size), _anchor_name(), false, _anchor_side)
 	_anchor_tile.draw_rect(Rect2(0, size.y - 26, size.x, 26), Color(0, 0, 0, 0.6))
-	_anchor_tile.draw_string(get_theme_default_font(), Vector2(0, size.y - 8), ANCHOR.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SMALL, UiPalette.GOLD)
+	_anchor_tile.draw_string(get_theme_default_font(), Vector2(0, size.y - 8), _anchor_name().to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SMALL, UiPalette.GOLD)
 
 
 func _refresh_damage(p: SimPlayer) -> void:
@@ -156,3 +156,8 @@ func _on_pay(prog: SimProgram) -> void:
 	if SimEvents.pay_damage(Session.me(), prog):
 		Session.notify_change()
 		_refresh()
+
+
+func _anchor_name() -> String:
+	var side := Session.human_side if Session.has_game() else _anchor_side
+	return str(Sides.field(side, "anchor", ANCHOR))

@@ -17,14 +17,20 @@
     "ussr": {
       "director_name": "KOROLYOV",
       "starting_budget": 60
+    },
+    "cwth": {
+      "director_name": "HARGREAVES",
+      "starting_budget": 60
     }
   },
   "default_difficulty": {
     "usa": 0,
-    "ussr": 0
+    "ussr": 0,
+    "cwth": 0
   },
   "default_astronaut_level": {
     "usa": 0,
-    "ussr": 0
+    "ussr": 0,
+    "cwth": 0
   }
 }

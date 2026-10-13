@@ -49,10 +49,16 @@ static func endgame_band(year: int) -> int:
 ## Line of text/endgame.json to narrate the ending for `side_index`'s reader.
 ## With a winner the line is band * 2 + winner; with no landing it is 10 for the USA
 ## and 11 for the USSR.
-## winner and side are text slots (Sides.text_slot), -1 for no winner.
+## winner and side are text slots (Sides.text_slot), -1 for no winner. Slots 0 and 1 use
+## the upstream layout (band*2 + slot, then 10 and 11 for no landing); every later slot has
+## its own block of six after them: five win bands, then its no-landing line.
 static func endgame_text_index(year: int, winner: int, side_index: int) -> int:
 	if winner < 0:
+		if side_index >= 2:
+			return 12 + (side_index - 2) * 6 + 5
 		return ENDGAME_NO_LANDING_FIRST + clampi(side_index, 0, 1)
+	if winner >= 2:
+		return 12 + (winner - 2) * 6 + endgame_band(year)
 	return endgame_band(year) * 2 + clampi(winner, 0, 1)
 
 

@@ -290,6 +290,8 @@ func _first_exhibit(state: SimState, def: Dictionary, ledger: Dictionary, side: 
 	var second := int(ledger.get("second", -1))
 	if second >= 0:
 		bits.append("Second: %s" % _side_label(state, second))
+	for later in ledger.get("others", []):
+		bits.append("Then: %s" % _side_label(state, int(later)))
 	sub.text = "  ·  ".join(bits) if not bits.is_empty() else ("Unclaimed" if first < 0 else "")
 	sub.add_theme_color_override("font_color", UiPalette.TEXT_DIM)
 	words.add_child(sub)

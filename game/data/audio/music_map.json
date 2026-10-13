@@ -1,37 +1,203 @@
 {
   "_notes": "Which music plays where. 'ours' names a stem under assets/audio/music; 'original' lists candidate file stems from the original game's music (the open-source port's naming), tried in order in the player's chosen folder. A missing original track falls back to ours. Keys are screen scene names, side-specific keys use _usa/_ussr, and events start with '@'.",
   "screens": {
-    "title_screen":     {"ours": "title_theme",   "original": ["theme"]},
-    "new_game_setup":   {"ours": "title_theme",   "original": ["theme"]},
-    "spaceport_usa":    {"ours": "spaceport_day", "original": ["usport2", "usport"]},
-    "spaceport_ussr":   {"ours": "spaceport_day", "original": ["svport2", "svport"]},
-    "administration":   {"ours": "spaceport_day", "original": ["usmil"]},
-    "administration_ussr": {"ours": "spaceport_day", "original": ["ussrmil"]},
-    "budget_office":    {"ours": "spaceport_day", "original": ["drumsm"]},
-    "hardware_purchase":{"ours": "spaceport_day", "original": ["hardware"]},
-    "program_office":   {"ours": "spaceport_day", "original": ["prgmtrg"]},
-    "research":         {"ours": "spaceport_day", "original": ["r&d", "rd"]},
-    "future_missions":  {"ours": "spaceport_day", "original": ["missplan", "future"]},
-    "vehicle_assembly": {"ours": "spaceport_day", "original": ["assembly"]},
-    "mission_control":  {"ours": "mission",       "original": ["missplan"]},
-    "launch_pad":       {"ours": "mission",       "original": ["missplan"]},
-    "astronaut_complex":{"ours": "spaceport_day", "original": ["asttrng"]},
-    "training":         {"ours": "spaceport_day", "original": ["asttrng"]},
-    "recruiting":       {"ours": "spaceport_day", "original": ["asttrng"]},
-    "intelligence":     {"ours": "spaceport_day", "original": ["intellig", "intel"]},
-    "museum":           {"ours": "spaceport_day", "original": ["history"]},
-    "preferences":      {"ours": "spaceport_day", "original": ["interlud"]},
-    "settings_screen":  {"ours": "spaceport_day", "original": ["interlud"]},
-    "newscast":         {"ours": "spaceport_day", "original": ["new1950"]},
-    "newscast_late":    {"ours": "spaceport_day", "original": ["new1970", "new1950"]},
-    "annual_review":    {"ours": "spaceport_day", "original": ["pres"]},
-    "launch_results":   {"ours": "mission",       "original": ["filler"]},
-    "mission_playback": {"ours": "mission",       "original": ["liftoff"]},
-    "end_game":         {"ours": "title_theme",   "original": ["victory"]},
-    "end_game_lose":    {"ours": "title_theme",   "original": ["unsucc", "badnews"]}
+    "title_screen": {
+      "ours": "title_theme",
+      "original": [
+        "theme"
+      ]
+    },
+    "new_game_setup": {
+      "ours": "title_theme",
+      "original": [
+        "theme"
+      ]
+    },
+    "spaceport_usa": {
+      "ours": "spaceport_day",
+      "original": [
+        "usport2",
+        "usport"
+      ]
+    },
+    "spaceport_ussr": {
+      "ours": "spaceport_day",
+      "original": [
+        "svport2",
+        "svport"
+      ]
+    },
+    "administration": {
+      "ours": "spaceport_day",
+      "original": [
+        "usmil"
+      ]
+    },
+    "administration_ussr": {
+      "ours": "spaceport_day",
+      "original": [
+        "ussrmil"
+      ]
+    },
+    "budget_office": {
+      "ours": "spaceport_day",
+      "original": [
+        "drumsm"
+      ]
+    },
+    "hardware_purchase": {
+      "ours": "spaceport_day",
+      "original": [
+        "hardware"
+      ]
+    },
+    "program_office": {
+      "ours": "spaceport_day",
+      "original": [
+        "prgmtrg"
+      ]
+    },
+    "research": {
+      "ours": "spaceport_day",
+      "original": [
+        "r&d",
+        "rd"
+      ]
+    },
+    "future_missions": {
+      "ours": "spaceport_day",
+      "original": [
+        "missplan",
+        "future"
+      ]
+    },
+    "vehicle_assembly": {
+      "ours": "spaceport_day",
+      "original": [
+        "assembly"
+      ]
+    },
+    "mission_control": {
+      "ours": "mission",
+      "original": [
+        "missplan"
+      ]
+    },
+    "launch_pad": {
+      "ours": "mission",
+      "original": [
+        "missplan"
+      ]
+    },
+    "astronaut_complex": {
+      "ours": "spaceport_day",
+      "original": [
+        "asttrng"
+      ]
+    },
+    "training": {
+      "ours": "spaceport_day",
+      "original": [
+        "asttrng"
+      ]
+    },
+    "recruiting": {
+      "ours": "spaceport_day",
+      "original": [
+        "asttrng"
+      ]
+    },
+    "intelligence": {
+      "ours": "spaceport_day",
+      "original": [
+        "intellig",
+        "intel"
+      ]
+    },
+    "museum": {
+      "ours": "spaceport_day",
+      "original": [
+        "history"
+      ]
+    },
+    "preferences": {
+      "ours": "spaceport_day",
+      "original": [
+        "interlud"
+      ]
+    },
+    "settings_screen": {
+      "ours": "spaceport_day",
+      "original": [
+        "interlud"
+      ]
+    },
+    "newscast": {
+      "ours": "spaceport_day",
+      "original": [
+        "new1950"
+      ]
+    },
+    "newscast_late": {
+      "ours": "spaceport_day",
+      "original": [
+        "new1970",
+        "new1950"
+      ]
+    },
+    "annual_review": {
+      "ours": "spaceport_day",
+      "original": [
+        "pres"
+      ]
+    },
+    "launch_results": {
+      "ours": "mission",
+      "original": [
+        "filler"
+      ]
+    },
+    "mission_playback": {
+      "ours": "mission",
+      "original": [
+        "liftoff"
+      ]
+    },
+    "end_game": {
+      "ours": "title_theme",
+      "original": [
+        "victory"
+      ]
+    },
+    "end_game_lose": {
+      "ours": "title_theme",
+      "original": [
+        "unsucc",
+        "badnews"
+      ]
+    },
+    "spaceport": {
+      "ours": "spaceport_day",
+      "original": [
+        "usport2",
+        "usport"
+      ]
+    }
   },
   "events": {
-    "@launch_success":  {"ours": "", "original": ["success", "good"]},
-    "@launch_failure":  {"ours": "", "original": ["unsucc", "badnews"]}
+    "@launch_success": {
+      "ours": "",
+      "original": [
+        "success",
+        "good"
+      ]
+    },
+    "@launch_failure": {
+      "ours": "",
+      "original": [
+        "unsucc",
+        "badnews"
+      ]
+    }
   }
 }

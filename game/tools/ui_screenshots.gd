@@ -47,7 +47,10 @@ func _ready() -> void:
 
 func _run() -> void:
 	await get_tree().process_frame
-	Session.new_game(7, {"human_side": _side})
+	var lineup := Array(Sides.default_lineup())
+	if not lineup.has(_side):
+		lineup = [_side, lineup[0]]
+	Session.new_game(7, {"human_side": _side, "sides": lineup})
 	_advance_game(6 if _season == 0 else 7)
 	get_tree().root.theme = UiTheme.get_theme(_side)
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://" + _out))

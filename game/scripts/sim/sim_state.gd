@@ -43,6 +43,10 @@ func _init(p_data, p_seed: int = 0, p_options: Dictionary = {}) -> void:
 			push_error("SimState: side '%s' listed twice; ignoring the repeat" % side)
 			continue
 		lineup.append(str(side))
+	for side in lineup:
+		var missing := Sides.missing_data(data, side)
+		if not missing.is_empty():
+			push_error("Side '%s' is missing data: %s" % [side, ", ".join(missing)])
 	for i in lineup.size():
 		var p := SimPlayer.create(i, data, model, str(lineup[i]))
 		p.level = p_options.get("level_%s" % p.side, 0)

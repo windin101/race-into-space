@@ -203,6 +203,8 @@ func _section(launch: Dictionary) -> Control:
 		var al := Label.new()
 		al.theme_type_variation = "Small"
 		var kind := str(aw.get("kind", ""))
+		if kind == "later":
+			kind = "also achieved"
 		al.text = "%s: %s %+d" % [title_row.to_upper(), kind.to_upper(), int(aw.get("points", 0))]
 		al.add_theme_color_override("font_color", UiPalette.GOLD if kind == "first" else UiPalette.INFO)
 		awards.add_child(al)

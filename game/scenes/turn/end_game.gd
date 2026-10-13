@@ -118,14 +118,15 @@ func _refresh() -> void:
 	set_backdrop("endgame_%s_%s" % [me.side, "win" if winner == me.index else "lose"])
 
 	var lines: Array = GameData.text.get("endgame", {}).get("endgame", [])
-	var sides: Array = [me.index] if winner >= 0 else [0, 1]
+	var sides: Array = [me.index] if winner >= 0 else range(state.players.size())
 	for side_index in sides:
 		var head := Label.new()
 		head.theme_type_variation = "Subheading"
 		head.text = TurnLogic.side_name(state.player(side_index).side)
 		head.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		_story.add_child(head)
-		var ti := TurnLogic.endgame_text_index(state.year, winner, side_index)
+		var winner_slot := Sides.text_slot(state.player(winner).side) if winner >= 0 else -1
+		var ti := TurnLogic.endgame_text_index(state.year, winner_slot, Sides.text_slot(state.player(side_index).side))
 		var body := Label.new()
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 		body.text = str(lines[ti]).replace("\n", " ").capitalize() if ti >= 0 and ti < lines.size() else "(no ending text)"

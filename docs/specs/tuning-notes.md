@@ -98,3 +98,49 @@ failure costs a season and prestige; the lever that mattered was parallelism (a 
 pad from the docking phase and sixteen astronauts), which took level 1 from 42% to 75%.
 Not verified: that a competent human beats level 1. Astronaut-data levels only change
 what recruiting shows.
+
+## Three sides and the Commonwealth (2026-10-13)
+
+### Seat bias
+
+Three-way batches first showed whichever side sat third (player index 2) scoring about half
+the prestige of the others, whatever the faction. Racing identical clones of one side
+(same hardware, roster and rules, registered under new ids) isolates the seat from the
+faction; that is the method to reuse for any future seat question. Two causes, both fixed:
+
+1. **Same-month launch ties** alternated between index 0 and 1 by season parity, so a third
+   side never won a tie. Priority now rotates over every side. With an even number of sides
+   the rotation also steps each year, otherwise each side would own one season's ties for the
+   whole game (in a two-side race, the same side won every autumn tie).
+2. **Failure tables keyed by seat.** The mission resolver chose the Soviet landing failure
+   variants and the hardware name prefix by `player index == 1`, as upstream did with its
+   fixed seats. They now follow the side's `rules`, so the tables belong to the faction.
+   This one also gave index 1 an edge in two-side clone races (about 8 points).
+
+Checks after the fix, 2,400 seeded games each:
+
+| race | index 0 | index 1 | index 2 |
+|---|---|---|---|
+| two clones, avg prestige gap (1 minus 0) | | 1.9 ± 1.9 | |
+| three clones, avg prestige | 29 | 24 | 27 |
+| three clones, wins | 408 | 392 | 413 |
+
+The two-player fingerprint changed only through the yearly tie step (the rules fix alone
+reproduced it exactly), and `tools/fingerprint_2p_baseline.txt` was re-recorded with it.
+
+### Commonwealth hardware factors
+
+`hardware.json` models `cwth`: costs x0.93, starting safety x0.7 of the US values ("on a
+budget"). Wins over 600 games per seating, both seatings summed (`sim_balance.gd`, level 0):
+
+| match-up | wins |
+|---|---|
+| USA v USSR | 136 v 137 |
+| Commonwealth v USA | 261 v 234 |
+| Commonwealth v USSR | 211 v 310 |
+| three-way, CW / USA / USSR | 289 / 275 / 302 |
+
+The three-way race is even, which is the mode the faction was built for. Head to head the
+Commonwealth edges the USA and trails the USSR clearly; the USSR's own rules (landing on
+land, its personnel timings) are the likely reason, since the US and Commonwealth share US
+rules. Left as is: changing the factors to close one pairing moves the other two.

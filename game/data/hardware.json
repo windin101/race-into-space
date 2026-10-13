@@ -573,6 +573,282 @@
           },
           null
         ]
+      },
+      "cwth": {
+        "probe": [
+          {
+            "slot": 0,
+            "name": "ARIEL-ALPHA",
+            "base_safety": 28,
+            "program_cost": 6,
+            "unit_cost": 1,
+            "rd_cost_per_team": 1,
+            "unit_weight": 300,
+            "max_payload": 0,
+            "max_rd": 95,
+            "max_safety": 98
+          },
+          {
+            "slot": 1,
+            "name": "WAYFARER",
+            "base_safety": 28,
+            "program_cost": 22,
+            "unit_cost": 4,
+            "rd_cost_per_team": 3,
+            "unit_weight": 700,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 93
+          },
+          {
+            "slot": 2,
+            "name": "SURVEYOR-DOMINION",
+            "base_safety": 28,
+            "program_cost": 28,
+            "unit_cost": 6,
+            "rd_cost_per_team": 4,
+            "unit_weight": 1200,
+            "max_payload": 0,
+            "max_rd": 85,
+            "max_safety": 88
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "rocket": [
+          {
+            "slot": 0,
+            "name": "MONARCH I",
+            "base_safety": 7,
+            "program_cost": 22,
+            "unit_cost": 3,
+            "rd_cost_per_team": 2,
+            "unit_weight": 0,
+            "max_payload": 600,
+            "max_rd": 84,
+            "max_safety": 98
+          },
+          {
+            "slot": 1,
+            "name": "MONARCH II",
+            "base_safety": 7,
+            "program_cost": 56,
+            "unit_cost": 11,
+            "rd_cost_per_team": 4,
+            "unit_weight": 0,
+            "max_payload": 1500,
+            "max_rd": 90,
+            "max_safety": 98
+          },
+          {
+            "slot": 2,
+            "name": "SUPER-MONARCH",
+            "base_safety": 4,
+            "program_cost": 78,
+            "unit_cost": 17,
+            "rd_cost_per_team": 6,
+            "unit_weight": 0,
+            "max_payload": 3200,
+            "max_rd": 95,
+            "max_safety": 98
+          },
+          {
+            "slot": 3,
+            "name": "MAGNA-IMPERIAL",
+            "base_safety": 4,
+            "program_cost": 140,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 0,
+            "max_payload": 4800,
+            "max_rd": 95,
+            "max_safety": 98
+          },
+          {
+            "slot": 4,
+            "name": "GAUNTLET BOOSTERS",
+            "base_safety": 7,
+            "program_cost": 11,
+            "unit_cost": 3,
+            "rd_cost_per_team": 2,
+            "unit_weight": 0,
+            "max_payload": 1000,
+            "max_rd": 85,
+            "max_safety": 98
+          },
+          null,
+          null
+        ],
+        "manned": [
+          {
+            "slot": 0,
+            "name": "SPRITESHIP",
+            "base_safety": 4,
+            "program_cost": 17,
+            "unit_cost": 2,
+            "rd_cost_per_team": 1,
+            "unit_weight": 500,
+            "max_payload": 0,
+            "max_rd": 76,
+            "max_safety": 90,
+            "max_days": 5
+          },
+          {
+            "slot": 1,
+            "name": "HIGHLANDER",
+            "base_safety": 4,
+            "program_cost": 22,
+            "unit_cost": 6,
+            "rd_cost_per_team": 2,
+            "unit_weight": 1200,
+            "max_payload": 0,
+            "max_rd": 81,
+            "max_safety": 94,
+            "max_days": 14
+          },
+          {
+            "slot": 2,
+            "name": "RESOLVE",
+            "base_safety": 4,
+            "program_cost": 33,
+            "unit_cost": 11,
+            "rd_cost_per_team": 5,
+            "unit_weight": 1600,
+            "max_payload": 0,
+            "max_rd": 87,
+            "max_safety": 94,
+            "max_days": 21
+          },
+          {
+            "slot": 3,
+            "name": "MUSTARD",
+            "base_safety": 4,
+            "program_cost": 56,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 1500,
+            "max_payload": 0,
+            "max_rd": 91,
+            "max_safety": 94,
+            "max_days": 15
+          },
+          {
+            "slot": 4,
+            "name": "SOVEREIGN",
+            "base_safety": 4,
+            "program_cost": 56,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 4300,
+            "max_payload": 0,
+            "max_rd": 89,
+            "max_safety": 94,
+            "max_days": 24
+          },
+          {
+            "slot": 5,
+            "name": "ENDEAVOUR",
+            "base_safety": 7,
+            "program_cost": 28,
+            "unit_cost": 7,
+            "rd_cost_per_team": 2,
+            "unit_weight": 1500,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 94,
+            "max_days": 5
+          },
+          {
+            "slot": 6,
+            "name": "KESTREL",
+            "base_safety": 7,
+            "program_cost": 39,
+            "unit_cost": 7,
+            "rd_cost_per_team": 4,
+            "unit_weight": 1000,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 94,
+            "max_days": 3
+          }
+        ],
+        "misc": [
+          {
+            "slot": 0,
+            "name": "WAXWING",
+            "base_safety": 7,
+            "program_cost": 11,
+            "unit_cost": 3,
+            "rd_cost_per_team": 1,
+            "unit_weight": 300,
+            "max_payload": 0,
+            "max_rd": 94,
+            "max_safety": 97
+          },
+          {
+            "slot": 1,
+            "name": "GAMMA",
+            "base_safety": 7,
+            "program_cost": 17,
+            "unit_cost": 6,
+            "rd_cost_per_team": 2,
+            "unit_weight": 600,
+            "max_payload": 0,
+            "max_rd": 94,
+            "max_safety": 96
+          },
+          {
+            "slot": 2,
+            "name": "STENTOR",
+            "base_safety": 4,
+            "program_cost": 37,
+            "unit_cost": 19,
+            "rd_cost_per_team": 4,
+            "unit_weight": 2500,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 95
+          },
+          {
+            "slot": 3,
+            "name": "EVA SUITS",
+            "base_safety": 21,
+            "program_cost": 17,
+            "unit_cost": 0,
+            "rd_cost_per_team": 1,
+            "unit_weight": 0,
+            "max_payload": 0,
+            "max_rd": 91,
+            "max_safety": 94
+          },
+          {
+            "slot": 4,
+            "name": "DOCKING",
+            "base_safety": 28,
+            "program_cost": 17,
+            "unit_cost": 2,
+            "rd_cost_per_team": 0,
+            "unit_weight": 300,
+            "max_payload": 0,
+            "max_rd": 0,
+            "max_safety": 93
+          },
+          {
+            "slot": 5,
+            "name": "PHOTO RECON",
+            "base_safety": 38,
+            "program_cost": 0,
+            "unit_cost": 0,
+            "rd_cost_per_team": 0,
+            "unit_weight": 0,
+            "max_payload": 0,
+            "max_rd": 0,
+            "max_safety": 99
+          },
+          null
+        ]
       }
     },
     "historical": {
@@ -1116,7 +1392,273 @@
           },
           null
         ]
+      },
+      "cwth": {
+        "probe": [
+          {
+            "slot": 0,
+            "name": "ARIEL-ALPHA",
+            "base_safety": 28,
+            "program_cost": 6,
+            "unit_cost": 1,
+            "rd_cost_per_team": 1,
+            "unit_weight": 200,
+            "max_payload": 0,
+            "max_rd": 95,
+            "max_safety": 98
+          },
+          {
+            "slot": 1,
+            "name": "WAYFARER",
+            "base_safety": 28,
+            "program_cost": 22,
+            "unit_cost": 5,
+            "rd_cost_per_team": 3,
+            "unit_weight": 700,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 93
+          },
+          {
+            "slot": 2,
+            "name": "SURVEYOR-DOMINION",
+            "base_safety": 28,
+            "program_cost": 28,
+            "unit_cost": 7,
+            "rd_cost_per_team": 4,
+            "unit_weight": 1200,
+            "max_payload": 0,
+            "max_rd": 85,
+            "max_safety": 88
+          },
+          null,
+          null,
+          null,
+          null
+        ],
+        "rocket": [
+          {
+            "slot": 0,
+            "name": "MONARCH I",
+            "base_safety": 7,
+            "program_cost": 24,
+            "unit_cost": 3,
+            "rd_cost_per_team": 2,
+            "unit_weight": 0,
+            "max_payload": 500,
+            "max_rd": 87,
+            "max_safety": 98
+          },
+          {
+            "slot": 1,
+            "name": "MONARCH II",
+            "base_safety": 7,
+            "program_cost": 56,
+            "unit_cost": 11,
+            "rd_cost_per_team": 4,
+            "unit_weight": 0,
+            "max_payload": 1200,
+            "max_rd": 91,
+            "max_safety": 98
+          },
+          {
+            "slot": 2,
+            "name": "SUPER-MONARCH",
+            "base_safety": 4,
+            "program_cost": 84,
+            "unit_cost": 17,
+            "rd_cost_per_team": 6,
+            "unit_weight": 0,
+            "max_payload": 3500,
+            "max_rd": 95,
+            "max_safety": 98
+          },
+          {
+            "slot": 3,
+            "name": "MAGNA-IMPERIAL",
+            "base_safety": 4,
+            "program_cost": 140,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 0,
+            "max_payload": 4800,
+            "max_rd": 94,
+            "max_safety": 98
+          },
+          {
+            "slot": 4,
+            "name": "GAUNTLET BOOSTERS",
+            "base_safety": 7,
+            "program_cost": 17,
+            "unit_cost": 4,
+            "rd_cost_per_team": 2,
+            "unit_weight": 0,
+            "max_payload": 800,
+            "max_rd": 85,
+            "max_safety": 98
+          },
+          null,
+          null
+        ],
+        "manned": [
+          {
+            "slot": 0,
+            "name": "SPRITESHIP",
+            "base_safety": 4,
+            "program_cost": 19,
+            "unit_cost": 3,
+            "rd_cost_per_team": 1,
+            "unit_weight": 500,
+            "max_payload": 0,
+            "max_rd": 78,
+            "max_safety": 92,
+            "max_days": 5
+          },
+          {
+            "slot": 1,
+            "name": "HIGHLANDER",
+            "base_safety": 4,
+            "program_cost": 28,
+            "unit_cost": 7,
+            "rd_cost_per_team": 2,
+            "unit_weight": 1200,
+            "max_payload": 0,
+            "max_rd": 83,
+            "max_safety": 94,
+            "max_days": 14
+          },
+          {
+            "slot": 2,
+            "name": "RESOLVE",
+            "base_safety": 4,
+            "program_cost": 37,
+            "unit_cost": 13,
+            "rd_cost_per_team": 5,
+            "unit_weight": 1700,
+            "max_payload": 0,
+            "max_rd": 89,
+            "max_safety": 94,
+            "max_days": 21
+          },
+          {
+            "slot": 3,
+            "name": "MUSTARD",
+            "base_safety": 4,
+            "program_cost": 51,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 1400,
+            "max_payload": 0,
+            "max_rd": 91,
+            "max_safety": 94,
+            "max_days": 15
+          },
+          {
+            "slot": 4,
+            "name": "SOVEREIGN",
+            "base_safety": 4,
+            "program_cost": 60,
+            "unit_cost": 28,
+            "rd_cost_per_team": 7,
+            "unit_weight": 4600,
+            "max_payload": 0,
+            "max_rd": 89,
+            "max_safety": 94,
+            "max_days": 24
+          },
+          {
+            "slot": 5,
+            "name": "ENDEAVOUR",
+            "base_safety": 7,
+            "program_cost": 28,
+            "unit_cost": 7,
+            "rd_cost_per_team": 2,
+            "unit_weight": 1500,
+            "max_payload": 0,
+            "max_rd": 90,
+            "max_safety": 94,
+            "max_days": 5
+          },
+          {
+            "slot": 6,
+            "name": "KESTREL",
+            "base_safety": 7,
+            "program_cost": 39,
+            "unit_cost": 8,
+            "rd_cost_per_team": 4,
+            "unit_weight": 1100,
+            "max_payload": 0,
+            "max_rd": 89,
+            "max_safety": 94,
+            "max_days": 3
+          }
+        ],
+        "misc": [
+          {
+            "slot": 0,
+            "name": "WAXWING",
+            "base_safety": 7,
+            "program_cost": 11,
+            "unit_cost": 3,
+            "rd_cost_per_team": 1,
+            "unit_weight": 300,
+            "max_payload": 0,
+            "max_rd": 92,
+            "max_safety": 97
+          },
+          {
+            "slot": 1,
+            "name": "GAMMA",
+            "base_safety": 7,
+            "program_cost": 17,
+            "unit_cost": 6,
+            "rd_cost_per_team": 2,
+            "unit_weight": 700,
+            "max_payload": 0,
+            "max_rd": 94,
+            "max_safety": 97
+          },
+          null,
+          {
+            "slot": 3,
+            "name": "EVA SUITS",
+            "base_safety": 21,
+            "program_cost": 17,
+            "unit_cost": 0,
+            "rd_cost_per_team": 1,
+            "unit_weight": 0,
+            "max_payload": 0,
+            "max_rd": 91,
+            "max_safety": 94
+          },
+          {
+            "slot": 4,
+            "name": "DOCKING",
+            "base_safety": 28,
+            "program_cost": 17,
+            "unit_cost": 3,
+            "rd_cost_per_team": 0,
+            "unit_weight": 300,
+            "max_payload": 0,
+            "max_rd": 0,
+            "max_safety": 93
+          },
+          {
+            "slot": 5,
+            "name": "PHOTO RECON",
+            "base_safety": 38,
+            "program_cost": 0,
+            "unit_cost": 0,
+            "rd_cost_per_team": 0,
+            "unit_weight": 0,
+            "max_payload": 0,
+            "max_rd": 0,
+            "max_safety": 99
+          },
+          null
+        ]
       }
     }
-  }
+  },
+  "_notes_cwth": "Commonwealth ('cwth') hardware: the US figures with program, unit and R&D-team costs x0.93 and starting safety x0.7 (the 'on a budget' faction, docs/plan-commonwealth.md decision 4); ceilings unchanged. Tuned with tools/sim_balance.gd, see docs/specs/tuning-notes.md."
 }

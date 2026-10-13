@@ -1250,7 +1250,33 @@
         "group": 9,
         "mood": "85 + 5*rand(0..3)",
         "compat": "1-10",
-        "cr_cl": "1-2 each"
+        "cr_cl": "1-2 each",
+        "cwth": [
+          {
+            "name": "STIRLING",
+            "cap": 1,
+            "lm": 2,
+            "eva": 2,
+            "dock": 1,
+            "end": 3
+          },
+          {
+            "name": "HAWTHORNE",
+            "cap": 2,
+            "lm": 0,
+            "eva": 0,
+            "dock": 1,
+            "end": 0
+          },
+          {
+            "name": "MACQUARIE",
+            "cap": 3,
+            "lm": 0,
+            "eva": 1,
+            "dock": 1,
+            "end": 2
+          }
+        ]
       },
       "player_choice": false,
       "one_shot": true,

@@ -49,9 +49,12 @@ Recommended answers below; the ones marked **(decide)** need your call.
    the US and USSR. Exact numbers come from balance runs (Phase 6), with the target that
    each side wins a fair share of AI-versus-AI games at equal difficulty.
    **(decided 2026-10-13: as proposed)**
-5. **Look.** Accent colour Commonwealth green (`#2e7d4f`), with the room tint for its
-   offices to match. Flight suits in RAF blue-grey with a green collar stripe. The emblem
-   and agency seal are fictional, as with the other two sides.
+5. **Look.** Blue and gold (changed from green 2026-10-13 at the player's request): gold
+   accent (`#c9a227`) on a navy room tint (`#26386b`), so it stays distinct from the US
+   blue. Flag: a blue ensign with the Union Jack and a gold sunburst globe. Patches are
+   crowned badges in the style of an RAF station badge. Flight suits in RAF blue-grey (the
+   portraits keep the green collar stripe they were painted with). The emblem and agency
+   seal are fictional, as with the other two sides.
 6. **Spaceport.** Woomera: red desert, gibber plain, saltbush, a dry lake on the horizon.
    It's the southern hemisphere, so in-game spring is painted with autumn light. Same
    layout solver and seasonal colour grade as the Cape and Baikonur.
@@ -137,7 +140,7 @@ when a lunar-orbit probe mission flies.
   identical results to today (same launches, prestige and winner over 20 seeds). That
   proves the refactor changed nothing.
 
-### Phase B: Commonwealth data
+### Phase B: Commonwealth data — done 2026-10-13
 
 - `hardware.json`: the 21 slots above for both hardware models, numbers copied from US
   entries, then tuned in Phase F.
@@ -154,7 +157,7 @@ when a lunar-orbit probe mission flies.
   out).
 - `text/endgame.json`: win, lose and failed-objective narration.
 
-### Phase C: Commonwealth art (local AI pipeline, same as the other sides)
+### Phase C: Commonwealth art (local AI pipeline, same as the other sides) — done 2026-10-13
 
 | asset | count | tool |
 |---|---|---|
@@ -162,7 +165,7 @@ when a lunar-orbit probe mission flies.
 | spaceport buildings, pads, flag | 14 | `comfy_batch spaceport`, then `spaceport_layout.py` |
 | hardware icons | 21 | `comfy_batch hardware` with new descriptions |
 | portraits (blue-grey suits) | about 112 | `comfy_batch portraits` |
-| mission patches (green and gold palette) | 61 | `comfy_batch patches` |
+| mission patches (crowned RAF-style badges, navy, blue and gold) | 61 | `comfy_batch patches` |
 | emblem, agency seal | 2 | `comfy_batch icons` |
 | flag (Commonwealth banner, our own SVG design) | 1 | hand-drawn SVG |
 | mission control room, newscast studio, review chamber | 3 | `comfy_batch backdrops` |
@@ -172,7 +175,7 @@ when a lunar-orbit probe mission flies.
 The vignettes and diagram bodies are shared by all sides. Roughly four hours of GPU time
 in total, run in the background.
 
-### Phase D: interface for three sides
+### Phase D: interface for three sides — done 2026-10-13, except the side picker's spaceport thumbnails
 
 - New Game styling for the side picker: flags, emblems and each side's spaceport as a thumbnail.
 - Top bar: prestige for every rival on race screens. Budget graphs: one line per side.
@@ -184,13 +187,28 @@ in total, run in the background.
 - Music: the Commonwealth uses our soundtrack. The original game has no Commonwealth
   tracks, so with original music selected it falls back to ours.
 
-### Phase E: AI for three sides
+### Phase E: AI for three sides — not needed
+
+`SimAi` never read "the opponent" to decide how hard to push; its only rival read is the
+cash handicap, which already loops over every rival. Its success estimate uses each
+program's real safety, so the Commonwealth's lower starting safety is handled without
+special cases. Three-way AI races are even (see Phase F).
+
+Original plan:
+
 
 - `SimAi` reads the leading rival rather than "the opponent" when deciding how hard to
   push, and treats the Commonwealth's cheaper, less safe hardware correctly when
   scheduling research.
 
-### Phase F: balance
+### Phase F: balance — done 2026-10-13
+
+Results and method in `docs/specs/tuning-notes.md` ("Three sides and the Commonwealth").
+Balance runs found and fixed a seat bias (tie priority and seat-keyed failure tables), not
+a faction problem. Runs were at level 0 only; other difficulty levels are unchecked.
+
+Original plan:
+
 
 - Batch AI-versus-AI runs with `sim_cli`, about 300 games per setup, for each pairing and
   the 3-way race at each difficulty. Tune the Commonwealth's cost and safety offsets

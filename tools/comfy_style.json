@@ -93,7 +93,34 @@
       "Lapot": "A small Soviet lifting-body spaceplane with upturned wingtips and a flat belly",
       "Lk-700": "A large direct-ascent lunar lander: a conical capsule on a wide landing stage with four legs",
       "Lkm": "A Soviet lunar lander with a single large engine, a round cabin and four splayed legs",
-      "Lk": "A small single-cosmonaut lunar lander: a round cabin on a four-legged lattice landing frame"
+      "Lk": "A small single-cosmonaut lunar lander: a round cabin on a four-legged lattice landing frame",
+      "Ariel-Alpha": "A small drum-shaped scientific satellite with four paddle-shaped solar panels and thin wire antennae",
+      "Wayfarer": "A compact lunar probe: a cylindrical bus with a large dish antenna and two flat solar panels",
+      "Surveyor-Dominion": "A small three-legged lunar lander with a boxy instrument body, a mast and one tilted solar panel",
+      "Monarch I": "A slim white single-stage rocket with a pointed nose, four small tail fins and a cluster of four small engine bells",
+      "Monarch Ii": "A tall two-stage rocket: a broad silver first stage with two engine bells and a slimmer white upper stage with a pointed fairing",
+      "Super-Monarch": "A heavy three-stage rocket: a wide first stage with four engine bells, a white second stage, and a long payload fairing",
+      "Magna-Imperial": "A colossal super-heavy moon rocket with five large engine bells at its broad base, three white and grey stages, and a slim escape tower",
+      "Gauntlet Boosters": "A pair of slim white strap-on liquid rocket boosters with conical noses and single engine bells",
+      "Spriteship": "A small blunt one-man space capsule: a rounded truncated cone with a wide heat shield, one round window and a stubby antenna",
+      "Highlander": "A two-man space capsule: a blunt cone with two windows and a hatch, joined to a cylindrical equipment module behind it",
+      "Resolve": "A three-man command module, a smooth conical capsule, joined to a cylindrical service module with one engine bell",
+      "Mustard": "A small reusable winged spaceplane with delta wings and twin tail fins, white with black heat-resistant underside",
+      "Sovereign": "A large direct-ascent lunar spacecraft: a conical crew capsule on a squat stage with four landing legs and a rocket engine",
+      "Endeavour": "A two-man lunar lander: a gold-foiled octagonal descent stage on four splayed legs with a boxy silver ascent cabin on top",
+      "Kestrel": "A tiny one-man open lunar lander: a small pressurised cabin pod on a lattice frame with three thin legs and one engine",
+      "Waxwing": {
+        "desc": "A small round spherical solid rocket motor with one short nozzle, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      },
+      "Gamma": {
+        "desc": "A compact upper-stage engine module: a short cylinder with two small engine bells, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      },
+      "Stentor": {
+        "desc": "A larger upper stage: a smooth white cylinder like a tin can with flat ends and one wide engine bell, a bare rocket stage with no cabin",
+        "negative": "wings, fins, tail fins, spaceplane, shuttle, aircraft, cockpit, windows, nose cone, missile"
+      }
     },
     "negative_extra": "ground, floor, shadow, horizon, landscape, launch pad, text, label, number, caption, people"
   },
@@ -120,7 +147,12 @@
       "room_crew": "Interior of a 1960s astronaut training centre, {style}: a centrifuge arm, a capsule simulator, lockers with flight suits, gym mats, no people, no text",
       "room_intel": "Interior of a 1960s intelligence analysis room, {style}: desks with typewriters and reel-to-reel recorders, a wall of plain photographs pinned up, a reading lamp, dim and smoky, no people, no text, no writing",
       "room_museum": "Interior of a grand 1960s space museum hall, {style}: rockets and capsules on plinths, a high glass roof, polished stone floor, banners without writing, no people, no text",
-      "room_office": "Interior of a 1960s space agency open-plan office, {style}: rows of desks with telephones and adding machines, charts on easels with plain lines, tall windows, no people, no text, no writing"
+      "room_office": "Interior of a 1960s space agency open-plan office, {style}: rows of desks with telephones and adding machines, charts on easels with plain lines, tall windows, no people, no text, no writing",
+      "mission_control_cwth": "Interior of a 1960s British rocket range control room at Woomera, a wide shot from high up at the back of the room, {style}: stepped rows of grey-green consoles with small glowing screens, controllers in white shirts and ties with headsets seen from behind and far away, wood panelling, dark room lit by the screens, the far wall a plain dark panel with nothing on it, no text, no faces, no foreground figures",
+      "newscast_cwth": "British television news studio of 1965, {style}: an empty newsreader's desk at the left, a world map with Commonwealth countries tinted and a clock behind, broadcast lights, muted colours, no people, no text",
+      "review_cwth": "Interior of a 1960s British Cabinet room, {style}: a long boat-shaped table with dark blue leather chairs, tall windows with heavy curtains, a marble fireplace, portraits in gilt frames without faces, seen from the end of the table, no people, no text",
+      "endgame_cwth_win": "Celebration painting, {style}: a capsule under parachutes descending over a blue ocean as a Royal Navy ship waits, bunting and fireworks over a harbour city, triumphant, no text",
+      "endgame_cwth_lose": "Sombre painting, {style}: an empty launch pad at Woomera at dusk on the red desert plain, a lowered dark blue flag, no text, no numbers"
     }
   },
   "spaceport": {
@@ -134,13 +166,18 @@
       "ussr": {
         "background_spring": "Baikonur on the Kazakh steppe in spring: a wide pale blue sky, flat green-brown steppe to the horizon, dusty tracks",
         "background_fall": "Baikonur on the Kazakh steppe in autumn: a washed-out grey sky, flat dry yellow-brown steppe to the horizon, dusty tracks, cold light"
+      },
+      "cwth": {
+        "background_spring": "The empty South Australian outback: a wide pale blue sky, a flat red-brown gibber plain dotted with grey-green saltbush, a white dry salt lake shimmering on the horizon, straight dirt roads, untouched wilderness",
+        "background_fall": "Woomera rocket range in the South Australian outback in dry season light"
       }
     },
     "cutout_prompt": "Flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean geometric shapes, no outlines, limited muted palette. {desc}, at a {nationality} space centre of the 1960s{flavour}, seen from the front at a slightly elevated three-quarter view, the whole structure visible and centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
     "cutout_negative": "sky, clouds, horizon, landscape, trees, road, people, cars, text, label, sign, number, caption, logo",
     "flavour": {
       "usa": ", clean white 1960s American modernist style",
-      "ussr": ", Soviet grey concrete style with a small red star"
+      "ussr": ", Soviet grey concrete style with a small red star",
+      "cwth": ", functional 1960s British style in pale concrete and corrugated steel with a small blue and gold roundel"
     },
     "descriptions": {
       "administration": "A low two-storey office block with long rows of windows and a small entrance canopy",
@@ -175,7 +212,8 @@
     },
     "flag_of": {
       "usa": "the United States",
-      "ussr": "the Soviet Union"
+      "ussr": "the Soviet Union",
+      "cwth": "the Commonwealth: a dark blue ensign with the British Union Jack in the upper left corner and a gold sunburst around a gold globe on the right half"
     },
     "background_size": [
       1920,
@@ -208,7 +246,8 @@
       "emblem_ussr": "A round space programme emblem for a fictional Soviet space agency: a silver rocket rising past a red star over a globe with a golden orbit ring, red and gold",
       "intel_usa": "A round seal for a fictional American intelligence agency: an eagle head in profile over a compass rose, navy blue and gold",
       "intel_ussr": "A round seal for a fictional Soviet intelligence service: a shield with a sword behind it and a red star on top, red and gold and dark grey",
-      "app_icon": "A square app icon with rounded corners: a white rocket climbing diagonally past a crescent moon on a deep navy sky with three small stars, bold and simple, readable when tiny"
+      "app_icon": "A square app icon with rounded corners: a white rocket climbing diagonally past a crescent moon on a deep navy sky with three small stars, bold and simple, readable when tiny",
+      "intel_cwth": "A round badge for a fictional Commonwealth intelligence bureau: a gold lion's head in profile over a compass rose and a key, inside a plain smooth unlettered border ring, dark navy blue and gold, no text, no letters, no numbers"
     },
     "chroma_key": [
       0,
@@ -226,20 +265,26 @@
     "output": 256,
     "colours": {
       "usa": "navy blue, white and red with gold thread",
-      "ussr": "red, gold and black with silver thread"
+      "ussr": "red, gold and black with silver thread",
+      "cwth": "dark navy, royal blue and gold with white and red thread"
     },
     "chroma_key": [
       0,
       255,
       0
     ],
+    "prompt_side": {
+      "cwth": "An embroidered cloth badge in the style of a 1960s Royal Air Force station badge, flat vector illustration, soft two-tone cel shading: a dark navy badge with a stitched royal blue edge, topped by a gold and red royal crown with white pearls, below it a royal blue ring edged in gold thread around a white disc, a halo of short gold rays radiating around the ring, a blank gold scroll ribbon across the bottom; inside the white disc, {motif}. Limited palette of {colours}. Centred, isolated in front of a plain solid flat bright green chroma key background #00FF00."
+    },
     "negative_side": {
       "usa": "Soviet flag, hammer and sickle, red star",
-      "ussr": "American flag, stars and stripes, United States flag, bald eagle"
+      "ussr": "American flag, stars and stripes, United States flag, bald eagle",
+      "cwth": "American flag, stars and stripes, Soviet flag, hammer and sickle, red star"
     },
     "flag_motif": {
       "usa": "a small American stars-and-stripes flag",
-      "ussr": "a small Soviet red flag with a gold hammer and sickle"
+      "ussr": "a small Soviet red flag with a gold hammer and sickle",
+      "cwth": ""
     }
   },
   "vignettes": {
