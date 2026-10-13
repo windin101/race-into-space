@@ -692,7 +692,17 @@ func setup(args: Dictionary) -> void:
 		_continue_btn.visible = true
 		_skip_btn.visible = false
 		return
-	call_deferred("_play_all")
+	# Play only once this screen is actually showing, never while hidden under others.
+	if is_visible_in_tree():
+		call_deferred("_play_all")
+	else:
+		visibility_changed.connect(_start_when_visible)
+
+
+func _start_when_visible() -> void:
+	if is_visible_in_tree() and not _playing:
+		visibility_changed.disconnect(_start_when_visible)
+		call_deferred("_play_all")
 
 
 func handles_back() -> bool:

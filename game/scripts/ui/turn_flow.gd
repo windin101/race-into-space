@@ -11,29 +11,51 @@ const ANNUAL_REVIEW := "res://scenes/turn/annual_review.tscn"
 const END_GAME := "res://scenes/turn/end_game.tscn"
 
 
+static var pending_cards: Array = []
+
+
 static func after_end_turn(report: Dictionary) -> void:
 	var state := Session.state()
 	if state == null:
 		return
-	# Firsts, ours and the rival's, arrive as story cards, one at a time, before the
-	# season's screens.
-	for card in firsts_for(report, state, Session.me().index, Session.human_side):
-		var tree := Engine.get_main_loop() as SceneTree
+	# Firsts, ours and the rival's, are announced on story cards once the player has seen
+	# the launches: Launch Results shows them as it closes (show_pending_cards), so the
+	# playback is never spoiled.
+	pending_cards = firsts_for(report, state, Session.me().index, Session.human_side)
+	await after_end_turn_screens_only(report)
+
+
+## Show the season's story cards, one at a time, then forget them.
+static func show_pending_cards() -> void:
+	var cards := pending_cards
+	pending_cards = []
+	var tree := Engine.get_main_loop() as SceneTree
+	for card in cards:
 		if tree == null:
 			break
 		await StoryCard.show_card(tree.root, card["title"], card["text"], card["picture"], card.get("side", Session.human_side))
+
+
+## Push the season's screens (no story cards). Split out so it can be tested.
+static func after_end_turn_screens_only(report: Dictionary) -> void:
+	var state := Session.state()
+	if state == null:
+		return
+	# The season's screens in the order the player sees them: the launches play out, then
+	# their results, then the new season's newscast and, at the turn of the year, the
+	# review (or the end of the game).
 	var chain: Array = []
+	if not report.get("launches", []).is_empty():
+		if not Settings.skip_launch_animation:
+			chain.append([PLAYBACK, {"report": report}])
+		chain.append([LAUNCH_RESULTS, {"report": report}])
 	if state.ended:
 		chain.append([END_GAME, {"report": report}])
 	else:
 		chain.append([NEWSCAST, {}])
 		if SimCalendar.is_review_time(state) and not Session.me().reviews.is_empty():
 			chain.append([ANNUAL_REVIEW, {"review": Session.me().reviews.back()}])
-	if not report.get("launches", []).is_empty():
-		chain.append([LAUNCH_RESULTS, {"report": report}])
-		if not Settings.skip_launch_animation:
-			chain.append([PLAYBACK, {"report": report}])
-	# Push bottom-up: the last element is shown first.
+	# The stack shows its top first, so push the last-seen screen first.
 	chain.reverse()
 	for entry in chain:
 		_push_if_exists(entry[0], entry[1])

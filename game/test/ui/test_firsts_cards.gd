@@ -45,3 +45,33 @@ func test_story_card_is_above_the_screens() -> void:
 	assert_int((layer as CanvasLayer).layer).is_greater(Screens.layer)
 	card.emit_signal("closed")
 	await await_idle_frame()
+
+
+## After a season with launches the player watches the playback first, then the results,
+## then the newscast; the playback must not run hidden under the others.
+func test_season_screens_open_with_the_playback() -> void:
+	var report := _season_with_rival_first()
+	Screens.reset(load("res://scenes/spaceport/spaceport.tscn"))
+	var was_skip := Settings.skip_launch_animation
+	Settings.skip_launch_animation = false
+	await TurnFlow.after_end_turn_screens_only(report)
+	Settings.skip_launch_animation = was_skip
+	var order: Array = []
+	for s in Screens.stack:
+		order.append(s.scene_file_path.get_file().get_basename())
+	assert_str(order.back()).is_equal("mission_playback")
+	assert_int(order.find("launch_results")).is_equal(order.size() - 2)
+	assert_bool(order.find("newscast") < order.find("launch_results")).is_true()
+	Screens.go_home()
+
+
+func test_firsts_wait_for_the_results_screen() -> void:
+	var report := _season_with_rival_first()
+	Screens.reset(load("res://scenes/spaceport/spaceport.tscn"))
+	TurnFlow.after_end_turn(report)
+	await await_idle_frame()
+	# No card is on screen yet; it waits until Launch Results closes.
+	assert_int(get_tree().root.find_children("*", "StoryCard", true, false).size()).is_equal(0)
+	assert_int(TurnFlow.pending_cards.size()).is_greater(0)
+	TurnFlow.pending_cards = []
+	Screens.go_home()

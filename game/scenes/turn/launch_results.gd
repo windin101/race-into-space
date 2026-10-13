@@ -81,7 +81,10 @@ func _ready() -> void:
 	go.custom_minimum_size = Vector2(170, 40)
 	UiAction.style(go, "go", "Continue")
 	go.tooltip_text = "On to the season's news"
-	go.pressed.connect(func(): Screens.pop())
+	go.pressed.connect(func():
+		go.disabled = true
+		await TurnFlow.show_pending_cards()
+		Screens.pop())
 	footer.add_child(go)
 	_refresh()
 
