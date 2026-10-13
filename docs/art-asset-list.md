@@ -201,3 +201,11 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   `mission_playback.gd` sits over it). The big screen plays the vignette; the four small
   monitors show the payload and booster icons, the crew portraits and a ground-track plot,
   all tinted with scanlines in code. Nothing in the painting needs to line up with a rect.
+- Spaceport layout: `tools/spaceport_layout.py` places every building per side on its
+  painting. It masks roads, tracks, water, sky, the foreground and the UI bars, starts each
+  building at a hand-made site plan (INTENT in the script), nudges it to clear ground near a
+  road, sizes it by depth from the horizon, and takes its height from the cutout's own
+  aspect so the click box and the drawing agree. Output is the `sides` block of
+  `data/ui/spaceport_layout.json`. Run it after repainting a background or a cutout.
+- Autumn backgrounds are `tools/season_grade.py` colour grades of the spring paintings, so
+  both seasons share one composition and one layout. Never generate them separately.

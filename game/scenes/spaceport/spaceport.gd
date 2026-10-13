@@ -6,6 +6,7 @@ extends Control
 const PLACEHOLDER_PANEL := "res://scripts/ui/widgets/placeholder_panel.gd"
 
 var _layout: Dictionary
+var _buildings: Array = []      ## this side's buildings: layout entries with its own boxes
 var _buttons: Dictionary = {}
 var _hud: Label
 var _top_bar: PanelContainer
@@ -21,6 +22,7 @@ var _sky: ColorRect
 func _ready() -> void:
 	set_anchors_preset(Control.PRESET_FULL_RECT)
 	_layout = GameData.ui_layout.get("spaceport", {})
+	_buildings = side_buildings(_layout, _side())
 	_build_backdrop()
 	_build_buildings()
 	_build_hud()
@@ -43,7 +45,7 @@ func _build_backdrop() -> void:
 func _paint() -> void:
 	var me := Session.me() if Session.has_game() else null
 	var buildings: Array = []
-	for b in _layout.get("buildings", []):
+	for b in _buildings:
 		var entry: Dictionary = b.duplicate()
 		var btn: Button = _buttons.get(b["id"])
 		entry["built"] = btn == null or btn.visible
@@ -53,15 +55,29 @@ func _paint() -> void:
 	SpaceportArt.paint(_sky, _sky.size, _side(), buildings, pads, season)
 
 
+## The layout's building list with this side's placements (from tools/spaceport_layout.py,
+## fitted to the painting) laid over the shared defaults. Marked "fitted" so the painter
+## draws each cutout exactly into its box.
+static func side_buildings(layout: Dictionary, side: String) -> Array:
+	var placed: Dictionary = layout.get("sides", {}).get(side, {}).get("buildings", {})
+	var out: Array = []
+	for b in layout.get("buildings", []):
+		var entry: Dictionary = b.duplicate()
+		if placed.has(b["id"]):
+			for k in ["x", "y", "w", "h"]:
+				entry[k] = float(placed[b["id"]][k])
+			entry["fitted"] = true
+		out.append(entry)
+	return out
+
+
 func _build_buildings() -> void:
-	for b in _layout.get("buildings", []):
+	for b in _buildings:
 		var btn := Button.new()
-		btn.text = b["title"]
 		btn.name = b["id"]
 		_style_hotspot(btn)
-		btn.clip_text = true
-		btn.text_overrun_behavior = TextServer.OVERRUN_TRIM_ELLIPSIS
 		_place(btn, b)
+		_add_tag(btn, b["title"])
 		btn.pressed.connect(_on_building.bind(b))
 		if b.has("help"):
 			UiHelp.attach(btn, b["help"])
@@ -69,9 +85,9 @@ func _build_buildings() -> void:
 		_buttons[b["id"]] = btn
 	var f: Dictionary = _layout.get("flag", {"x": 0.9, "y": 0.1, "w": 0.07, "h": 0.14})
 	_flag = Button.new()
-	_flag.text = "End\nTurn"
 	_style_hotspot(_flag)
 	_place(_flag, f)
+	_add_tag(_flag, "End season")
 	_flag.pressed.connect(_on_end_turn)
 	add_child(_flag)
 
@@ -84,11 +100,46 @@ static func _style_hotspot(btn: Button) -> void:
 	btn.add_theme_color_override("font_pressed_color", UiPalette.BG_DEEP)
 	btn.add_theme_color_override("font_disabled_color", Color(UiPalette.BG_DEEP, 0.45))
 	btn.add_theme_stylebox_override("normal", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
-	btn.add_theme_stylebox_override("hover", UiTheme.flat(Color(1, 1, 1, 0.25), UiPalette.GOLD, 4, 2))
-	btn.add_theme_stylebox_override("pressed", UiTheme.flat(Color(1, 1, 1, 0.4), UiPalette.GOLD, 4, 2))
+	btn.add_theme_stylebox_override("hover", UiTheme.flat(Color(1, 1, 1, 0.08), Color(UiPalette.GOLD, 0.8), 6, 2))
+	btn.add_theme_stylebox_override("pressed", UiTheme.flat(Color(1, 1, 1, 0.18), UiPalette.GOLD, 6, 2))
 	btn.add_theme_stylebox_override("focus", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
 	btn.add_theme_stylebox_override("disabled", UiTheme.flat(Color(1, 1, 1, 0.0), Color(1, 1, 1, 0.0), 4, 0))
 	btn.add_theme_font_override("font", load(UiTheme.FONT_BODY_BOLD))
+
+
+## A building's name sits on a small plate centred just under its base, never over the
+## painting of the building and never truncated. It is a child of the hotspot, so it hides
+## with it, and it lights up when the hotspot is hovered.
+static func _add_tag(btn: Button, text: String) -> void:
+	btn.clip_contents = false
+	var plate := PanelContainer.new()
+	plate.name = "Tag"
+	plate.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var sb := UiTheme.flat(Color(UiPalette.BG_DEEP, 0.72), Color(1, 1, 1, 0.0), 4, 0)
+	sb.content_margin_left = 8
+	sb.content_margin_right = 8
+	sb.content_margin_top = 1
+	sb.content_margin_bottom = 2
+	plate.add_theme_stylebox_override("panel", sb)
+	var l := Label.new()
+	l.text = text
+	l.add_theme_font_override("font", UiTheme.font(UiTheme.FONT_BODY_SEMIBOLD))
+	l.add_theme_font_size_override("font_size", UiTheme.SIZE_SMALL)
+	l.add_theme_color_override("font_color", UiPalette.TEXT)
+	plate.add_child(l)
+	btn.add_child(plate)
+	plate.set_anchors_preset(Control.PRESET_CENTER_BOTTOM)
+	plate.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	plate.offset_top = 2
+	btn.mouse_entered.connect(func(): l.add_theme_color_override("font_color", UiPalette.GOLD))
+	btn.mouse_exited.connect(func(): l.add_theme_color_override("font_color", UiPalette.TEXT))
+	btn.tooltip_text = text if btn.tooltip_text == "" else btn.tooltip_text
+
+
+static func _set_tag(btn: Button, text: String) -> void:
+	var plate := btn.get_node_or_null("Tag")
+	if plate:
+		(plate.get_child(0) as Label).text = text
 
 
 ## Anchor a control to a fractional rectangle of the canvas.
@@ -155,9 +206,10 @@ func _refresh() -> void:
 	for i in 3:
 		var btn: Button = _buttons.get("pad_%d" % (i + 1))
 		if btn:
-			btn.text = "Launch Pad %d" % (i + 1) if me.pads[i] <= 0 else "Pad %d (damaged)" % (i + 1)
+			var label := "Launch Pad %d" % (i + 1) if me.pads[i] <= 0 else "Pad %d (damaged)" % (i + 1)
 			if me.pads[i] == SimPlayer.PAD_NONE:
-				btn.text = "Pad %d site" % (i + 1)
+				label = "Pad %d site" % (i + 1)
+			_set_tag(btn, label)
 	# Buildings appear as the programme grows, as on the original spaceport.
 	var any_program := me.owned_programs().size() > 1          # photo recon is pre-owned
 	var any_manned := false

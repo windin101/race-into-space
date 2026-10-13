@@ -50,7 +50,19 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 				if layer == null:
 					layer = ArtAssets.spaceport_layer(side, "plot")
 			if layer != null:
-				_draw_layer(c, layer, r, size)
+				if b.get("fitted", false):
+					# Exact for the art the box was solved for; any other state's art (a pad
+					# site, a damaged pad) keeps its own shape, standing on the same base.
+					var ts := layer.get_size()
+					var sc := minf(r.size.x / ts.x, r.size.y / ts.y)
+					var d := ts * sc
+					if id.begins_with("pad_"):
+						var pi := int(id.substr(4)) - 1
+						if pi < pads_state.size() and pads_state[pi] == -1:
+							d *= 0.62          # a bare site reads smaller than a built pad
+					c.draw_texture_rect(layer, Rect2(Vector2(r.position.x + (r.size.x - d.x) * 0.5, r.end.y - d.y), d), false)
+				else:
+					_draw_layer(c, layer, r, size)
 			elif id.begins_with("pad_"):
 				var idx2 := int(id.substr(4)) - 1
 				_pad(c, r, pads_state[idx2] if idx2 < pads_state.size() else -1, side)
