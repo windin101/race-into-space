@@ -6,6 +6,9 @@ implementations are `game/scenes/research/research.gd`,
 `game/scenes/astronauts/astronaut_complex.gd`, `game/scenes/vab/vehicle_assembly.gd`
 and `game/scenes/playback/mission_playback.gd`; copy their idioms rather than inventing new ones.
 
+The frame, components, typography and colour rules are governed by `ui-style-guide.md`;
+this file records the per-screen structures.
+
 ## What stays fixed
 
 - The simulation API and every command path (SimHardware, SimPersonnel, SimPlanner,
