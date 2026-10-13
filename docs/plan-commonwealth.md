@@ -32,9 +32,11 @@ balance.
 
 Recommended answers below; the ones marked **(decide)** need your call.
 
-1. **Who plays.** New Game offers any two of the three sides, or all three. The human
-   picks one; the others are AI. Hot-seat for three humans comes with Phase 8's hot-seat
-   work. **(decide: allow 2-of-3 as well as 3-way, or 3-way only)**
+1. **Who plays (decided 2026-10-13).** New Game asks how many sides race (2 or 3) and
+   which ones, then which of them the player controls; the rest are AI. The picker is
+   built from the side registry, so it lists every faction installed, and the limits
+   (minimum 2, maximum = sides available, capped at 3 for now by the screen layouts) live
+   in data, not code. Hot-seat for several humans comes with Phase 8's hot-seat work.
 2. **Prestige with three sides.** First claim pays `first`, second pays `second`, a third
    side pays the row's trickle value (the amount already paid for repeat successes). No
    new numbers are invented. **(decide)**
@@ -53,6 +55,34 @@ Recommended answers below; the ones marked **(decide)** need your call.
 6. **Spaceport.** Woomera: red desert, gibber plain, saltbush, a dry lake on the horizon.
    It's the southern hemisphere, so in-game spring is painted with autumn light. Same
    layout solver and seasonal colour grade as the Cape and Baikonur.
+
+## 2a. Built to take more factions later (decided 2026-10-13)
+
+The core work is done so that a fourth side, say the European Space Research
+Organisation or Japan, is added with data and art and **no code changes**:
+
+- **One registry, `data/sides.json`.** Each side lists its id, display names, adjective,
+  accent and room-tint colours, flight-suit colour, spaceport name, agency and reviewer
+  titles, music keys, and which emblem, flag and art folders it uses. Code never names a
+  side; it asks the registry.
+- **Per-side data is keyed by side id** in the existing files (`hardware.json`,
+  `roster.json`, `new_game.json`, `review.json`, `event_effects.json`, the text decks).
+  A missing entry is a load-time error that names the side and the file, not a crash
+  mid-game.
+- **Per-side art lives in `assets/art/<kind>/<side>/`** and every art tool takes the side
+  list from the registry: portraits, hardware, patches, spaceport, rooms, emblems.
+- **No pairwise logic.** Rules work over "all sides" and "the other sides": firsts pay
+  first, second, then the trickle for everyone after; Intelligence has a tab per rival;
+  graphs and the Museum add a series or column per side.
+- **Layouts with headroom.** Screens that show every side (New Game, Museum, Budget,
+  results) are laid out for up to four sides even though three is the current cap, so
+  raising the cap is a data change.
+- **A test that adds a fake fourth side** (`test_sides_extensible.gd`): a minimal side
+  defined only in test data must start a game, play twenty seasons with the AI and save
+  and load. That keeps the promise honest as the code changes.
+
+A short "Adding a faction" checklist goes into `docs/` at the end of Phase A: the
+registry entry, the data blocks, the art folders and which tool generates each.
 
 ## 3. Hardware: slot by slot
 
@@ -98,9 +128,10 @@ when a lunar-orbit probe mission flies.
   side", intel estimates, AI threat checks.
 - Win and dismissal logic for N sides (decision 3). Prestige ledger gains a third place
   (decision 2).
-- A `Sides` registry (`data/sides.json`): id, name, short name, accent colour, room
-  tint, adjective, spaceport title, agency name, reviewer offices, music keys. Replaces
-  the `"usa"`/`"ussr"` literals and the hard-coded colour pairs in `UiPalette`.
+- The `Sides` registry from section 2a, replacing the `"usa"`/`"ussr"` literals and the
+  hard-coded colour pairs in `UiPalette`.
+- New Game: choose 2 or 3 sides, which ones, and which one you play (decision 1).
+- The fake-fourth-side test from section 2a.
 - Saves gain a version number; an old two-player save loads unchanged.
 - **Gate:** the full test suite passes, and seeded two-player simulation runs produce
   identical results to today (same launches, prestige and winner over 20 seeds). That
@@ -143,7 +174,7 @@ in total, run in the background.
 
 ### Phase D: interface for three sides
 
-- New Game: three-way side picker with flags and emblems, and the 2-of-3 or 3-way choice.
+- New Game styling for the side picker: flags, emblems and each side's spaceport as a thumbnail.
 - Top bar: prestige for every rival on race screens. Budget graphs: one line per side.
 - Intelligence: a tab per rival.
 - Museum: firsts and records with a column per side.
