@@ -15,7 +15,8 @@ static func after_end_turn(report: Dictionary) -> void:
 	var state := Session.state()
 	if state == null:
 		return
-	# Firsts arrive as story cards, one at a time, before the season's screens.
+	# Firsts, ours and the rival's, arrive as story cards, one at a time, before the
+	# season's screens.
 	for card in firsts_for(report, state, Session.me().index, Session.human_side):
 		var tree := Engine.get_main_loop() as SceneTree
 		if tree == null:
@@ -38,35 +39,49 @@ static func after_end_turn(report: Dictionary) -> void:
 		_push_if_exists(entry[0], entry[1])
 
 
-## Story cards for the prestige firsts `player` claimed in an end-turn report, in flight
-## order: [{title, text, picture}].
+## Story cards for every prestige first in an end-turn report, one card per flight in
+## flight order: the human's own firsts as a celebration, the rival's as a news report
+## (a first the rival takes is lost to us, so it must never pass unnoticed).
+## Returns [{title, text, picture, rival}]. `player` and `side` are the human's.
 static func firsts_for(report: Dictionary, state: SimState, player: int, side: String) -> Array:
 	var cards: Array = []
 	for result in report.get("launches", []):
-		if int(result.get("player", -1)) != player:
+		var flier := int(result.get("player", -1))
+		var flier_side := "usa" if flier == 0 else "ussr"
+		var rival := flier != player
+		var titles: PackedStringArray = []
+		var points := 0
+		for aw in result.get("prestige", {}).get("awards", []):
+			if aw.get("kind", "") != "first":
+				continue
+			var row: int = int(aw.get("row", -1))
+			if row >= 0 and row < state.data.prestige.size():
+				titles.append(str(state.data.prestige[row].get("title", "")).to_lower())
+			points += int(aw.get("points", 0))
+		if titles.is_empty():
 			continue
-		var awards: Array = result.get("prestige", {}).get("awards", [])
 		var mi: int = int(result.get("mission_index", -1))
 		var mission_name := ""
 		if mi >= 0 and mi < state.data.missions.size():
 			mission_name = PlaybackScript.mission_title(state.data.missions[mi]["name"])
-		for aw in awards:
-			if aw.get("kind", "") != "first":
-				continue
-			var row: int = int(aw.get("row", -1))
-			var row_title := ""
-			if row >= 0 and row < state.data.prestige.size():
-				row_title = str(state.data.prestige[row].get("title", ""))
-			var name := mission_name if mission_name != "" else row_title
-			var text := "%s claims the first %s in history and gains %d prestige." % [
-				"The United States" if side == "usa" else "The Soviet Union",
-				row_title.to_lower() if row_title != "" else "milestone", int(aw.get("points", 0))]
-			# The Moon-landing celebration only for lunar landings; other firsts use the key art.
-			var landing := mi >= 0 and "LANDING" in str(state.data.missions[mi].get("name", "")).to_upper() and int(state.data.missions[mi].get("lunar", 0)) == 1
-			var pic: Texture2D = ArtAssets.backdrop("endgame_%s_win" % side if landing else "title")
-			if pic == null and mi >= 0:
-				pic = ArtAssets.patch(side, mi)
-			cards.append({"title": "First: " + name, "text": text, "picture": pic})
+		var nation := "The United States" if flier_side == "usa" else "The Soviet Union"
+		var listed := titles[0] if titles.size() == 1 else ", ".join(titles.slice(0, titles.size() - 1)) + " and " + titles[-1]
+		var title: String
+		var text: String
+		if rival:
+			title = "%s first: %s" % ["American" if flier_side == "usa" else "Soviet", mission_name]
+			text = "%s %s. %s claims the first %s in history and gains %d prestige. The record is lost to us; the race goes on." % [
+				"Washington announces" if flier_side == "usa" else "Radio Moscow announces",
+				"a successful %s" % mission_name.to_lower(), nation, listed, points]
+		else:
+			title = "First: " + mission_name
+			text = "%s claims the first %s in history and gains %d prestige." % [nation, listed, points]
+		# The Moon-landing celebration only for our own lunar landings; else the key art.
+		var landing := mi >= 0 and "LANDING" in str(state.data.missions[mi].get("name", "")).to_upper() and int(state.data.missions[mi].get("lunar", 0)) == 1
+		var pic: Texture2D = ArtAssets.backdrop("endgame_%s_win" % side if landing and not rival else "title")
+		if pic == null and mi >= 0:
+			pic = ArtAssets.patch(flier_side, mi)
+		cards.append({"title": title, "text": text, "picture": pic, "rival": rival})
 	return cards
 
 
