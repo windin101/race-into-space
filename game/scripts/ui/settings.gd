@@ -15,6 +15,10 @@ var music_volume := 0.8
 var sfx_volume := 1.0
 var animation_speed := 1.0     ## 0.5 .. 3.0, multiplies mission playback speed
 var skip_launch_animation := false
+## "ours" (the bundled soundtrack) or "original" (the player's own copy of the original
+## game's music, read from original_music_dir at runtime; never bundled).
+var music_source := "ours"
+var original_music_dir := ""
 
 
 func _ready() -> void:
@@ -34,6 +38,8 @@ func load_settings() -> void:
 	sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
 	animation_speed = cfg.get_value("game", "animation_speed", animation_speed)
 	skip_launch_animation = cfg.get_value("game", "skip_launch_animation", skip_launch_animation)
+	music_source = cfg.get_value("audio", "music_source", music_source)
+	original_music_dir = cfg.get_value("audio", "original_music_dir", original_music_dir)
 
 
 func save_settings() -> void:
@@ -46,6 +52,8 @@ func save_settings() -> void:
 	cfg.set_value("audio", "sfx", sfx_volume)
 	cfg.set_value("game", "animation_speed", animation_speed)
 	cfg.set_value("game", "skip_launch_animation", skip_launch_animation)
+	cfg.set_value("audio", "music_source", music_source)
+	cfg.set_value("audio", "original_music_dir", original_music_dir)
 	cfg.save(PATH)
 
 

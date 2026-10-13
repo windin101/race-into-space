@@ -209,3 +209,14 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   `data/ui/spaceport_layout.json`. Run it after repainting a background or a cutout.
 - Autumn backgrounds are `tools/season_grade.py` colour grades of the spring paintings, so
   both seasons share one composition and one layout. Never generate them separately.
+
+## Original game music (optional, player-supplied)
+
+Settings → Sound → Soundtrack can switch to the original game's music when the player
+points it at a folder holding their own copy (the open-source port's 31 tracks:
+theme, usport2, svport2, assembly, r&d, hardware, missplan, intellig, asttrng, pres,
+liftoff, success, unsucc, victory, ...; any case; .ogg, .mp3 or .wav). The files are read
+from that folder at runtime by `scripts/ui/music_library.gd` and are never copied into the
+project, an export or this repository. `data/audio/music_map.json` says which track plays
+on each screen and launch outcome for both soundtracks; a track missing from the folder
+falls back to ours.

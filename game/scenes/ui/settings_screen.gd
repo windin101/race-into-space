@@ -49,6 +49,7 @@ func _ready() -> void:
 		Settings.sfx_volume = v
 		Settings.apply()
 		Settings.save_settings(), "%.0f%%", 100.0), "Volume of sound effects")
+	_build_music_source(sound)
 	_row(playback, "Speed", _slider(0.5, 3.0, 0.25, Settings.animation_speed, func(v):
 		Settings.animation_speed = v
 		Settings.save_settings(), "%.2fx"), "How fast mission playback runs; 1x holds each step long enough to follow")
@@ -117,3 +118,85 @@ func _slider(lo: float, hi: float, step: float, value: float, on_change: Callabl
 	h.add_child(s)
 	h.add_child(v)
 	return h
+
+
+# ----------------------------------------------------------------- music source
+
+var _source_opt: OptionButton
+var _folder_btn: Button
+var _music_status: Label
+
+
+## Soundtrack choice: ours, or the original game's music from the player's own folder.
+## The files are read where they are; nothing is copied into the game.
+func _build_music_source(grid: GridContainer) -> void:
+	_source_opt = OptionButton.new()
+	_source_opt.add_item("Race Into Space soundtrack")
+	_source_opt.add_item("Original game music")
+	_source_opt.selected = 1 if Settings.music_source == "original" else 0
+	_source_opt.item_selected.connect(func(i):
+		if i == 1 and Settings.original_music_dir == "":
+			_pick_folder()
+			return
+		_set_source("original" if i == 1 else "ours"))
+	_row(grid, "Soundtrack", _source_opt, "Use the bundled soundtrack, or the original 1993 game's music from your own copy")
+	_folder_btn = Button.new()
+	_folder_btn.text = "CHOOSE FOLDER"
+	_folder_btn.theme_type_variation = "Bar"
+	_folder_btn.tooltip_text = "The folder holding the original music files (theme.ogg, usport2.ogg, assembly.ogg and so on)"
+	_folder_btn.pressed.connect(_pick_folder)
+	_row(grid, "Music folder", _folder_btn, "Where your copy of the original music lives")
+	_music_status = Label.new()
+	_music_status.theme_type_variation = "Small"
+	_music_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	_music_status.custom_minimum_size.x = 300
+	_row(grid, "", _music_status, "")
+	_refresh_music_status()
+
+
+func _pick_folder() -> void:
+	var dlg := FileDialog.new()
+	dlg.file_mode = FileDialog.FILE_MODE_OPEN_DIR
+	dlg.access = FileDialog.ACCESS_FILESYSTEM
+	dlg.title = "Folder with the original game's music"
+	dlg.use_native_dialog = true
+	if Settings.original_music_dir != "":
+		dlg.current_dir = Settings.original_music_dir
+	add_child(dlg)
+	dlg.dir_selected.connect(func(path: String):
+		Settings.original_music_dir = path
+		_set_source("original")
+		dlg.queue_free())
+	dlg.canceled.connect(func():
+		_source_opt.selected = 1 if Settings.music_source == "original" else 0
+		dlg.queue_free())
+	dlg.popup_centered_ratio(0.6)
+
+
+func _set_source(src: String) -> void:
+	Settings.music_source = src
+	if src == "original" and MusicLibrary.check_folder(Settings.original_music_dir)["found"].is_empty():
+		Settings.music_source = "ours"
+	Settings.save_settings()
+	_source_opt.selected = 1 if Settings.music_source == "original" else 0
+	_refresh_music_status()
+	Sound.refresh_music()
+
+
+func _refresh_music_status() -> void:
+	var dir := Settings.original_music_dir
+	_folder_btn.text = ("FOLDER: " + dir.get_file().to_upper()) if dir != "" else "CHOOSE FOLDER"
+	if dir == "":
+		_music_status.text = "Original music needs your own copy of the files; the game never includes them."
+		return
+	var r := MusicLibrary.check_folder(dir)
+	var total: int = r["found"].size() + r["missing"].size()
+	if r["found"].is_empty():
+		_music_status.text = "No original music found in %s. Using the Race Into Space soundtrack." % dir
+		_music_status.add_theme_color_override("font_color", UiPalette.WARN)
+	elif r["missing"].is_empty():
+		_music_status.text = "All %d original tracks found." % total
+		_music_status.add_theme_color_override("font_color", UiPalette.OK)
+	else:
+		_music_status.text = "%d of %d tracks found; missing ones use our soundtrack: %s." % [r["found"].size(), total, ", ".join(r["missing"])]
+		_music_status.remove_theme_color_override("font_color")

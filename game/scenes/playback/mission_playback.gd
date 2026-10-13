@@ -762,6 +762,7 @@ func _play_launch(launch: Dictionary) -> void:
 				shown = item["index"] + 1
 				if item["step"].get("letter", "") == "A":
 					Sound.sfx("launch", -4.0)
+					Sound.music_for("mission_playback")
 				if not item["step"].get("success", false):
 					Sound.sfx("explosion", -6.0)
 				await _play_step(item["step"])
@@ -771,7 +772,10 @@ func _play_launch(launch: Dictionary) -> void:
 				_append_log(item["step"])
 			"flash", "verdict":
 				if item["kind"] == "verdict":
-					Sound.sfx("success" if item["color"] == UiPalette.OK else "failure")
+					var won: bool = item["color"] == UiPalette.OK
+					Sound.sfx("success" if won else "failure")
+					# With the original music this is its success or failure sting, as in 1993.
+					Sound.music_for("@launch_success" if won else "@launch_failure", false)
 				elif item["kicker"] == "FIRST":
 					Sound.sfx("first")
 				_log.append_text("[color=#%s]%s: %s[/color]\n" % [item["color"].to_html(false), item["headline"], item["body"]])

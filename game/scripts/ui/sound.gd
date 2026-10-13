@@ -57,15 +57,46 @@ func sfx(name: String, volume_db := 0.0) -> void:
 
 ## Crossfade to a music track (file stem under assets/audio/music); same track is a no-op.
 func music(name: String) -> void:
-	if name == _current_track:
+	_play_stream("ours:" + name, _stream(MUSIC_DIR + name + ".ogg"), true)
+
+
+## Play what the music map says for a place or event, from the chosen soundtrack.
+## `loop` false for stings (launch success or failure), which play once.
+func music_for(key: String, loop := true) -> void:
+	var r := MusicLibrary.resolve(key, Settings.music_source, Settings.original_music_dir)
+	match str(r.get("source", "")):
+		"original":
+			var path: String = r["path"]
+			var s: AudioStream = _cache.get(path)
+			if s == null:
+				s = MusicLibrary.load_external(path)
+				_cache[path] = s
+			_play_stream("orig:" + path, s, loop)
+		"ours":
+			_play_stream("ours:" + str(r["stem"]), _stream(MUSIC_DIR + str(r["stem"]) + ".ogg"), loop)
+
+
+## The source changed in Settings: restart whatever the current screen wants.
+func refresh_music() -> void:
+	_current_track = ""
+	MusicLibrary.clear_index()
+	if Screens != null and Screens.current() != null:
+		_on_screen_changed(Screens.current())
+
+
+func _play_stream(track_id: String, s: AudioStream, loop: bool) -> void:
+	if track_id == _current_track:
 		return
-	_current_track = name
-	var s := _stream(MUSIC_DIR + name + ".ogg")
+	_current_track = track_id
 	if s == null:
 		_fade_out(_music)
 		return
 	if s is AudioStreamOggVorbis:
-		s.loop = true
+		s.loop = loop
+	elif s is AudioStreamMP3:
+		s.loop = loop
+	elif s is AudioStreamWAV:
+		s.loop_mode = AudioStreamWAV.LOOP_FORWARD if loop else AudioStreamWAV.LOOP_DISABLED
 	_music_next.stream = s
 	_music_next.volume_db = -40.0
 	_music_next.play()
@@ -93,17 +124,24 @@ func _fade_out(p: AudioStreamPlayer) -> void:
 	tw.tween_callback(p.stop)
 
 
-## Pick music by the screen that just became active.
+## Pick music by the screen that just became active, from the music map.
 func _on_screen_changed(top: Control) -> void:
 	if top == null:
 		return
-	var scene_name := top.scene_file_path.get_file().get_basename() if top.scene_file_path != "" else top.name.to_lower()
-	match scene_name:
-		"title_screen", "new_game_setup":
-			music("title_theme")
-		"mission_playback":
-			music("mission")
-		"spaceport":
-			music("spaceport_day")
-		"end_game":
-			music("title_theme")
+	music_for(screen_key(top))
+
+
+## The music-map key for a screen: its scene name, with side or period variants where the
+## map has them (spaceport_usa, administration_ussr, newscast_late, end_game_lose).
+static func screen_key(top: Control) -> String:
+	var key := top.scene_file_path.get_file().get_basename() if top.scene_file_path != "" else String(top.name).to_lower()
+	var side := Session.human_side if Session.has_game() else "usa"
+	if MusicLibrary.entry("%s_%s" % [key, side]).size() > 0:
+		return "%s_%s" % [key, side]
+	if key == "newscast" and Session.has_game() and Session.state().year >= 65:
+		return "newscast_late"
+	if key == "end_game" and Session.has_game():
+		var st := Session.state()
+		if st.ended and st.winner != Session.me().index:
+			return "end_game_lose"
+	return key
