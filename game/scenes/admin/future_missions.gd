@@ -82,6 +82,7 @@ var _cancel: Button
 ## Diagram of the selected mission: [{letter, vehicle, count, zone, manned}] in flight order.
 var _nodes: Array = []
 var _target := ""          ## "", "moon" or "planet"
+var _planet := "mars"      ## which planet texture a planetary mission draws
 
 
 func _init() -> void:
@@ -722,6 +723,10 @@ func _build_diagram(m: Dictionary, letters: Dictionary) -> void:
 	_nodes = []
 	var code := str(m["code"])
 	_target = "planet" if "Z" in code.split("|")[0] else ("moon" if m["lunar"] == 1 or "J" in code.split("|")[0] else "")
+	_planet = "mars"
+	for p in ["venus", "mars", "mercury", "jupiter", "saturn"]:
+		if p.to_upper() in str(m.get("name", "")).to_upper():
+			_planet = p
 	var manned_by: Array = MANNED_BY_VEHICLE.get(int(m["crew_mode"]), [false, false])
 	var loc := ["earth", "earth"]
 	var landed := [false, false]
@@ -816,10 +821,18 @@ func _layout_nodes(size: Vector2, earth: Vector2, re: float, body: Vector2, rb: 
 					var a1 := 475.0 if _target != "" else 505.0
 					pos = earth + Vector2.from_angle(deg_to_rad(lerpf(a0, a1, t))) * r
 				"target":
-					var r := rb + node_r * 3.0 + v * lane
+					var r := rb + node_r * 3.4 + v * lane
 					pos = body + Vector2.from_angle(deg_to_rad(lerpf(195.0, 505.0, t))) * r
 				"surface":
-					pos = body + Vector2.from_angle(deg_to_rad(lerpf(205.0, 335.0, t))) * rb
+					# Surface steps sit on the face of the body, in a row across its middle.
+					# Evenly spaced by marker size; two rows when one would run off the disc.
+					var gap := node_r * 2.6
+					var per_row := maxi(1, int(rb * 1.7 / gap) + 1)
+					var row := j / per_row
+					var in_row := mini(per_row, n - row * per_row)
+					var col := j - row * per_row
+					var rows := int(ceil(float(n) / per_row))
+					pos = body + Vector2((col - (in_row - 1) / 2.0) * gap, (row - (rows - 1) / 2.0) * gap * 0.95 + rb * 0.1)
 				"out", "back":
 					var tt := (j + 1.0) / (n + 1.0)
 					var outward := zone == "out"
@@ -834,65 +847,134 @@ func _layout_nodes(size: Vector2, earth: Vector2, re: float, body: Vector2, rb: 
 func _draw_diagram() -> void:
 	var c := _diagram
 	var size := c.size
-	c.draw_rect(Rect2(Vector2.ZERO, size), CASE_BG)
-	var side := Session.human_side if Session.has_game() else "usa"
-	for i in range(6, 0, -1):
-		c.draw_circle(size / 2.0, minf(size.x, size.y) * 0.08 * i, Color(UiPalette.accent(side), 0.025))
+	c.draw_rect(Rect2(Vector2.ZERO, size), Color("05080f"))
+	_draw_stars(c, size)
 	var font := c.get_theme_default_font()
+	var caps := UiTheme.font(UiTheme.FONT_LABEL)
 	if _nodes.is_empty():
 		c.draw_string(font, Vector2(0, size.y / 2.0), "No mission selected", HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SUBHEADING, UiPalette.TEXT_MUTED)
 		return
 	var unit := minf(size.x, size.y)
-	var node_r := clampf(unit * 0.032, 10.0, 15.0)
-	var earth := Vector2(size.x * 0.24, size.y * 0.56) if _target != "" else Vector2(size.x * 0.5, size.y * 0.52)
-	var re := unit * (0.13 if _target != "" else 0.14)
-	var body := Vector2(size.x * 0.76, size.y * 0.44)
-	var rb := re * (0.85 if _target == "moon" else 0.5)
-	var pos := _layout_nodes(size, earth, re, body, rb, node_r)
-	# Faint orbit rings, then the path lines (per vehicle, in flight order) behind the bodies.
-	var ring := Color(UiPalette.BORDER_SOFT, 0.8)
-	c.draw_arc(earth, re + node_r * 2.6, 0, TAU, 96, ring, 1.0, true)
-	if _target != "":
-		c.draw_arc(body, rb + node_r * 3.0, 0, TAU, 64, ring, 1.0, true)
-	for v in 2:
-		var last := Vector2.INF
-		for i in _nodes.size():
-			if _nodes[i]["vehicle"] != v:
-				continue
-			if last != Vector2.INF:
-				var col: Color = MANNED_COLOR if _nodes[i]["manned"] else UNMANNED_COLOR
-				c.draw_line(last, pos[i], Color(col, 0.5), 2.0, true)
-			last = pos[i]
-	# Bodies.
-	c.draw_circle(earth, re, EARTH)
-	c.draw_circle(earth + Vector2(-re * 0.3, -re * 0.25), re * 0.38, EARTH_LAND)
-	c.draw_circle(earth + Vector2(re * 0.35, re * 0.3), re * 0.28, EARTH_LAND)
-	c.draw_arc(earth, re, 0, TAU, 64, Color(1, 1, 1, 0.25), 1.5)
-	c.draw_string(font, earth + Vector2(-re, re * 0.72), "EARTH", HORIZONTAL_ALIGNMENT_CENTER, re * 2.0, UiTheme.SIZE_SMALL, Color(1, 1, 1, 0.7))
+	var node_r := clampf(unit * 0.03, 10.0, 14.0)
+	var earth := Vector2(size.x * 0.24, size.y * 0.56) if _target != "" else Vector2(size.x * 0.5, size.y * 0.53)
+	var re := unit * (0.14 if _target != "" else 0.17)
+	var body := Vector2(size.x * 0.77, size.y * 0.42)
+	var rb := re * (0.85 if _target == "moon" else 0.55)
 	if _target == "moon":
-		c.draw_circle(body, rb, MOON)
-		c.draw_circle(body + Vector2(-rb * 0.3, -rb * 0.2), rb * 0.22, MOON_DARK)
-		c.draw_circle(body + Vector2(rb * 0.35, rb * 0.3), rb * 0.16, MOON_DARK)
-		c.draw_string(font, body + Vector2(-rb, rb * 0.62), "MOON", HORIZONTAL_ALIGNMENT_CENTER, rb * 2.0, UiTheme.SIZE_SMALL, Color(0, 0, 0, 0.6))
+		earth = Vector2(size.x * 0.20, size.y * 0.58)
+		re = unit * 0.12
+		body = Vector2(size.x * 0.74, size.y * 0.47)
+		rb = unit * 0.13
+	var pos := _layout_nodes(size, earth, re, body, rb, node_r)
+
+	# Orbit rings: dashed, with a tick every 30 degrees, like a mission profile chart.
+	var ring := Color(0.55, 0.68, 0.9, 0.28)
+	_dashed_ring(c, earth, re + node_r * 2.6, ring)
+	if _target != "":
+		_dashed_ring(c, body, rb + node_r * 3.0, ring)
+
+	# Flight path per vehicle: a smooth curve through the steps, a soft glow under a crisp
+	# line, with chevrons showing the direction of flight.
+	for v in 2:
+		var pts := PackedVector2Array()
+		var manned := false
+		for i in _nodes.size():
+			if _nodes[i]["vehicle"] == v:
+				pts.append(pos[i])
+				manned = manned or _nodes[i]["manned"]
+		if pts.size() < 2:
+			continue
+		var col: Color = MANNED_COLOR if manned else UNMANNED_COLOR
+		var curve := _smooth(pts, 10)
+		c.draw_polyline(curve, Color(col, 0.16), 7.0, true)
+		c.draw_polyline(curve, Color(col, 0.85), 2.0, true)
+		for k in range(5, curve.size() - 5, 20):
+			_chevron(c, curve[k], (curve[k + 1] - curve[k - 1]).normalized(), Color(col, 0.9))
+
+	# Bodies over the paths, so a flight passes behind a planet instead of across its face.
+	for i in range(5, 0, -1):
+		c.draw_circle(earth, re + i * 2.5, Color(0.45, 0.7, 1.0, 0.035))
+	_draw_body(c, "earth", earth, re)
+	c.draw_string(caps, earth + Vector2(-re, re + node_r * 2.6 + 22), "EARTH", HORIZONTAL_ALIGNMENT_CENTER, re * 2.0, UiTheme.SIZE_SMALL, Color(0.75, 0.84, 1.0, 0.8))
+	if _target == "moon":
+		_draw_body(c, "moon", body, rb)
+		c.draw_string(caps, body + Vector2(-rb * 2, rb + node_r * 3.4 + 40), "MOON", HORIZONTAL_ALIGNMENT_CENTER, rb * 4.0, UiTheme.SIZE_SMALL, Color(0.85, 0.85, 0.88, 0.8))
 	elif _target == "planet":
-		c.draw_circle(body, rb, PLANET)
-		c.draw_line(body + Vector2(-rb, rb * 0.15), body + Vector2(rb, rb * 0.15), Color(PLANET.darkened(0.3)), 2.0)
-		c.draw_string(font, body + Vector2(-rb * 3.0, rb + node_r * 3.0 + 40), "PLANET", HORIZONTAL_ALIGNMENT_CENTER, rb * 6.0, UiTheme.SIZE_SMALL, UiPalette.TEXT_MUTED)
-	# Nodes.
+		_draw_body(c, _planet, body, rb * (1.7 if _planet == "saturn" else 1.0))
+		c.draw_string(caps, body + Vector2(-rb * 3, rb + node_r * 3.4 + 40), _planet.to_upper(), HORIZONTAL_ALIGNMENT_CENTER, rb * 6.0, UiTheme.SIZE_SMALL, Color(0.95, 0.85, 0.7, 0.8))
+
+	# Steps: a dark disc with a coloured ring and its number in flight order; the letter
+	# and repeat count beside it.
 	for i in _nodes.size():
 		var n: Dictionary = _nodes[i]
 		var col: Color = MANNED_COLOR if n["manned"] else UNMANNED_COLOR
-		c.draw_circle(pos[i], node_r, CASE_BG)
+		c.draw_circle(pos[i], node_r + 3, Color(col, 0.18))
+		c.draw_circle(pos[i], node_r, Color("0b1322"))
 		c.draw_arc(pos[i], node_r, 0, TAU, 32, col, 2.0, true)
-		c.draw_string(font, pos[i] + Vector2(-node_r, UiTheme.SIZE_SMALL * 0.35), n["letter"], HORIZONTAL_ALIGNMENT_CENTER, node_r * 2.0, UiTheme.SIZE_SMALL, col)
-		if int(n["count"]) > 1:
-			c.draw_string(font, pos[i] + Vector2(node_r * 0.8, node_r * 1.6), "x%d" % n["count"], HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
+		c.draw_string(font, pos[i] + Vector2(-node_r, UiTheme.SIZE_SMALL * 0.36), str(i + 1), HORIZONTAL_ALIGNMENT_CENTER, node_r * 2.0, UiTheme.SIZE_SMALL, Color.WHITE)
+		var tag: String = n["letter"] + ("  x%d" % n["count"] if int(n["count"]) > 1 else "")
+		c.draw_string(caps, pos[i] + Vector2(node_r + 5, -node_r * 0.55), tag, HORIZONTAL_ALIGNMENT_LEFT, -1, 13 if tag.length() > 3 else UiTheme.SIZE_SMALL, Color(col, 0.9))
+
 	# Key.
-	var y := 22.0
-	for entry in [[MANNED_COLOR, "Manned step"], [UNMANNED_COLOR, "Unmanned step"]]:
-		c.draw_circle(Vector2(18, y - 5), 5, entry[0])
-		c.draw_string(font, Vector2(30, y), entry[1], HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SMALL, UiPalette.TEXT_DIM)
-		y += 20.0
+	var y := 24.0
+	for entry in [[MANNED_COLOR, "MANNED"], [UNMANNED_COLOR, "UNMANNED"]]:
+		c.draw_line(Vector2(16, y - 5), Vector2(40, y - 5), entry[0], 2.0, true)
+		c.draw_string(caps, Vector2(48, y), entry[1], HORIZONTAL_ALIGNMENT_LEFT, -1, UiTheme.SIZE_SMALL, Color(1, 1, 1, 0.65))
+		y += 22.0
+
+
+func _draw_body(c: CanvasItem, name: String, centre: Vector2, r: float) -> void:
+	var tex := ArtAssets.texture("diagram/%s.png" % name)
+	if tex == null:
+		c.draw_circle(centre, r, EARTH if name == "earth" else MOON)
+		return
+	c.draw_texture_rect(tex, Rect2(centre - Vector2(r, r), Vector2(r, r) * 2.0), false)
+
+
+## A dashed circle with a small tick every 30 degrees.
+func _dashed_ring(c: CanvasItem, centre: Vector2, r: float, col: Color) -> void:
+	var dashes := 72
+	for i in dashes:
+		if i % 2 == 0:
+			var a0 := TAU * i / dashes
+			c.draw_arc(centre, r, a0, a0 + TAU / dashes, 4, col, 1.2, true)
+	for i in 12:
+		var d := Vector2.from_angle(TAU * i / 12.0)
+		c.draw_line(centre + d * (r - 4), centre + d * (r + 4), col, 1.2, true)
+
+
+func _chevron(c: CanvasItem, at: Vector2, dir: Vector2, col: Color) -> void:
+	if dir == Vector2.ZERO:
+		return
+	var n := Vector2(-dir.y, dir.x)
+	c.draw_polyline(PackedVector2Array([at - dir * 5 + n * 5, at + dir * 3, at - dir * 5 - n * 5]), col, 2.0, true)
+
+
+## Catmull-Rom through the points, `steps` samples per segment.
+static func _smooth(pts: PackedVector2Array, steps: int) -> PackedVector2Array:
+	var out := PackedVector2Array()
+	for i in pts.size() - 1:
+		var p0 := pts[maxi(i - 1, 0)]
+		var p1 := pts[i]
+		var p2 := pts[i + 1]
+		var p3 := pts[mini(i + 2, pts.size() - 1)]
+		for s in steps:
+			var t := float(s) / steps
+			var t2 := t * t
+			var t3 := t2 * t
+			out.append(0.5 * ((2.0 * p1) + (-p0 + p2) * t + (2.0 * p0 - 5.0 * p1 + 4.0 * p2 - p3) * t2 + (-p0 + 3.0 * p1 - 3.0 * p2 + p3) * t3))
+	out.append(pts[pts.size() - 1])
+	return out
+
+
+## A fixed scatter of stars, a few brighter, the same every frame.
+func _draw_stars(c: CanvasItem, size: Vector2) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 1969
+	for i in 140:
+		var p := Vector2(rng.randf() * size.x, rng.randf() * size.y)
+		var b := rng.randf()
+		c.draw_circle(p, 0.7 + b * 1.1, Color(1, 1, 1, 0.15 + b * 0.5))
 
 
 # --- derived view logic (static, tested in test_admin_screens.gd) ---------------------

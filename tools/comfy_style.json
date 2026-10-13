@@ -103,7 +103,7 @@
       1080
     ],
     "prompts": {
-      "title": "Wide painted key art, {style}: a Saturn-class rocket and an R-7 rocket rising on opposite sides of a night sky over a launch complex, the Moon large above, 1957 to 1977 space race, cinematic but flat, no text",
+      "title": "Wide cinematic key art, {style}, rich colour, a deep black starry space scene. Composition: everything sits in the left half and along the bottom; the top right quarter is completely empty plain black starry sky. Left edge: a tall white Saturn-type moon rocket climbing straight up on a long orange flame and billowing white smoke. Top left of centre: a small grey Moon. Lower left of centre: a large astronaut in a white 1960s spacesuit floating towards the viewer, gold visor reflecting orange flame. Bottom half: the huge curved limb of the Earth, blue oceans and white cloud bands, a bright orange and gold sunrise glow along its edge. Lower right: a cone-shaped space capsule with a service module tumbling slowly above the Earth. No text, no letters, no logos",
       "newscast_usa": "Television news studio of 1965, {style}: an empty anchor desk at the left, a world map and clocks behind, broadcast lights, muted colours, no people, no text",
       "newscast_ussr": "Soviet television news studio of 1965, {style}: an empty anchor desk at the left, a map of the USSR and a plain blank red banner with no writing behind, muted colours, no people, no text, no letters",
       "endgame_usa_win": "Celebration painting, {style}: an Apollo capsule and parachutes over an aircraft carrier, ticker tape, 1969, triumphant, no text",
