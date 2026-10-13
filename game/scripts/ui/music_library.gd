@@ -60,17 +60,33 @@ static func clear_index() -> void:
 	_index = {}
 
 
-## {found: [stems], missing: [stems]} for a folder against the map.
+## {found: [stems], missing: [stems]} for a folder against the map. A place counts as
+## covered when any of its candidate names is present, so alternative spellings (r&d / rd,
+## usport2 / usport) are never reported missing when one of them is there.
 static func check_folder(dir_path: String) -> Dictionary:
 	clear_index()
 	var idx := index_folder(dir_path)
 	var found: PackedStringArray = []
 	var missing: PackedStringArray = []
-	for stem in original_tracks():
-		if idx.has(stem.to_lower()):
-			found.append(stem)
-		else:
-			missing.append(stem)
+	for group in ["screens", "events"]:
+		for key in map().get(group, {}):
+			var cands: Array = map()[group][key].get("original", [])
+			if cands.is_empty():
+				continue
+			var hit := ""
+			for stem in cands:
+				if idx.has(str(stem).to_lower()):
+					hit = str(stem)
+					break
+			if hit != "":
+				if not found.has(hit):
+					found.append(hit)
+			elif not missing.has(str(cands[0])):
+				missing.append(str(cands[0]))
+	for stem in found:
+		missing.erase(stem)
+	found.sort()
+	missing.sort()
 	return {"found": found, "missing": missing}
 
 

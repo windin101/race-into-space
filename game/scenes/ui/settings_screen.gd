@@ -44,7 +44,9 @@ func _ready() -> void:
 	_row(sound, "Music", _slider(0.0, 1.0, 0.05, Settings.music_volume, func(v):
 		Settings.music_volume = v
 		Settings.apply()
-		Settings.save_settings(), "%.0f%%", 100.0), "Volume of the music")
+		Settings.save_settings()
+		if _music_status != null:
+			_refresh_music_status(), "%.0f%%", 100.0), "Volume of the music")
 	_row(sound, "Effects", _slider(0.0, 1.0, 0.05, Settings.sfx_volume, func(v):
 		Settings.sfx_volume = v
 		Settings.apply()
@@ -195,8 +197,11 @@ func _refresh_music_status() -> void:
 		_music_status.text = "No original music found in %s. Using the Race Into Space soundtrack." % dir
 		_music_status.add_theme_color_override("font_color", UiPalette.WARN)
 	elif r["missing"].is_empty():
-		_music_status.text = "All %d original tracks found." % total
+		_music_status.text = "All %d original tracks the game uses were found." % total
 		_music_status.add_theme_color_override("font_color", UiPalette.OK)
 	else:
 		_music_status.text = "%d of %d tracks found; missing ones use our soundtrack: %s." % [r["found"].size(), total, ", ".join(r["missing"])]
 		_music_status.remove_theme_color_override("font_color")
+	if Settings.music_volume <= 0.001 and not r["found"].is_empty():
+		_music_status.text += "  Music volume is at 0%: raise the Music slider to hear it."
+		_music_status.add_theme_color_override("font_color", UiPalette.WARN)
