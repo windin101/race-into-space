@@ -103,6 +103,7 @@ MANUAL = {
         "intelligence": (0.7982, 0.7776, 0.1006, 0.1674),
         "runway": (0.7893, 0.4242, 0.2060, 0.2065),
         "flag": (0.7448, 0.6307, 0.0802, 0.1377),
+        "moon": (0.3900, 0.1000, 0.0450, 0.0800),
     },
     "ussr": {
         "pad_1": (0.0073, 0.3916, 0.1158, 0.1579),
@@ -119,6 +120,7 @@ MANUAL = {
         "intelligence": (0.8826, 0.7786, 0.1017, 0.1664),
         "runway": (0.8148, 0.4664, 0.1534, 0.1776),
         "flag": (0.6886, 0.4692, 0.0939, 0.1645),
+        "moon": (0.6200, 0.1300, 0.0450, 0.0800),
     },
     "cwth": {
         "pad_1": (0.5838, 0.3638, 0.1044, 0.1297),
@@ -135,6 +137,7 @@ MANUAL = {
         "intelligence": (0.8977, 0.4813, 0.0935, 0.1250),
         "runway": (0.0000, 0.3703, 0.1608, 0.2332),
         "flag": (0.5692, 0.7211, 0.0919, 0.1576),
+        "moon": (0.3000, 0.1100, 0.0450, 0.0800),
     },
 }
 FRONT_Y = {"usa": 0.93, "ussr": 0.84, "cwth": 0.93}    # below this is foreground (dunes, scrub mound)
@@ -211,6 +214,8 @@ def distance_to(mask: np.ndarray) -> np.ndarray:
 
 
 def cutout_for(side: str, bid: str) -> Image.Image:
+    if bid == "moon":                     # shared with the mission diagrams
+        return Image.open(GAME / "assets" / "art" / "diagram" / "moon.png").convert("RGBA")
     name = "pad_ok" if bid.startswith("pad_") else "building_" + bid
     return Image.open(GAME / "assets" / "art" / "spaceport" / side / f"{name}.png").convert("RGBA")
 

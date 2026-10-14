@@ -41,6 +41,9 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 				continue
 			var r := Rect2(Vector2(b["x"] * size.x, b["y"] * size.y), Vector2(b["w"] * size.x, b["h"] * size.y))
 			var id: String = b["id"]
+			if id == "moon":
+				_moon(c, r)
+				continue
 			var layer: Texture2D = null
 			if id.begins_with("pad_"):
 				var idx := int(id.substr(4)) - 1
@@ -124,6 +127,9 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 			continue
 		var r := Rect2(Vector2(b["x"] * size.x, b["y"] * size.y), Vector2(b["w"] * size.x, b["h"] * size.y))
 		var id: String = b["id"]
+		if id == "moon":
+			_moon(c, r)
+			continue
 		if id.begins_with("pad_"):
 			var idx := int(id.substr(4)) - 1
 			var st: int = pads_state[idx] if idx < pads_state.size() else -1
@@ -133,6 +139,18 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 		else:
 			_plot(c, r)
 	_flag(c, size, side)
+
+
+## The daytime Moon in the sky (the original's Moon overlay): the mission-diagram disc,
+## a little washed out against the blue, as a square centred in its box.
+static func _moon(c: CanvasItem, r: Rect2) -> void:
+	var d := minf(r.size.x, r.size.y)
+	var sq := Rect2(r.get_center() - Vector2(d, d) / 2.0, Vector2(d, d))
+	var tex := ArtAssets.texture("diagram/moon.png")
+	if tex != null:
+		c.draw_texture_rect(tex, sq, false, Color(1, 1, 1, 0.82))
+	else:
+		c.draw_circle(sq.get_center(), d / 2.0, Color(0.92, 0.92, 0.9, 0.8))
 
 
 ## A painted cutout (building, pad, flag) is fitted into its hotspot rectangle; the
