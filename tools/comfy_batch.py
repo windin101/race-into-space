@@ -158,7 +158,9 @@ def spaceport_entries(cfg: dict) -> list[dict]:
     """One job per painted layer: the two season backgrounds, every building in the layout,
     the generic plot, the three pad states and the flag, for each side."""
     layout = json.loads((GAME / "data" / "ui" / "spaceport_layout.json").read_text())["buildings"]
-    ids = [b["id"] for b in layout if not b["id"].startswith("pad_") and b["id"] != "flag"]
+    # Buildings without a description (the Moon, drawn from the diagram art) get no cutout.
+    ids = [b["id"] for b in layout if not b["id"].startswith("pad_") and b["id"] != "flag"
+           and b["id"] in cfg["descriptions"]]
     out = []
     for side in SIDES:
         for layer, scene in cfg["scenes"][side].items():
