@@ -363,6 +363,19 @@ func _draw_gauge_marker() -> void:
 
 # ----------------------------------------------------------------- state
 
+## Opened from the spaceport with {"group", "slot"} (the runway opens the spaceplane):
+## show that group's office with the program selected if it is in service.
+func setup(args: Dictionary) -> void:
+	var g: String = str(args.get("group", ""))
+	if g == "" or not _tabs.has(g):
+		return
+	_set_group(g)
+	if args.has("slot"):
+		for prog in _owned:
+			if prog.slot == int(args["slot"]):
+				_select(prog)
+
+
 func _set_group(g: String) -> void:
 	_group = g
 	for key in _tabs:

@@ -28,13 +28,17 @@ const SHADOW := Color(0, 0, 0, 0.18)
 
 
 ## Paint the whole scene. buildings: Array of layout dicts with x, y, w, h, id, built (bool).
-static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, pads_state: Array, season: int = 0) -> void:
+## flag_box: the side's own flag placement (x, y, w, h fractions, the whole cutout), or
+## empty for the default spot in the sky.
+static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, pads_state: Array, season: int = 0, flag_box: Dictionary = {}) -> void:
 	var usa := side == "usa"
 	# Painted layers from assets/art/spaceport/<side>/ win over the procedural scene.
 	var bg := ArtAssets.spaceport_layer(side, "background_%s" % ("fall" if season == 1 else "spring"))
 	if bg != null:
 		ArtAssets.draw_cover(c, bg, Rect2(Vector2.ZERO, size))
 		for b in buildings:
+			if not b.get("built", true) and b.get("hidden_until_built", false):
+				continue
 			var r := Rect2(Vector2(b["x"] * size.x, b["y"] * size.y), Vector2(b["w"] * size.x, b["h"] * size.y))
 			var id: String = b["id"]
 			var layer: Texture2D = null
@@ -71,7 +75,9 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 			else:
 				_plot(c, r)
 		var flag_tex := ArtAssets.spaceport_layer(side, "flag")
-		if flag_tex != null:
+		if flag_tex != null and not flag_box.is_empty():
+			c.draw_texture_rect(flag_tex, Rect2(flag_box["x"] * size.x, flag_box["y"] * size.y, flag_box["w"] * size.x, flag_box["h"] * size.y), false)
+		elif flag_tex != null:
 			_draw_layer(c, flag_tex, Rect2(size.x * 0.9, size.y * 0.1, size.x * 0.07, size.y * 0.14), size)
 		else:
 			_flag(c, size, side)
@@ -113,9 +119,11 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 	c.draw_line(Vector2(size.x * 0.7, size.y * 0.52), Vector2(size.x * 0.9, size.y * 0.76), ROAD, size.y * 0.01)
 	# Buildings and pads from the layout.
 	for b in buildings:
+		var built: bool = b.get("built", true)
+		if not built and b.get("hidden_until_built", false):
+			continue
 		var r := Rect2(Vector2(b["x"] * size.x, b["y"] * size.y), Vector2(b["w"] * size.x, b["h"] * size.y))
 		var id: String = b["id"]
-		var built: bool = b.get("built", true)
 		if id.begins_with("pad_"):
 			var idx := int(id.substr(4)) - 1
 			var st: int = pads_state[idx] if idx < pads_state.size() else -1

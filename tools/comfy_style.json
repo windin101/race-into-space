@@ -189,6 +189,10 @@
       "mission_control": "A mission control building: a wide low block with a large radar dish on the roof",
       "museum": "A museum building with a colonnade front and a small rocket displayed upright beside it",
       "intelligence": "A small plain windowless office with a fenced yard and a tall antenna mast",
+      "runway": {
+        "desc": "A small spaceplane airfield seen from above at an angle, the entire airfield fits inside the picture with empty space around it: a short narrow concrete runway strip shown complete with both of its ends visible, running from left to right, a dashed white centreline, a small curved-roof hangar beside the middle of the runway, and a small white delta-winged spaceplane parked on a little apron in front of the hangar",
+        "negative": "rocket, gantry, airliner, jet airliner, propeller, helicopter, cars, trucks, cropped, cut off, runway leaving the frame"
+      },
       "plot": {
         "desc": "A flat empty rectangle of bare graded dirt and gravel on the ground, nothing built on it, only bare earth with wooden survey stakes and string at the corners",
         "negative": "building, structure, house, hut, shed, wall, roof, machinery, crane, people, rocket"

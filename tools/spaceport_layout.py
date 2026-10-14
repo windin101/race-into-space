@@ -34,11 +34,11 @@ BASE_W = {
     "administration": 0.165, "programs": 0.155, "research": 0.115,
     "astronaut_complex": 0.165, "training": 0.135, "vab": 0.175,
     "mission_control": 0.13, "museum": 0.155, "intelligence": 0.095,
-    "pad_1": 0.17, "pad_2": 0.17, "pad_3": 0.17,
+    "pad_1": 0.17, "pad_2": 0.17, "pad_3": 0.17, "runway": 0.22,
 }
 # Placement order: big and fussy first.
 ORDER = ["pad_1", "pad_2", "pad_3", "vab", "mission_control", "administration", "research",
-         "programs", "astronaut_complex", "training", "museum", "intelligence"]
+         "programs", "astronaut_complex", "training", "museum", "intelligence", "runway"]
 
 # Intended spot per side: (x, bottom-y) as canvas fractions, chosen by looking at the
 # paintings. The solver moves each building to the nearest clear ground.
@@ -52,6 +52,7 @@ INTENT = {
         "administration": (0.17, 0.72), "research": (0.31, 0.655), "programs": (0.30, 0.835),
         "astronaut_complex": (0.12, 0.925), "training": (0.45, 0.93),
         "museum": (0.88, 0.915), "intelligence": (0.72, 0.84),
+        "runway": (0.72, 0.70),
     },
     # Baikonur. A dirt track crosses the steppe; the paved road runs from the town out to
     # the east. Town on the left, assembly and control by the road, pads out on the plain.
@@ -61,6 +62,7 @@ INTENT = {
         "administration": (0.15, 0.62), "research": (0.33, 0.605), "programs": (0.25, 0.80),
         "astronaut_complex": (0.11, 0.835), "training": (0.56, 0.835),
         "museum": (0.81, 0.745), "intelligence": (0.95, 0.70),
+        "runway": (0.60, 0.53),
     },
     # Woomera. Two dirt roads cross in the middle of the red plain, a salt lake beyond.
     # Pads stand in a line out toward the lake behind the crossroads; offices in the left
@@ -80,6 +82,60 @@ FIXED = {
     "usa": {"pad_2": (0.726, 0.457), "pad_3": (0.887, 0.420)},
     "ussr": {},
     "cwth": {},
+}
+# Hand-placed boxes that replace the solver for a whole side: (x, y, w, h) as canvas
+# fractions, each the full trimmed cutout. All three sites follow the player's mock-ups of
+# 2026-10-13/14 (measured by template-matching the cutouts in them), with buildings that
+# fell under the bottom bar lifted to end at 0.945; "flag" moves the flag.
+MANUAL = {
+    "usa": {
+        "pad_1": (0.4623, 0.3851, 0.1226, 0.1516),
+        "pad_2": (0.6661, 0.3628, 0.1006, 0.1247),
+        "pad_3": (0.8522, 0.3460, 0.0802, 0.0995),
+        "vab": (0.5445, 0.4688, 0.1950, 0.1944),
+        "mission_control": (0.2531, 0.5451, 0.1462, 0.1516),
+        "administration": (0.5655, 0.7014, 0.1777, 0.1795),
+        "research": (0.1777, 0.5247, 0.0770, 0.1116),
+        "programs": (0.3291, 0.8334, 0.2358, 0.1116),
+        "astronaut_complex": (0.0142, 0.6633, 0.1918, 0.1907),
+        "training": (0.2165, 0.7340, 0.1525, 0.1451),
+        "museum": (0.4009, 0.6530, 0.1541, 0.1312),
+        "intelligence": (0.7982, 0.7776, 0.1006, 0.1674),
+        "runway": (0.7893, 0.4242, 0.2060, 0.2065),
+        "flag": (0.7448, 0.6307, 0.0802, 0.1377),
+    },
+    "ussr": {
+        "pad_1": (0.0073, 0.3916, 0.1158, 0.1579),
+        "pad_2": (0.1601, 0.3879, 0.1158, 0.1579),
+        "pad_3": (0.3073, 0.3869, 0.1158, 0.1579),
+        "vab": (0.4778, 0.5065, 0.1690, 0.1813),
+        "mission_control": (0.5509, 0.7364, 0.0720, 0.1318),
+        "administration": (0.8273, 0.6374, 0.1721, 0.1682),
+        "research": (0.6427, 0.8009, 0.0438, 0.0888),
+        "programs": (-0.0141, 0.7178, 0.1977, 0.1364),
+        "astronaut_complex": (0.0861, 0.5729, 0.1455, 0.1271),
+        "training": (0.2295, 0.6374, 0.1142, 0.1206),
+        "museum": (0.6875, 0.6112, 0.1299, 0.1318),
+        "intelligence": (0.8826, 0.7786, 0.1017, 0.1664),
+        "runway": (0.8148, 0.4664, 0.1534, 0.1776),
+        "flag": (0.6886, 0.4692, 0.0939, 0.1645),
+    },
+    "cwth": {
+        "pad_1": (0.5838, 0.3638, 0.1044, 0.1297),
+        "pad_2": (0.7269, 0.3629, 0.0950, 0.1175),
+        "pad_3": (0.8559, 0.3629, 0.0841, 0.1045),
+        "vab": (0.4470, 0.4235, 0.1561, 0.1875),
+        "mission_control": (0.4736, 0.7136, 0.1044, 0.1800),
+        "administration": (0.7890, 0.6297, 0.1546, 0.1828),
+        "research": (0.6650, 0.7540, 0.1150, 0.1505),
+        "programs": (0.2351, 0.4595, 0.1679, 0.1267),
+        "astronaut_complex": (0.0120, 0.6325, 0.1561, 0.1474),
+        "training": (0.2131, 0.5914, 0.1044, 0.1362),
+        "museum": (0.6679, 0.6119, 0.1044, 0.1054),
+        "intelligence": (0.8977, 0.4813, 0.0935, 0.1250),
+        "runway": (0.0000, 0.3703, 0.1608, 0.2332),
+        "flag": (0.5692, 0.7211, 0.0919, 0.1576),
+    },
 }
 FRONT_Y = {"usa": 0.93, "ussr": 0.84, "cwth": 0.93}    # below this is foreground (dunes, scrub mound)
 GAP = 8                                 # pixels at analysis scale between buildings
@@ -168,6 +224,14 @@ def size_at(side: str, bid: str, bottom: float, horizon: float, aspect: float) -
 
 
 def solve(side: str) -> dict:
+    if side in MANUAL:
+        bg = Image.open(GAME / "assets" / "art" / "spaceport" / side / "background_spring.png").convert("RGB").resize((W, H))
+        boxes = {k: {"x": v[0], "y": v[1], "w": v[2], "h": v[3]} for k, v in MANUAL[side].items()}
+        flag = boxes.pop("flag", None)
+        out = {"horizon": round(horizon_of(np.asarray(bg).astype(int)), 3), "buildings": boxes}
+        if flag:
+            out["flag"] = flag
+        return out
     bg = Image.open(GAME / "assets" / "art" / "spaceport" / side / "background_spring.png").convert("RGB").resize((W, H))
     img = np.asarray(bg).astype(int)
     horizon = horizon_of(img)
@@ -267,7 +331,7 @@ def main() -> None:
         preview(side, sides[side], out_dir / f"preview_{side}.png", a.boxes)
         print(f"{side}: horizon {sides[side]['horizon']}, preview {out_dir / f'preview_{side}.png'}")
     if not a.preview_only:
-        data["sides"] = {s: {"buildings": v["buildings"]} for s, v in sides.items()}
+        data["sides"] = {s: {k: v[k] for k in ("buildings", "flag") if k in v} for s, v in sides.items()}
         LAYOUT.write_text(json.dumps(data, indent=2) + "\n")
         print(f"wrote {LAYOUT.relative_to(ROOT)}")
 
