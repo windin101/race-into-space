@@ -248,6 +248,8 @@ func _refresh() -> void:
 	_set_building("training", any_astronauts)
 	_set_building("vab", any_program)
 	_set_building("mission_control", any_program)
+	if _buttons.has("capital"):
+		_set_tag(_buttons["capital"], str(Sides.field(_side(), "capital", "Capital")))
 	if _buttons.has("memorial"):
 		_set_tag(_buttons["memorial"], "%s Memorial" % str(Sides.field(_side(), "people", "astronaut")).capitalize())
 	# The spaceplane's runway, like the original's per-programme overlays, appears with the

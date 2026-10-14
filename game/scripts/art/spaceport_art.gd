@@ -67,7 +67,9 @@ static func paint(c: CanvasItem, size: Vector2, side: String, buildings: Array, 
 						var pi := int(id.substr(4)) - 1
 						if pi < pads_state.size() and pads_state[pi] == -1:
 							d *= 0.62          # a bare site reads smaller than a built pad
-					c.draw_texture_rect(layer, Rect2(Vector2(r.position.x + (r.size.x - d.x) * 0.5, r.end.y - d.y), d), false)
+					# Landmarks on the far horizon are hazed toward the sky, as distance would.
+					var tint := Color(0.86, 0.9, 0.98, 0.88) if b.get("distant", false) else Color.WHITE
+					c.draw_texture_rect(layer, Rect2(Vector2(r.position.x + (r.size.x - d.x) * 0.5, r.end.y - d.y), d), false, tint)
 				else:
 					_draw_layer(c, layer, r, size)
 			elif id.begins_with("pad_"):

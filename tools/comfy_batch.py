@@ -173,12 +173,17 @@ def spaceport_entries(cfg: dict) -> list[dict]:
             layer = ("building_" + key) if key in ids else key
             desc = cfg["descriptions"][key]
             neg_item = ""
+            landmark = False
             if isinstance(desc, dict):
-                neg_item, desc = desc.get("negative", ""), desc["desc"]
+                landmark = bool(desc.get("landmark", False))
+                neg_item = desc.get("negative", "")
+                desc = desc["by_side"][side] if "by_side" in desc else desc["desc"]
             desc = desc.format(flag_of=cfg["flag_of"][side])
             flavour = "" if key == "flag" else cfg["flavour"][side]
+            prompt = cfg["landmark_prompt"].format(desc=desc) if landmark \
+                else cfg["cutout_prompt"].format(desc=desc, nationality=NATION[side], flavour=flavour)
             out.append({"side": side, "layer": layer, "name": key, "seed_key": f"{side}/{layer}", "kind": "cutout",
-                        "prompt": cfg["cutout_prompt"].format(desc=desc, nationality=NATION[side], flavour=flavour),
+                        "prompt": prompt,
                         "negative": ", ".join(x for x in [cfg["cutout_negative"], neg_item] if x),
                         "size": cfg["flag_size"] if key == "flag" else cfg["cutout_size"]})
     return out

@@ -173,6 +173,7 @@
       }
     },
     "cutout_prompt": "Flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean geometric shapes, no outlines, limited muted palette. {desc}, at a {nationality} space centre of the 1960s{flavour}, seen from the front at a slightly elevated three-quarter view, the whole structure visible and centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
+    "landmark_prompt": "Flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean geometric shapes, no outlines, limited muted palette. {desc}, seen from the front at a slightly elevated three-quarter view, the whole structure visible and centred, isolated in front of a plain solid flat bright green chroma key background #00FF00.",
     "cutout_negative": "sky, clouds, horizon, landscape, trees, road, people, cars, text, label, sign, number, caption, logo",
     "flavour": {
       "usa": ", clean white 1960s American modernist style",
@@ -189,6 +190,15 @@
       "mission_control": "A mission control building: a wide low block with a large radar dish on the roof",
       "museum": "A museum building with a colonnade front and a small rocket displayed upright beside it",
       "intelligence": "A small plain windowless office with a fenced yard and a tall antenna mast",
+      "capital": {
+        "landmark": true,
+        "by_side": {
+          "usa": "The United States Capitol in Washington: a white neoclassical building with a large white central dome on a drum ringed with columns, and long colonnaded wings either side",
+          "ussr": "The Spasskaya clock tower of the Moscow Kremlin: a tall red brick tower with a clock face and a green pointed spire topped by a red star, with a very short stub of crenellated red Kremlin wall on each side that ends neatly, the whole group small and complete in the middle of the picture",
+          "cwth": "The Elizabeth Tower, Big Ben, in London: a tall slender gothic clock tower in pale golden stone with a large clock face on each side and a dark spired roof, standing on its own on a small square stone base, the whole tower complete in the middle of the picture"
+        },
+        "negative": "people, cars, rocket, launch pad, trees, river, bridge, modern buildings, crowds"
+      },
       "memorial": {
         "desc": "A memorial to fallen space crews: a single tall slender pale stone obelisk standing on a low three-step square plinth, a small wreath of flowers laid at its base",
         "negative": "building, house, statue, person, people, rocket, tower, gantry, cross, gravestones"
