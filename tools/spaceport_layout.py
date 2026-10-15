@@ -85,27 +85,27 @@ FIXED = {
 }
 # Hand-placed boxes that replace the solver for a whole side: (x, y, w, h) as canvas
 # fractions, each the full trimmed cutout. All three sites follow the player's mock-ups of
-# 2026-10-13/14 (measured by template-matching the cutouts in them), with buildings that
+# 2026-10-13/14 (the Cape redone at one camera angle on 2026-10-15) (measured by template-matching the cutouts in them), with buildings that
 # fell under the bottom bar lifted to end at 0.945; "flag" moves the flag.
 MANUAL = {
     "usa": {
-        "pad_1": (0.4623, 0.3851, 0.1226, 0.1516),
-        "pad_2": (0.6661, 0.3628, 0.1006, 0.1247),
-        "pad_3": (0.8522, 0.3460, 0.0802, 0.0995),
-        "vab": (0.5445, 0.4688, 0.1950, 0.1944),
-        "mission_control": (0.2531, 0.5451, 0.1462, 0.1516),
-        "administration": (0.5655, 0.7014, 0.1777, 0.1795),
-        "research": (0.1777, 0.5247, 0.0770, 0.1116),
-        "programs": (0.3291, 0.8334, 0.2358, 0.1116),
-        "astronaut_complex": (0.0142, 0.6633, 0.1918, 0.1907),
-        "training": (0.2165, 0.7340, 0.1525, 0.1451),
-        "museum": (0.4009, 0.6530, 0.1541, 0.1312),
-        "intelligence": (0.7982, 0.7776, 0.1006, 0.1674),
-        "runway": (0.7893, 0.4242, 0.2060, 0.2065),
-        "flag": (0.7448, 0.6307, 0.0802, 0.1377),
-        "moon": (0.3900, 0.1000, 0.0450, 0.0800),
-        "memorial": (0.8775, 0.6220, 0.0450, 0.0980),
-        "capital": (0.8975, 0.2764, 0.0750, 0.1016),
+        "vab": (0.3682, 0.1741, 0.1313, 0.1861),
+        "mission_control": (0.5911, 0.4491, 0.1000, 0.1259),
+        "administration": (0.4448, 0.5769, 0.1307, 0.1509),
+        "research": (0.5911, 0.6907, 0.1260, 0.1685),
+        "programs": (0.3297, 0.6139, 0.0891, 0.1028),
+        "astronaut_complex": (0.0813, 0.6139, 0.1469, 0.1694),
+        "training": (0.2302, 0.4056, 0.1208, 0.1333),
+        "museum": (0.2745, 0.7880, 0.1260, 0.1537),
+        "intelligence": (0.4865, 0.4352, 0.0729, 0.0972),
+        "memorial": (0.5443, 0.8926, 0.0370, 0.0500),
+        "pad_1": (0.6453, 0.3380, 0.0917, 0.1213),
+        "pad_2": (0.7464, 0.4602, 0.0969, 0.1278),
+        "pad_3": (0.8406, 0.6139, 0.1021, 0.1352),
+        "runway": (0.1349, 0.2380, 0.0792, 0.0833),
+        "flag": (0.5016, 0.8213, 0.0312, 0.0537),
+        "capital": (0.6776, 0.1647, 0.0302, 0.0409),
+        "moon": (0.0781, 0.0370, 0.0448, 0.0796),
     },
     "ussr": {
         "pad_1": (0.0073, 0.3916, 0.1158, 0.1579),
@@ -146,6 +146,8 @@ MANUAL = {
         "capital": (0.2000, 0.2619, 0.0300, 0.1001),
     },
 }
+# Sites painted as one scene: an unbuilt building shows bare ground, not a plot outline.
+NO_PLOTS = {"usa"}
 FRONT_Y = {"usa": 0.93, "ussr": 0.84, "cwth": 0.93}    # below this is foreground (dunes, scrub mound)
 GAP = 8                                 # pixels at analysis scale between buildings
 
@@ -343,6 +345,9 @@ def main() -> None:
         print(f"{side}: horizon {sides[side]['horizon']}, preview {out_dir / f'preview_{side}.png'}")
     if not a.preview_only:
         data["sides"] = {s: {k: v[k] for k in ("buildings", "flag") if k in v} for s, v in sides.items()}
+        for s in NO_PLOTS:
+            if s in data["sides"]:
+                data["sides"][s]["plots"] = False
         LAYOUT.write_text(json.dumps(data, indent=2) + "\n")
         print(f"wrote {LAYOUT.relative_to(ROOT)}")
 

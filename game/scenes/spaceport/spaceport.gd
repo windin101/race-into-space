@@ -63,6 +63,8 @@ func _paint() -> void:
 ## draws each cutout exactly into its box.
 static func side_buildings(layout: Dictionary, side: String) -> Array:
 	var placed: Dictionary = layout.get("sides", {}).get(side, {}).get("buildings", {})
+	# A site painted as one scene shows bare ground where a building is not yet built.
+	var plots: bool = bool(layout.get("sides", {}).get(side, {}).get("plots", true))
 	var out: Array = []
 	for b in layout.get("buildings", []):
 		var entry: Dictionary = b.duplicate()
@@ -70,6 +72,8 @@ static func side_buildings(layout: Dictionary, side: String) -> Array:
 			for k in ["x", "y", "w", "h"]:
 				entry[k] = float(placed[b["id"]][k])
 			entry["fitted"] = true
+		if not plots and not b["id"].begins_with("pad_"):
+			entry["hidden_until_built"] = true
 		out.append(entry)
 	return out
 
@@ -89,7 +93,11 @@ func _build_buildings() -> void:
 		_style_hotspot(btn)
 		_place(btn, b)
 		# Near the bottom bar there is no room under the base, so the name sits inside.
-		_add_tag(btn, b["title"], "inside" if float(b["y"]) + float(b["h"]) > TAG_INSIDE_BELOW else "below")
+		var where := "below"
+		if float(b["y"]) + float(b["h"]) > TAG_INSIDE_BELOW:
+			# A small landmark would vanish under its plate, so its name goes above it.
+			where = "above" if float(b["h"]) < 0.07 else "inside"
+		_add_tag(btn, b["title"], where)
 		btn.pressed.connect(_on_building.bind(b))
 		if b.has("help"):
 			UiHelp.attach(btn, b["help"])
