@@ -1,0 +1,137 @@
+[
+ {
+  "id": "vab",
+  "file": "vab_4.png",
+  "x": 0,
+  "y": 431,
+  "w": 283,
+  "h": 200,
+  "flip": true
+ },
+ {
+  "id": "runway",
+  "file": "hangar_1.png",
+  "x": 262,
+  "y": 171,
+  "w": 170,
+  "h": 95,
+  "flip": false
+ },
+ {
+  "id": "intelligence",
+  "file": "intelligence_1.png",
+  "x": 905,
+  "y": 615,
+  "w": 121,
+  "h": 92,
+  "flip": false
+ },
+ {
+  "id": "research",
+  "file": "research_2.png",
+  "x": 1052,
+  "y": 663,
+  "w": 276,
+  "h": 203,
+  "flip": false
+ },
+ {
+  "id": "administration",
+  "file": "administration_0.png",
+  "x": 1054,
+  "y": 432,
+  "w": 320,
+  "h": 219,
+  "flip": false
+ },
+ {
+  "id": "museum",
+  "file": "museum_1.png",
+  "x": 1468,
+  "y": 437,
+  "w": 234,
+  "h": 178,
+  "flip": false
+ },
+ {
+  "id": "programs",
+  "file": "programs_2.png",
+  "x": 1376,
+  "y": 678,
+  "w": 289,
+  "h": 171,
+  "flip": false
+ },
+ {
+  "id": "training",
+  "file": "training_1.png",
+  "x": 1026,
+  "y": 861,
+  "w": 228,
+  "h": 159,
+  "flip": false
+ },
+ {
+  "id": "astronaut_complex",
+  "file": "astronaut_complex_0.png",
+  "x": 687,
+  "y": 727,
+  "w": 271,
+  "h": 181,
+  "flip": false
+ },
+ {
+  "id": "mission_control",
+  "file": "mission_control_1.png",
+  "x": 798,
+  "y": 890,
+  "w": 165,
+  "h": 122,
+  "flip": false
+ },
+ {
+  "id": "memorial",
+  "file": "memorial_3_fixed.png",
+  "x": 1271,
+  "y": 802,
+  "w": 71,
+  "h": 96,
+  "flip": false
+ },
+ {
+  "id": "flag",
+  "file": "flag_ussr.png",
+  "x": 1372,
+  "y": 631,
+  "w": 32,
+  "h": 31,
+  "flip": false
+ },
+ {
+  "id": "pad_3",
+  "file": "pad_ok.png",
+  "x": 754,
+  "y": 72,
+  "w": 165,
+  "h": 170,
+  "flip": false
+ },
+ {
+  "id": "pad_2",
+  "file": "pad_ok.png",
+  "x": 1096,
+  "y": 102,
+  "w": 165,
+  "h": 170,
+  "flip": false
+ },
+ {
+  "id": "pad_1",
+  "file": "pad_ok.png",
+  "x": 1490,
+  "y": 140,
+  "w": 165,
+  "h": 170,
+  "flip": false
+ }
+]

@@ -2,7 +2,7 @@ import numpy as np, math, json, sys
 from PIL import Image, ImageDraw, ImageFilter
 from scipy.ndimage import binary_dilation, gaussian_filter
 S=sys.argv[1]+"/"
-G=np.asarray(Image.open('/home/leeo/craft/in/cape2/ground.png').convert('RGB')).astype(float)
+G=np.asarray(Image.open(__import__('pathlib').Path(__file__).with_name('cape_ground_empty.png')).convert('RGB')).astype(float)
 H_,W_=G.shape[:2]
 r,gg,b=G[...,0],G[...,1],G[...,2]
 sandy=(r>215)&(r-b>18)&(r-gg>5)&(gg>190)
