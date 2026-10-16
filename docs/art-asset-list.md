@@ -170,7 +170,13 @@ python3 -I tools/art_review_sheet.py portraits --out /tmp/review.png
   Image-edit with a style reference was tried and dropped: the model copies the reference
   face onto everyone. The look is anchored on `SHEPARD.png`; a pale painted frame is cropped
   by `trim_frame` in the batch tool. A bad draw is fixed by `--reseed 1` for that name.
-- Hardware is text-to-image as well, from a one-line description per vehicle in
+- Hardware (2026-10-16): text-to-image could not draw the real vehicles (every capsule grew
+  fins, every spaceplane became the Shuttle). The set is now one consistent outlined style:
+  the player drew 25 in Nano Banana from real-vehicle descriptions, and
+  `tools/art_source/hardware_seeded.py` hands one of those to the edit model as a style
+  reference to draw the rest. `hardware_tile.py` keys and tiles any white-background
+  illustration; it removes only edge-connected background, so white panels keep their alpha.
+- (Earlier) Hardware was text-to-image, from a one-line description per vehicle in
   `comfy_style.json`, painted on a green screen that `chroma_key` cuts by green dominance
   (the model's green is never pure #00ff00). Image-edit over the procedural silhouettes was
   tried first and left the source almost untouched. Ask for the craft "floating in empty
