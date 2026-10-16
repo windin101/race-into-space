@@ -53,15 +53,29 @@ static func icon(name: String) -> Texture2D:
 	return svg if svg != null else texture("icons/%s.png" % name)
 
 
-## Frames of a vignette clip, or [] when none are provided. Looks for
-## vignettes/<family>_<ok|fail>/frame_*.{png,webp,jpg} sorted by name.
-static func vignette_frames(family: String, ok: bool) -> Array:
+## Frames of a vignette clip, or [] when none are provided. Tries, in order,
+## vignettes/<family>_<ok|fail>/<side>/<slot>/, then /<side>/, then the family folder, each
+## holding frame_*.{png,webp,jpg} sorted by name; the first that has frames wins.
+static func vignette_frames(family: String, ok: bool, side: String = "", slot: String = "") -> Array:
 	var key := "%s_%s" % [family, "ok" if ok else "fail"]
-	if _frames_cache.has(key):
-		return _frames_cache[key]
+	var candidates: Array = []
+	if side != "" and slot != "":
+		candidates.append("%s/%s/%s" % [key, side, slot])
+	if side != "":
+		candidates.append("%s/%s" % [key, side])
+	candidates.append(key)
+	for rel in candidates:
+		var frames := _frames_in(rel)
+		if not frames.is_empty():
+			return frames
+	return []
+
+
+static func _frames_in(rel: String) -> Array:
+	if _frames_cache.has(rel):
+		return _frames_cache[rel]
 	var frames: Array = []
-	var dir_path := ROOT + "vignettes/" + key
-	var dir := DirAccess.open(dir_path)
+	var dir := DirAccess.open(ROOT + "vignettes/" + rel)
 	if dir != null:
 		var names: Array = []
 		dir.list_dir_begin()
@@ -72,10 +86,10 @@ static func vignette_frames(family: String, ok: bool) -> Array:
 			entry = dir.get_next()
 		names.sort()
 		for n in names:
-			var tex: Texture2D = texture("vignettes/%s/%s" % [key, n])
+			var tex: Texture2D = texture("vignettes/%s/%s" % [rel, n])
 			if tex != null:
 				frames.append(tex)
-	_frames_cache[key] = frames
+	_frames_cache[rel] = frames
 	return frames
 
 

@@ -44,6 +44,36 @@ const TITLES := {
 }
 
 
+## Which of the launch's vehicles a family's clip shows, as a hardware slot id
+## ("manned_0"), from ctx: the step's own hardware first, else the launch's rocket,
+## capsule or lander for that family's vehicle group.
+const FAMILY_GROUP := {
+	"launch": "rocket", "insertion": "rocket",
+	"orbit": "capsule", "reentry": "capsule", "landing": "capsule", "docking": "capsule",
+	"duration": "capsule", "lunar_pass": "capsule", "eva": "capsule", "power_on": "capsule",
+	"lm_ops": "lander", "lm_descent": "lander", "lm_landing": "lander", "lm_liftoff": "lander",
+	"lm_test": "lander", "lunar_eva": "lander",
+	"photo": "probe", "planetary": "probe",
+}
+
+static func slot_for(fam: String, ctx: Dictionary) -> String:
+	var group: String = FAMILY_GROUP.get(fam, "")
+	var step_slot := str(ctx.get("hardware_slot", ""))
+	if step_slot != "" and _slot_group(step_slot) == group:
+		return step_slot
+	return str(ctx.get(group + "_slot", ""))
+
+
+static func _slot_group(slot: String) -> String:
+	if slot.begins_with("rocket"):
+		return "rocket"
+	if slot.begins_with("probe"):
+		return "probe"
+	if slot.begins_with("manned"):
+		return "lander" if int(slot.get_slice("_", 1)) >= 4 else "capsule"
+	return ""
+
+
 static func family_for(letter: String) -> String:
 	return FAMILY.get(letter, "orbit")
 
@@ -55,7 +85,7 @@ static func title_for(letter: String) -> String:
 ## Draw one frame. ctx: {side_color, hardware (String), lunar (bool), failure_text}.
 static func paint(c: CanvasItem, letter: String, t: float, ok: bool, size: Vector2, ctx: Dictionary) -> void:
 	var fam := family_for(letter)
-	var frames := ArtAssets.vignette_frames(fam, ok)
+	var frames := ArtAssets.vignette_frames(fam, ok, str(ctx.get("side", "")), slot_for(fam, ctx))
 	if not frames.is_empty():
 		c.draw_rect(Rect2(Vector2.ZERO, size), SPACE)
 		var idx := clampi(int(floor(t * (frames.size() - 1) + 0.5)), 0, frames.size() - 1)

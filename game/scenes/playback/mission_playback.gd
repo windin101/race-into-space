@@ -649,6 +649,10 @@ func _prepare_feeds(launch: Dictionary, state: SimState) -> void:
 		var found := _find_hardware(state, side, hw)
 		if found.is_empty():
 			continue
+		var slot_id := "%s_%d" % [found["group"], found["slot"]]
+		var kind := Vignettes._slot_group(slot_id)
+		if kind != "" and not _stage_ctx.has(kind + "_slot"):
+			_stage_ctx[kind + "_slot"] = slot_id
 		if found["group"] == "rocket" and _feed_tex[1] == null:
 			_feed_tex[1] = ArtAssets.hardware(side, "rocket", found["slot"])
 		elif found["group"] in ["manned", "probe"] and _feed_tex[0] == null:
@@ -828,6 +832,8 @@ func _play_step(step: Dictionary) -> void:
 	_stage_ok = step.get("success", false)
 	_stage_ctx["hardware_kind"] = PlaybackScript.hardware_kind(step)
 	var hw := str(step.get("hardware", ""))
+	var found := _find_hardware(Session.state(), str(_stage_ctx.get("side", "")), hw) if hw != "" else {}
+	_stage_ctx["hardware_slot"] = "%s_%d" % [found["group"], found["slot"]] if not found.is_empty() else ""
 	_step_title.text = (Vignettes.title_for(_stage_letter) + ("  ·  " + hw if hw != "" else "")).to_upper()
 	_gauge.value = float(step.get("safety", 0))
 	_light_roles(_stage_letter, false, Lamp.State.ON)

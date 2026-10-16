@@ -106,8 +106,46 @@ def jobs(a) -> list[dict]:
     return out
 
 
+KEYFRAMES = ROOT / "reference" / "vignette_keyframes"
+
+
+def animate_keyframes(a) -> None:
+    """Animate the Gemini keyframes under reference/vignette_keyframes/<fam>_<out>/<side>/<slot>.png
+    into vignettes/<fam>_<out>/<side>/<slot>/frame_*.webp with the family's motion prompt."""
+    vw, vh = CFG["video_size"]
+    todo = []
+    for png in sorted(KEYFRAMES.glob("*/*/*.png")):
+        fam_out, side, slot = png.parent.parent.name, png.parent.name, png.stem
+        fam, outcome = fam_out.rsplit("_", 1)
+        if a.families and fam not in a.families: continue
+        if a.outcomes and outcome not in a.outcomes: continue
+        if a.sides and side not in a.sides: continue
+        folder = OUT_DIR / fam_out / side / slot
+        if folder.exists() and any(folder.glob("frame_*.webp")) and not a.force: continue
+        todo.append((fam, outcome, side, slot, png, folder))
+    if a.limit: todo = todo[:a.limit]
+    print(f"{len(todo)} keyframe clip(s) to animate")
+    for n, (fam, outcome, side, slot, png, folder) in enumerate(todo, 1):
+        if a.dry_run:
+            print(f"  {folder.relative_to(GAME)}"); continue
+        motion = CFG["scenes"][fam][outcome][1]
+        motion_prompt = CFG["motion_prompt"].format(motion=motion)
+        seed = cb.seed_for(f"vignette/{fam}_{outcome}/{side}/{slot}") + a.reseed
+        key = cb.fit_cover(Image.open(png).convert("RGB"), (vw, vh))
+        tmp = ROOT / "reference" / "art_source" / "vignette_key.png"; tmp.parent.mkdir(parents=True, exist_ok=True); key.save(tmp)
+        t0 = time.time()
+        frames = cb.run_workflow(i2v_graph(cb.upload_image(tmp), motion_prompt, CFG["motion_negative"], seed, vw, vh, CFG["frames"]), timeout=3600)
+        note = (f"Keyframe by Gemini 2.5 Flash Image from the {side} {slot} hardware icon (tools/vignette_keyframes.py), animated by "
+                f"Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.\nseed {seed}\nmotion: {motion_prompt}\nLicence: CC0 (AI output)\n")
+        count = write_sequence(frames, folder, CFG["fps_out"], note)
+        print(f"{n}/{len(todo)} {fam}_{outcome}/{side}/{slot}: {count} frames ({time.time() - t0:.0f}s)", flush=True)
+
+
 def main() -> None:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
+    ap.add_argument("--keyframes", action="store_true", help="animate the Gemini keyframes under reference/vignette_keyframes into per-side, per-vehicle clips")
+    ap.add_argument("--sides", default="", help="with --keyframes: comma-separated side ids")
+    ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--families", default="", help="comma-separated family names")
     ap.add_argument("--outcomes", default="", help="ok, fail or both")
     ap.add_argument("--clips", default="", help="exact clips, e.g. docking_fail,orbit_fail (overrides --families/--outcomes)")
@@ -119,6 +157,9 @@ def main() -> None:
     a.families = [f for f in a.families.split(",") if f]
     a.outcomes = [o for o in a.outcomes.split(",") if o]
     a.clips = {c for c in a.clips.split(",") if c}
+    a.sides = [x for x in a.sides.split(",") if x]
+    if a.keyframes:
+        animate_keyframes(a); return
     if a.clips:
         a.families, a.outcomes, a.force = [], [], True
     todo = [j for j in jobs(a) if not a.clips or f"{j['family']}_{j['outcome']}" in a.clips]
