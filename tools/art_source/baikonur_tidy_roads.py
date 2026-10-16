@@ -1,6 +1,6 @@
 """Tidy the traced Baikonur road network into straight runs and smooth arcs.
 
-    python3 tools/art_source/baikonur_tidy_roads.py [debug.png]
+    python3 tools/art_source/baikonur_tidy_roads.py [site] [debug.png]   (site: baikonur | woomera)
 Reads baikonur_roads.json (raw trace + hand roads), writes baikonur_roads_clean.json:
   * each road simplified (RDP) to a handful of control points,
   * endpoints snapped onto the nearest other road so junctions meet,
@@ -11,7 +11,8 @@ import sys, json, math
 from pathlib import Path
 import numpy as np
 HERE = Path(__file__).parent
-RAW = json.loads((HERE / "baikonur_roads.json").read_text())
+SITE = next((a for a in sys.argv[1:] if not a.endswith(".png")), "baikonur")
+RAW = json.loads((HERE / f"{SITE}_roads.json").read_text())
 RDP_EPS, SNAP, FILLET_R, COLL_DEG = 16.0, 48.0, 46.0, 8.0
 
 def rdp(pts, eps):
@@ -42,7 +43,9 @@ def fillet(pts, R):
     out = [pts[0]]
     for i in range(1, len(pts) - 1):
         a, b, c = np.array(out[-1] if i == 1 else pts[i-1]), np.array(pts[i]), np.array(pts[i+1])
-        u, v = a - b, c - b; lu, lv = np.hypot(*u), np.hypot(*v); u, v = u/lu, v/lv
+        u, v = a - b, c - b; lu, lv = np.hypot(*u), np.hypot(*v)
+        if lu < 1e-6 or lv < 1e-6 or np.hypot(*(u/lu + v/lv)) < 1e-6: out.append(tuple(b)); continue
+        u, v = u/lu, v/lv
         theta = math.acos(max(-1, min(1, float(u @ v))))        # interior angle
         if theta > math.radians(180 - COLL_DEG): out.append(tuple(b)); continue
         r = min(R, 0.45 * lu, 0.45 * lv); t = r / math.tan(theta / 2)
@@ -78,13 +81,14 @@ for poly in RAW["areas"]:
     uv = (M @ P.T).T; u0, u1 = uv[:, 0].min(), uv[:, 0].max(); v0, v1 = uv[:, 1].min(), uv[:, 1].max()
     areas.append([tuple(map(float, A*u + B*v)) for u, v in ((u0, v0), (u1, v0), (u1, v1), (u0, v1))])
 out = {"roads": roads, "areas": areas, "circles": RAW.get("circles", [])}
-(HERE / "baikonur_roads_clean.json").write_text(json.dumps(out))
+(HERE / f"{SITE}_roads_clean.json").write_text(json.dumps(out))
 print(len(roads), "roads", sum(len(r["pts"]) for r in roads), "points")
-if len(sys.argv) > 1:
+dbg = next((a for a in sys.argv[1:] if a.endswith(".png")), None)
+if dbg:
     from PIL import Image, ImageDraw
     im = Image.new("RGB", (1920, 1080), "white"); d = ImageDraw.Draw(im)
     for r in roads:
         d.line(r["pts"], fill=(60, 60, 200), width=6)
         for p in r["pts"]: d.ellipse([p[0]-3, p[1]-3, p[0]+3, p[1]+3], fill=(200, 0, 0))
     for a in areas: d.polygon(a, outline=(0, 150, 0), width=3)
-    im.save(sys.argv[1])
+    im.save(dbg)

@@ -1,0 +1,152 @@
+[
+ {
+  "id": "vab",
+  "file": "green/vab_0.png",
+  "box": [
+   879,
+   151,
+   234,
+   150
+  ]
+ },
+ {
+  "id": "mission_control",
+  "file": "green/mission_control_0.png",
+  "box": [
+   1091,
+   328,
+   126,
+   100
+  ]
+ },
+ {
+  "id": "astronaut_complex",
+  "file": "green/astronaut_complex_0.png",
+  "box": [
+   202,
+   784,
+   185,
+   125
+  ]
+ },
+ {
+  "id": "training",
+  "file": "green/training_0.png",
+  "box": [
+   619,
+   797,
+   194,
+   112
+  ]
+ },
+ {
+  "id": "memorial",
+  "file": "green/memorial_0.png",
+  "box": [
+   1048,
+   607,
+   56,
+   38
+  ]
+ },
+ {
+  "id": "runway",
+  "file": "green/hangar_0.png",
+  "box": [
+   435,
+   322,
+   182,
+   106
+  ]
+ },
+ {
+  "id": "research",
+  "file": "green/research_0.png",
+  "box": [
+   858,
+   444,
+   137,
+   100
+  ]
+ },
+ {
+  "id": "administration",
+  "file": "green/administration_0.png",
+  "box": [
+   1286,
+   694,
+   209,
+   138
+  ]
+ },
+ {
+  "id": "programs",
+  "file": "green/programs_0.png",
+  "box": [
+   1027,
+   872,
+   153,
+   100
+  ]
+ },
+ {
+  "id": "intelligence",
+  "file": "green/intelligence_0.png",
+  "box": [
+   1604,
+   462,
+   101,
+   75
+  ]
+ },
+ {
+  "id": "museum",
+  "file": "green/museum_0.png",
+  "box": [
+   1329,
+   514,
+   189,
+   112
+  ]
+ },
+ {
+  "id": "flag",
+  "file": "../baikonur/flag_ussr.png",
+  "box": [
+   1512,
+   752,
+   24,
+   40
+  ]
+ },
+ {
+  "id": "pad_1",
+  "file": "../baikonur/pad_ok.png",
+  "box": [
+   651,
+   90,
+   120,
+   123
+  ]
+ },
+ {
+  "id": "pad_2",
+  "file": "../baikonur/pad_ok.png",
+  "box": [
+   364,
+   76,
+   100,
+   103
+  ]
+ },
+ {
+  "id": "pad_3",
+  "file": "../baikonur/pad_ok.png",
+  "box": [
+   100,
+   62,
+   99,
+   102
+  ]
+ }
+]
