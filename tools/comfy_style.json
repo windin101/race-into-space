@@ -309,8 +309,8 @@
     "_about": "Keyframe still (Qwen-Image) then Wan 2.2 image-to-video. One clip per family and outcome; families with archival footage are skipped unless --force.",
     "still_prompt": "Wide cinematic flat vector illustration like a 1960s space programme film still, soft two-tone cel shading, clean shapes, limited muted palette, 16:9. {scene}. No text, no logos.",
     "still_negative": "text, letters, caption, logo, watermark, photograph, photorealistic, blurry, frame, border, people's faces, wings, winged, spaceplane, aircraft, jet",
-    "motion_prompt": "Smooth cinematic animation of this illustration, same flat vector style, steady camera, {motion}. No text.",
-    "motion_negative": "text, subtitles, watermark, blurry, jittery, flicker, deformed, extra objects, camera shake, people's faces, color shift",
+    "motion_prompt": "Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, {motion}. No text.",
+    "motion_negative": "text, subtitles, watermark, blurry, jittery, flicker, deformed, extra objects, camera shake, people's faces, color shift, pill, medicine capsule, tablet, pharmaceutical, box, crate, cube, container, panel, screen, new objects appearing, morphing into a different object",
     "still_size": [
       1664,
       960
@@ -339,7 +339,7 @@
         ],
         "fail": [
           "A rocket upper stage high over a curved Earth, its engine sputtering with ragged flame, the vehicle starting to tumble",
-          "the stage tumbles end over end, fragments break off, it falls back toward the Earth below"
+          "the stage tumbles end over end and falls back toward the Earth below, small pieces of its skin peeling away"
         ]
       },
       "power_on": {
@@ -355,11 +355,11 @@
       "reentry": {
         "ok": [
           "A cone-shaped capsule entering the atmosphere heat shield first, wrapped in an orange-pink plasma glow, Earth's curved horizon below",
-          "the plasma glow brightens then fades, the capsule steadies and the glow dies away as it slows"
+          "the plasma glow brightens then fades, the spacecraft steadies and the glow dies away as it slows, its shape unchanged"
         ],
         "fail": [
           "A cone-shaped capsule entering the atmosphere at a bad angle, plasma streaming unevenly from one side of the heat shield",
-          "the glow turns violent, the capsule tumbles, pieces tear away in streaks of fire"
+          "the glow turns violent, the spacecraft tumbles, pieces of its heat shield tear away in streaks of fire"
         ]
       },
       "landing": {
@@ -375,11 +375,11 @@
       "orbit": {
         "ok": [
           "A cone-shaped capsule with a cylindrical service module orbiting over a blue Earth with white clouds, stars beyond",
-          "the capsule drifts slowly across the frame as the Earth turns gently below"
+          "the spacecraft drifts slowly across the frame as the Earth turns gently below, nothing else changes"
         ],
         "fail": [
           "A blunt Gemini-style two-man capsule, a short rounded cone with a flat heat shield and a white cylindrical adapter, drifting in orbit above a blue Earth with a plume of vapour jetting from the adapter",
-          "vapour sprays out and the capsule slowly spins, lights flicker and go dark"
+          "vapour sprays out and the spacecraft slowly spins, its lights flicker and go dark"
         ]
       },
       "lunar_pass": {
@@ -419,7 +419,7 @@
         ],
         "fail": [
           "A blunt Gemini-style capsule, a short rounded cone with a white cylindrical adapter, approaching a cylindrical Agena target vehicle too fast at a bad angle in orbit over a blue Earth",
-          "the capsule bumps the target vehicle, both rebound and tumble apart, a panel breaking loose"
+          "the spacecraft bumps the target vehicle, both rebound and tumble apart slowly"
         ]
       },
       "lm_ops": {
