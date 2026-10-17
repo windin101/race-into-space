@@ -43,7 +43,7 @@ SCENES = {
     "ok": "the capsule descending under three large red-and-white parachutes toward {ground_ok}",
     "fail": "the capsule falling fast under plain white parachutes, one streaming tangled and the others only partly open, {ground_fail} rushing up"}),
  "docking": ("capsule", {
-    "ok": "the spacecraft approaching nose first toward a single plain cylindrical unmanned target stage (not another spacecraft of the same type) in orbit over the blue Earth, the docking collar lined up, a few metres apart",
+    "ok": "exactly two objects in orbit over the blue Earth: on the left the manned spacecraft from the attached image, approaching nose first; on the right a single plain unmanned cylindrical target stage, a bare metal drum with no cabin, no windows and no nose cone; there is only one manned spacecraft in the picture, never two capsules",
     "fail": "in orbit high above the blue Earth against black starry space, the spacecraft coming in too fast at a crooked angle toward a plain cylindrical target vehicle, the docking collar about to strike the target's side, vapour puffing from its thrusters, no ground, no desert"}),
  "lm_descent": ("lander", {
     "ok": "the lunar lander descending toward the grey cratered lunar surface on a bright engine flame, the Earth small in the black sky",
@@ -53,7 +53,7 @@ SCENES = {
     "fail": "the lunar lander hitting the lunar surface hard and tipping over, one leg crumpled, dust exploding outward"}),
  "lunar_eva": ("lander", {
     "ok": "an astronaut in a white spacesuit standing on the grey lunar surface beside the lander, planting {flag} on a pole, Earth in the black sky, no rover",
-    "fail": "an astronaut in a white spacesuit stumbling and falling in the dust beside the lander on the lunar surface, no rover"}),
+    "fail": "an astronaut in a white spacesuit stumbling and falling in the dust beside the lander on the grey lunar surface, the sky above pure black with stars, no rover"}),
 }
 FLAVOUR = {
  "usa": {"markings": "American flag markings", "home": "Cape Canaveral, blue Atlantic", "flag": "the flag of the United States",
