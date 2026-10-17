@@ -32,13 +32,13 @@ SCENES = {
     "fail": "the rocket exploding a few metres above its pad: the lower stage torn open by a huge orange fireball, the rocket tilting and breaking apart, debris and black smoke rolling across the pad, the gantry engulfed"}),
  "insertion": ("rocket", {
     "ok": "the rocket's upper stage high above the curved blue Earth against black space, the spent first stage just separated and falling away below, engine lit",
-    "fail": "the rocket's upper stage high over the curved Earth, its engine sputtering with a ragged uneven flame, the vehicle beginning to tumble"}),
+    "fail": "the rocket's upper stage in space high above the curved Earth, its engine sputtering with a ragged uneven flame, the vehicle beginning to tumble and shed panels"}),
  "orbit": ("capsule", {
     "ok": "the spacecraft in orbit over a blue Earth with white clouds, stars beyond, sunlight from one side",
     "fail": "the spacecraft drifting in orbit with a plume of vapour venting from its side, tumbling slowly"}),
  "reentry": ("capsule", {
     "ok": "the capsule entering the atmosphere blunt heat-shield end first, the shield glowing orange-white with a long pink-orange plasma trail streaming back past the capsule, Earth's curved horizon below",
-    "fail": "the capsule high in the upper atmosphere entering at a bad angle, tumbling, plasma streaming unevenly off one side of the heat shield, pieces of the shield breaking away, the curved Earth far below"}),
+    "fail": "the capsule high in the upper atmosphere at the edge of space, entering at a bad angle, tumbling, plasma streaming unevenly off one side of the heat shield, pieces of the shield breaking away, the curved Earth a distant globe far below"}),
  "landing": ("capsule", {
     "ok": "the capsule descending under three large red-and-white parachutes toward {ground_ok}",
     "fail": "the capsule falling fast under plain white parachutes, one streaming tangled and the others only partly open, {ground_fail} rushing up"}),
@@ -56,14 +56,32 @@ SCENES = {
     "fail": "an astronaut in a white spacesuit stumbling and falling in the dust beside the lander on the lunar surface, no rover"}),
 }
 FLAVOUR = {
- "usa": {"flavour": "American flag markings; the Earth below painted as blue ocean and white cloud, no recognisable coastlines or map outlines", "flag": "the flag of the United States", "ground_ok": "a calm blue ocean, a recovery ship below", "ground_fail": "the sea"},
- "ussr": {"flavour": "Red star markings; for a landing the capsule comes down onto dry flat grassland, not water", "flag": "the red Soviet flag with a gold hammer and sickle", "ground_ok": "a flat brown steppe, coming down on land under a single big parachute", "ground_fail": "the flat brown steppe"},
- "cwth": {"flavour": "RAF roundel and Union Jack markings, the red desert and scrub of Woomera", "flag": "a correct British Union Jack flag (red and white crosses on blue)", "ground_ok": "a flat red desert plain, a recovery helicopter nearby", "ground_fail": "the red desert"},
+ "usa": {"markings": "American flag markings", "home": "Cape Canaveral, blue Atlantic", "flag": "the flag of the United States",
+         "ground_ok": "a calm blue ocean, a recovery ship below", "ground_fail": "the sea"},
+ "ussr": {"markings": "Red star markings", "home": "the Baikonur steppe", "flag": "the red Soviet flag with a gold hammer and sickle",
+          "ground_ok": "dry flat grassland, coming down on land under a single big parachute", "ground_fail": "the flat dry grassland"},
+ "cwth": {"markings": "RAF roundel and Union Jack markings", "home": "the red desert and scrub of Woomera", "flag": "a correct British Union Jack flag (red and white crosses on blue)",
+          "ground_ok": "a flat red desert plain, a recovery helicopter nearby", "ground_fail": "the red desert"},
 }
+# families that happen on the ground see the side's home landscape; everything else is in
+# space or the upper atmosphere, where the only ground is a distant curved globe
+GROUND_FAMILIES = {"launch", "landing"}
+SPACE = ("Setting: at the edge of space, very high altitude. The Earth far below is a distant curved globe of blue ocean and white cloud with a thin "
+         "glowing blue atmosphere line on its limb and black starry space above; no buildings, no launch site, no roads, no fields, no ground detail "
+         "of any kind, nothing on the surface is close")
 # slots per vehicle group per side
 SLOTS = {"rocket": ["rocket_0", "rocket_1", "rocket_2", "rocket_3"],
          "capsule": ["manned_0", "manned_1", "manned_2", "manned_3"],
          "lander": ["manned_4", "manned_5", "manned_6"]}
+
+def flavour_for(fam: str, side: str) -> str:
+    f = FLAVOUR[side]
+    if fam in GROUND_FAMILIES:
+        return f["markings"] + ", " + f["home"]
+    if fam.startswith("lm_") or fam == "lunar_eva":
+        return f["markings"]
+    return f["markings"] + ". " + SPACE
+
 
 def key() -> str:
     k = os.environ.get("GEMINI_API_KEY") or (Path.home() / ".config/gemini/api_key").read_text().strip()
@@ -76,7 +94,7 @@ def jobs(args):
             for slot in (args.slots or SLOTS[group]):
                 if not (ICONS / side / f"{slot}.png").exists(): continue
                 for outcome in args.outcomes:
-                    yield fam, outcome, side, slot, scenes[outcome].format(**FLAVOUR[side]), FLAVOUR[side]["flavour"]
+                    yield fam, outcome, side, slot, scenes[outcome].format(**FLAVOUR[side]), flavour_for(fam, side)
 
 def icon_on_white(side: str, slot: str) -> Image.Image:
     im = Image.open(ICONS / side / f"{slot}.png").convert("RGBA"); bg = Image.new("RGB", im.size, (255, 255, 255)); bg.paste(im, mask=im.getchannel("A")); return bg
@@ -93,7 +111,7 @@ def main():
         for key_ in a.redo:
             fam_out, side, slot = key_.split("/"); fam, outcome = fam_out.rsplit("_", 1)
             group, scenes = SCENES[fam]
-            todo.append((fam, outcome, side, slot, scenes[outcome].format(**FLAVOUR[side]), FLAVOUR[side]["flavour"], OUT / fam_out / side / f"{slot}.png"))
+            todo.append((fam, outcome, side, slot, scenes[outcome].format(**FLAVOUR[side]), flavour_for(fam, side), OUT / fam_out / side / f"{slot}.png"))
     for fam, outcome, side, slot, scene, flavour in ([] if a.redo else jobs(a)):
         dst = OUT / f"{fam}_{outcome}" / side / f"{slot}.png"
         if dst.exists() and not a.force: continue
