@@ -29,7 +29,7 @@ TEMPLATE = ("Wide 16:9 cinematic still in exactly the art style of the attached 
 SCENES = {
  "launch": ("rocket", {
     "ok": "the rocket standing on its launch pad at the moment of liftoff, bright exhaust flame and billowing white smoke, a steel gantry tower beside it, dawn sky",
-    "fail": "the rocket a few metres above its pad as an orange fireball bursts from its base, debris and black smoke rolling across the pad"}),
+    "fail": "the rocket exploding a few metres above its pad: the lower stage torn open by a huge orange fireball, the rocket tilting and breaking apart, debris and black smoke rolling across the pad, the gantry engulfed"}),
  "insertion": ("rocket", {
     "ok": "the rocket's upper stage high above the curved blue Earth against black space, the spent first stage just separated and falling away below, engine lit",
     "fail": "the rocket's upper stage high over the curved Earth, its engine sputtering with a ragged uneven flame, the vehicle beginning to tumble"}),
@@ -44,7 +44,7 @@ SCENES = {
     "fail": "the capsule falling fast under plain white parachutes, one streaming tangled and the others only partly open, {ground_fail} rushing up"}),
  "docking": ("capsule", {
     "ok": "the spacecraft approaching nose first toward a single plain cylindrical unmanned target stage (not another spacecraft of the same type) in orbit over the blue Earth, the docking collar lined up, a few metres apart",
-    "fail": "the spacecraft coming in too fast at a crooked angle toward a plain cylindrical target vehicle, the docking collar about to strike the target's side, vapour puffing from its thrusters"}),
+    "fail": "in orbit high above the blue Earth against black starry space, the spacecraft coming in too fast at a crooked angle toward a plain cylindrical target vehicle, the docking collar about to strike the target's side, vapour puffing from its thrusters, no ground, no desert"}),
  "lm_descent": ("lander", {
     "ok": "the lunar lander descending toward the grey cratered lunar surface on a bright engine flame, the Earth small in the black sky",
     "fail": "the lunar lander tilted and coming down too fast toward the grey lunar surface, its engine flame sputtering"}),
@@ -56,8 +56,8 @@ SCENES = {
     "fail": "an astronaut in a white spacesuit stumbling and falling in the dust beside the lander on the lunar surface, no rover"}),
 }
 FLAVOUR = {
- "usa": {"flavour": "American flag markings, Cape Canaveral", "flag": "the flag of the United States", "ground_ok": "a calm blue ocean, a recovery ship below", "ground_fail": "the sea"},
- "ussr": {"flavour": "Red star markings, the Baikonur steppe", "flag": "the red Soviet flag with a gold hammer and sickle", "ground_ok": "a flat brown steppe, coming down on land under a single big parachute", "ground_fail": "the flat brown steppe"},
+ "usa": {"flavour": "American flag markings; the Earth below painted as blue ocean and white cloud, no recognisable coastlines or map outlines", "flag": "the flag of the United States", "ground_ok": "a calm blue ocean, a recovery ship below", "ground_fail": "the sea"},
+ "ussr": {"flavour": "Red star markings; for a landing the capsule comes down onto dry flat grassland, not water", "flag": "the red Soviet flag with a gold hammer and sickle", "ground_ok": "a flat brown steppe, coming down on land under a single big parachute", "ground_fail": "the flat brown steppe"},
  "cwth": {"flavour": "RAF roundel and Union Jack markings, the red desert and scrub of Woomera", "flag": "a correct British Union Jack flag (red and white crosses on blue)", "ground_ok": "a flat red desert plain, a recovery helicopter nearby", "ground_fail": "the red desert"},
 }
 # slots per vehicle group per side
