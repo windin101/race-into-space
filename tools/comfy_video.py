@@ -120,6 +120,13 @@ def _wanted(fam: str, slot: str) -> bool:
     return True
 
 
+def kernel_bad_pages() -> int:
+    """Count 'Bad page' kernel reports this boot: memory corruption that precedes a freeze."""
+    import subprocess
+    r = subprocess.run(["journalctl", "-k", "--no-pager", "-q"], capture_output=True, text=True)
+    return r.stdout.count("Bad page")
+
+
 def animate_keyframes(a) -> None:
     """Animate the Gemini keyframes under reference/vignette_keyframes/<fam>_<out>/<side>/<slot>.png
     into vignettes/<fam>_<out>/<side>/<slot>/frame_*.webp with the family's motion prompt."""
@@ -141,7 +148,13 @@ def animate_keyframes(a) -> None:
         i, n = (int(x) for x in a.shard.split("/")); todo = todo[i::n]
     if a.limit: todo = todo[:a.limit]
     print(f"{len(todo)} keyframe clip(s) to animate on {cb.SERVER}")
+    bad0 = kernel_bad_pages()
+    if bad0:
+        print(f"WARNING: this boot already has {bad0} kernel 'Bad page' report(s); reboot before a long run", flush=True)
     for n, (fam, outcome, side, slot, png, folder) in enumerate(todo, 1):
+        if not a.dry_run and kernel_bad_pages() > bad0:
+            print("KERNEL BAD PAGE detected since the run started: stopping before the machine freezes", flush=True)
+            sys.exit(3)
         if a.dry_run:
             print(f"  {folder.relative_to(GAME)}"); continue
         motion = CFG["scenes"][fam][outcome][1]
