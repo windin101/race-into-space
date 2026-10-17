@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the cwth manned_0 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 1679440434
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the capsule bumps the target vehicle, both rebound and tumble apart, a panel breaking loose. No text.
+Licence: CC0 (AI output)
