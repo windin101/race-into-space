@@ -131,9 +131,11 @@ def animate_keyframes(a) -> None:
         if a.families and fam not in a.families: continue
         if a.outcomes and outcome not in a.outcomes: continue
         if a.sides and side not in a.sides: continue
-        if not a.all_slots and not _wanted(fam, slot): continue
+        key_ = f"{fam_out}/{side}/{slot}"
+        if a.only and key_ not in a.only: continue
+        if not a.only and not a.all_slots and not _wanted(fam, slot): continue
         folder = OUT_DIR / fam_out / side / slot
-        if folder.exists() and any(folder.glob("frame_*.webp")) and not a.force: continue
+        if folder.exists() and any(folder.glob("frame_*.webp")) and not (a.force or a.only): continue
         todo.append((fam, outcome, side, slot, png, folder))
     if a.shard:
         i, n = (int(x) for x in a.shard.split("/")); todo = todo[i::n]
@@ -161,6 +163,7 @@ def main() -> None:
     ap.add_argument("--sides", default="", help="with --keyframes: comma-separated side ids")
     ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--all-slots", action="store_true", help="with --keyframes: ignore the trimmed matrix and animate every keyframe")
+    ap.add_argument("--only", nargs="+", default=[], help="with --keyframes: redo just these clips, as <family>_<outcome>/<side>/<slot> (use --reseed N for a new draw)")
     ap.add_argument("--shard", default="", help="with --keyframes: i/n takes every n-th clip starting at i, so two servers (COMFY_SERVER) can split the run")
     ap.add_argument("--families", default="", help="comma-separated family names")
     ap.add_argument("--outcomes", default="", help="ok, fail or both")
