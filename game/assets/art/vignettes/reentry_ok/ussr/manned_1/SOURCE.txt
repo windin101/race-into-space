@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the ussr manned_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 79123194
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the plasma glow brightens then fades, the spacecraft steadies and the glow dies away as it slows, its shape unchanged. No text.
+Licence: CC0 (AI output)

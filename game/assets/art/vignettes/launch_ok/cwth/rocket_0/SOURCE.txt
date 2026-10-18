@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the cwth rocket_0 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 508306851
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the rocket rises slowly off the pad on a column of flame, smoke billows outward, the tower falls away below. No text.
+Licence: CC0 (AI output)

@@ -1,4 +1,4 @@
 Keyframe by Gemini 2.5 Flash Image from the ussr manned_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
-seed 491670654
-motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the capsule bumps the target vehicle, both rebound and tumble apart, a panel breaking loose. No text.
+seed 491670655
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the spacecraft bumps the target vehicle, both rebound and tumble apart slowly. No text.
 Licence: CC0 (AI output)

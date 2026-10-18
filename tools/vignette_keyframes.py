@@ -43,7 +43,7 @@ SCENES = {
     "ok": "the capsule descending under three large red-and-white parachutes toward {ground_ok}",
     "fail": "the capsule falling fast under plain white parachutes, one streaming tangled and the others only partly open, {ground_fail} rushing up"}),
  "docking": ("capsule", {
-    "ok": "exactly two objects in orbit over the blue Earth: on the left the manned spacecraft from the attached image, approaching nose first; on the right a single plain unmanned cylindrical target stage, a bare metal drum with no cabin, no windows and no nose cone; there is only one manned spacecraft in the picture, never two capsules",
+    "ok": "exactly two objects, both large and close to the camera, filling the middle of the frame, in orbit over the blue Earth: on the left the manned spacecraft from the attached image seen side-on, nose pointing right; on the right a single plain unmanned cylindrical target stage seen side-on, a bare metal drum with flat round ends, a small docking collar on its left end facing the spacecraft, no cabin, no windows, no nose cone; the two are a short gap apart; there is only one manned spacecraft in the picture, never two capsules",
     "fail": "in orbit high above the blue Earth against black starry space, the spacecraft coming in too fast at a crooked angle toward a plain cylindrical target vehicle, the docking collar about to strike the target's side, vapour puffing from its thrusters, no ground, no desert"}),
  "lm_descent": ("lander", {
     "ok": "the lunar lander descending toward the grey cratered lunar surface on a bright engine flame, the Earth small in the black sky",

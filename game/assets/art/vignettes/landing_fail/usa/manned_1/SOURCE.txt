@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa manned_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 1114776555
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the tangled parachute flails, the capsule swings wildly and hits the water hard in a huge splash. No text.
+Licence: CC0 (AI output)

@@ -415,7 +415,7 @@
       "docking": {
         "ok": [
           "Two spacecraft approaching nose to nose in orbit over a blue Earth, a cone-shaped capsule and a cylindrical target vehicle",
-          "the two craft close the gap slowly and join with a gentle contact, aligned perfectly"
+          "the spacecraft glides slowly to the right and its nose meets the target's docking collar with a gentle touch; the camera, the Earth and the target stage stay still; no flashes, no new objects"
         ],
         "fail": [
           "A blunt Gemini-style capsule, a short rounded cone with a white cylindrical adapter, approaching a cylindrical Agena target vehicle too fast at a bad angle in orbit over a blue Earth",
@@ -445,7 +445,7 @@
       "lm_landing": {
         "ok": [
           "A four-legged lunar module touching down on the grey lunar surface, engine flame fading, dust spraying outward",
-          "the engine cuts, dust sprays out and settles, the module rests still on its four legs"
+          "the lander settles the last metre onto the surface, its engine flame shrinks and goes out, a low thin layer of dust spreads outward along the ground and settles; the lander keeps its shape; no plume rising into the sky"
         ],
         "fail": [
           "A four-legged lunar module hitting the lunar surface hard and tilting over, a leg crumpled, dust exploding outward",

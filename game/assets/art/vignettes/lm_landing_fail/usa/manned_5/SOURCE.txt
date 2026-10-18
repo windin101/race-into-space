@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa manned_5 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 636001682
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the module topples slowly onto its side in a great cloud of dust. No text.
+Licence: CC0 (AI output)

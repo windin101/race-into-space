@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa manned_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 661837938
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the capsule drifts down gently under the parachutes and splashes into the sea, water spraying up. No text.
+Licence: CC0 (AI output)

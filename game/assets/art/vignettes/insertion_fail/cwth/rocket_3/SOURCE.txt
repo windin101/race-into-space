@@ -1,4 +1,4 @@
 Keyframe by Gemini 2.5 Flash Image from the cwth rocket_3 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
-seed 667667597
-motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the stage tumbles end over end, fragments break off, it falls back toward the Earth below. No text.
+seed 667667598
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the stage tumbles end over end and falls back toward the Earth below, small pieces of its skin peeling away. No text.
 Licence: CC0 (AI output)

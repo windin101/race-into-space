@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa manned_5 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 1718025352
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the lander settles the last metre onto the surface, its engine flame shrinks and goes out, a low thin layer of dust spreads outward along the ground and settles; the lander keeps its shape; no plume rising into the sky. No text.
+Licence: CC0 (AI output)

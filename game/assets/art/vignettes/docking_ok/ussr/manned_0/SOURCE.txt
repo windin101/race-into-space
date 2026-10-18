@@ -1,4 +1,4 @@
 Keyframe by Gemini 2.5 Flash Image from the ussr manned_0 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
-seed 1015663132
-motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the two craft close the gap slowly and join with a gentle contact, aligned perfectly. No text.
+seed 1015663135
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the spacecraft glides slowly to the right and its nose meets the target's docking collar with a gentle touch; the camera, the Earth and the target stage stay still; no flashes, no new objects. No text.
 Licence: CC0 (AI output)

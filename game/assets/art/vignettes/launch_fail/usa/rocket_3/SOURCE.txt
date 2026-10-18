@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa rocket_3 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 45347771
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the rocket tips and erupts in a huge orange fireball, debris and black smoke rolling across the pad, the gantry engulfed. No text.
+Licence: CC0 (AI output)
