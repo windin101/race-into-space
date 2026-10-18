@@ -11,7 +11,10 @@ extends RefCounted
 ## lose precision above 2^53.
 
 const SAVE_DIR := "user://saves"
-const FORMAT := 1
+## Save format. Bump it whenever to_dict's shape changes, and add a step to MIGRATIONS
+## that turns the previous format into the new one; from_dict runs the steps in order.
+## Format 1: two-sided games (no "others" on prestige rows). Format 2: N-sided games.
+const FORMAT := 2
 const INT_KEY_PREFIX := "#"
 
 ## Plain SimPlayer vars copied field by field (untyped arrays and dictionaries included).
@@ -74,7 +77,9 @@ static func to_dict(game: SimGame) -> Dictionary:
 ## Rebuild a game. SimGame's constructor deals a deck and runs the first turn's
 ## newscast; everything it touched is overwritten here and begin_turn is not re-run.
 static func from_dict(data, d: Dictionary) -> SimGame:
-	d = _unpack(d)
+	d = migrate(_unpack(d))
+	if d.is_empty():
+		return null
 	var options: Dictionary = d.get("options", {})
 	var game := SimGame.new(data, _to_int(d.get("seed", 0)), options)
 	var state := game.state
@@ -89,14 +94,6 @@ static func from_dict(data, d: Dictionary) -> SimGame:
 	state.turn_log.assign(d.get("turn_log", []))
 	game.last_turn_report = d.get("last_turn_report", {})
 	state.prestige_rows = d.get("prestige_rows", state.prestige_rows)
-	# Saves from before three-sided play have no "others" list on the ledger rows.
-	for row in state.prestige_rows:
-		var others: Array = []
-		for v in row.get("others", []):
-			others.append(int(v))
-		row["others"] = others
-		for k in ["first", "second"]:
-			row[k] = int(row.get(k, -1))
 	state.event_deck.assign(d.get("event_deck", []))
 	var players: Array = d.get("players", [])
 	for i in mini(players.size(), state.players.size()):
@@ -216,6 +213,54 @@ static func save_slot(game: SimGame, slot: String, label: String) -> bool:
 	return true
 
 
+## The format a saved game dictionary was written in (saves without the field are format 1).
+static func format_of(d: Dictionary) -> int:
+	return int(d.get("format", 1))
+
+
+## Why a saved game cannot be loaded by this build, or "" when it can.
+static func incompatibility(d: Dictionary) -> String:
+	var f := format_of(d)
+	if f > FORMAT:
+		return "Saved by a newer version of the game (save format %d; this version reads up to %d)." % [f, FORMAT]
+	if f < 1:
+		return "Not a saved game this version understands."
+	return ""
+
+
+## Bring a saved game dictionary up to FORMAT, one step at a time. Returns {} for a save
+## this build cannot read (see incompatibility()).
+static func migrate(d: Dictionary) -> Dictionary:
+	if incompatibility(d) != "":
+		return {}
+	var f := format_of(d)
+	while f < FORMAT:
+		match f:
+			1:
+				d = _migrate_1_to_2(d)
+		f += 1
+		d["format"] = f
+	return d
+
+
+## Format 1 -> 2: prestige ledger rows gain an "others" list (sides beyond the second to
+## reach a first) and integer first/second. Idempotent, so format-1 files written after
+## three-sided play began, which already carry "others", pass through unchanged.
+static func _migrate_1_to_2(d: Dictionary) -> Dictionary:
+	var rows: Array = d.get("prestige_rows", [])
+	for row in rows:
+		if not row is Dictionary:
+			continue
+		var others: Array = []
+		for v in row.get("others", []):
+			others.append(int(v))
+		row["others"] = others
+		for k in ["first", "second"]:
+			row[k] = int(row.get(k, -1))
+	d["prestige_rows"] = rows
+	return d
+
+
 static func load_slot(data, slot: String) -> SimGame:
 	var payload := _read_slot(slot)
 	if payload.is_empty() or not payload.get("game") is Dictionary:
@@ -238,6 +283,7 @@ static func list_slots() -> Array:
 			if payload.get("meta") is Dictionary:
 				var meta: Dictionary = payload["meta"].duplicate()
 				meta["slot"] = slot
+				meta["unloadable"] = incompatibility(payload["game"]) if payload.get("game") is Dictionary else "The save file is damaged."
 				out.append(meta)
 		entry = dir.get_next()
 	dir.list_dir_end()

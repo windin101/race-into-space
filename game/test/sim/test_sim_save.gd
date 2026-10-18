@@ -165,3 +165,35 @@ func test_bad_slot_names_are_rejected() -> void:
 	assert_bool(SimSave.save_slot(g, "", "x")).is_false()
 	assert_bool(SimSave.save_slot(g, "../escape", "x")).is_false()
 	assert_object(SimSave.load_slot(data, "no_such_slot_here")).is_null()
+
+
+func test_format_1_save_is_migrated_to_the_current_format() -> void:
+	var d := SimSave.to_dict(_game())
+	d["format"] = 1
+	for row in d["prestige_rows"]:
+		row.erase("others")
+		row["first"] = float(row.get("first", -1))
+	var m := SimSave.migrate(d.duplicate(true))
+	assert_int(int(m["format"])).is_equal(SimSave.FORMAT)
+	for row in m["prestige_rows"]:
+		assert_bool(row.has("others")).is_true()
+		assert_int(typeof(row["first"])).is_equal(TYPE_INT)
+	assert_object(SimSave.from_dict(data, d)).is_not_null()
+
+
+func test_save_without_format_field_reads_as_format_1() -> void:
+	var d := SimSave.to_dict(_game())
+	d.erase("format")
+	assert_int(SimSave.format_of(d)).is_equal(1)
+	assert_object(SimSave.from_dict(data, d)).is_not_null()
+
+
+func test_save_from_a_newer_build_is_refused_not_half_loaded() -> void:
+	var d := SimSave.to_dict(_game())
+	d["format"] = SimSave.FORMAT + 1
+	assert_str(SimSave.incompatibility(d)).contains("newer version")
+	assert_object(SimSave.from_dict(data, d)).is_null()
+
+
+func test_new_saves_carry_the_current_format() -> void:
+	assert_int(int(SimSave.to_dict(_game())["format"])).is_equal(SimSave.FORMAT)

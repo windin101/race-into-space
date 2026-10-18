@@ -97,7 +97,8 @@ func _refresh() -> void:
 	var rows: Array = []
 	for meta in SimSave.list_slots():
 		rows.append({
-			"label": str(meta.get("label", meta["slot"])),
+			"label": str(meta.get("label", meta["slot"])) + ("  (newer version)" if str(meta.get("unloadable", "")) != "" else ""),
+			"_unloadable": str(meta.get("unloadable", "")),
 			"date": str(meta.get("date", "")),
 			"side": Sides.short(str(meta.get("side", ""))),
 			"saved_at": str(meta.get("saved_at", "")).replace("T", " "),
@@ -126,7 +127,8 @@ func _update_buttons() -> void:
 		"Save the current game to a new slot, named by the label above.")
 	_action(_save_over, "Save over selected", "caution", no_game if not in_game else ("" if has_sel else pick),
 		"Replace the selected save with the current game.")
-	_action(_load, "Load selected", "go", "" if has_sel else pick, "Load the selected save.")
+	var cant_load := str(_selected.get("_unloadable", "")) if has_sel else pick
+	_action(_load, "Load selected", "go", cant_load, "Load the selected save.")
 	_action(_delete, "Delete selected", "caution", "" if has_sel else pick, "Delete the selected save permanently.")
 	_action(_quit, "Quit to title", "go", "" if in_game else no_game, "Leave this game and return to the title screen.")
 	_label_edit.editable = in_game
