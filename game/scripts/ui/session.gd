@@ -107,4 +107,4 @@ func notify_change() -> void:
 
 
 func _apply_theme() -> void:
-	get_tree().root.theme = UiTheme.get_theme(human_side)
+	UiTheme.apply(get_tree(), human_side)

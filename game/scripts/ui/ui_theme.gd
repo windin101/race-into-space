@@ -30,6 +30,21 @@ const PAD := 10
 static var _cache: Dictionary = {}
 
 
+## Make a side's theme the live one. Screens live under the Screens CanvasLayer, and a
+## CanvasLayer stops theme inheritance from the window, so the theme goes on the screen
+## manager's root control as well as on the window (popups and dialogs use the window's).
+static func apply(tree: SceneTree, side: String) -> void:
+	var t := get_theme(side)
+	tree.root.theme = t
+	var screens := tree.root.get_node_or_null("Screens")
+	if screens != null and screens.has_method("set_screen_theme"):
+		screens.call("set_screen_theme", t)
+
+
+static func clear_cache() -> void:
+	_cache.clear()
+
+
 static func get_theme(side: String) -> Theme:
 	if not _cache.has(side):
 		_cache[side] = build(side)

@@ -25,6 +25,11 @@ func _ready() -> void:
 	add_child(_root)
 
 
+## Theme for every screen (see UiTheme.apply).
+func set_screen_theme(t: Theme) -> void:
+	_root.theme = t
+
+
 func current() -> Control:
 	return stack.back() if not stack.is_empty() else null
 
@@ -119,7 +124,57 @@ func _fade_in(node: Control) -> void:
 	tw.tween_property(node, "modulate:a", 1.0, FADE_SECONDS)
 
 
+## Keyboard play: when nothing has focus, the first navigation key (Tab, arrows, Enter)
+## focuses the screen's preferred control instead of doing nothing. Done on demand so
+## mouse players never see a focus ring they did not ask for.
+const NAV_ACTIONS := ["ui_focus_next", "ui_focus_prev", "ui_up", "ui_down", "ui_left", "ui_right", "ui_accept"]
+
+
+func _focus_entry(event: InputEvent) -> bool:
+	if get_viewport().gui_get_focus_owner() != null:
+		return false
+	for a in NAV_ACTIONS:
+		if event.is_action_pressed(a):
+			var target := preferred_focus(current())
+			if target != null:
+				target.grab_focus()
+				return true
+			return false
+	return false
+
+
+## The control keyboard focus starts on: the screen's own choice (`func initial_focus()
+## -> Control`), else its first visible "go" action, else its first focusable control that
+## is not an unavailable action.
+static func preferred_focus(screen: Control) -> Control:
+	if screen == null:
+		return null
+	if screen.has_method("initial_focus"):
+		var c = screen.call("initial_focus")
+		if c is Control and c.is_visible_in_tree():
+			return c
+	var first: Control = null
+	var stack_nodes: Array = [screen]
+	while not stack_nodes.is_empty():
+		var n: Node = stack_nodes.pop_front()
+		if n is Control and n != screen:
+			var c: Control = n
+			if not c.is_visible_in_tree():
+				continue
+			if c.focus_mode != Control.FOCUS_NONE:
+				if c is Button and (c as Button).theme_type_variation == "Go":
+					return c
+				var blocked := c is Button and (c as Button).theme_type_variation == "Blocked"
+				if first == null and not blocked:
+					first = c
+		stack_nodes.append_array(n.get_children())
+	return first
+
+
 func _unhandled_input(event: InputEvent) -> void:
+	if _focus_entry(event):
+		get_viewport().set_input_as_handled()
+		return
 	# Back is everywhere (ui-style-guide section 2): Esc, a right-click on empty space,
 	# and the mouse's back button all go back one screen.
 	var back := event.is_action_pressed("ui_cancel")

@@ -123,7 +123,7 @@ func _ready() -> void:
 	side.text = "Switch side theme"
 	side.pressed.connect(func():
 		Session.human_side = "ussr" if Session.human_side == "usa" else "usa"
-		get_tree().root.theme = UiTheme.get_theme(Session.human_side))
+		UiTheme.apply(get_tree(), Session.human_side))
 	footer.add_child(side)
 
 

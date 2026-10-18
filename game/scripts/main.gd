@@ -11,7 +11,7 @@ func _ready() -> void:
 	if "--self-check" in OS.get_cmdline_user_args():
 		get_tree().quit(_self_check())
 		return
-	get_tree().root.theme = UiTheme.get_theme("usa")
+	UiTheme.apply(get_tree(), "usa")
 	Screens.push(load(TITLE))
 
 

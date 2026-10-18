@@ -15,6 +15,7 @@ var music_volume := 0.8
 var sfx_volume := 1.0
 var animation_speed := 1.0     ## 0.5 .. 3.0, multiplies mission playback speed
 var skip_launch_animation := false
+var colour_mode := "standard"   ## "standard" | "colour_blind" (status colours)
 ## "ours" (the bundled soundtrack) or "original" (the player's own copy of the original
 ## game's music, read from original_music_dir at runtime; never bundled).
 var music_source := "ours"
@@ -33,6 +34,7 @@ func load_settings() -> void:
 	ui_scale = cfg.get_value("display", "ui_scale", ui_scale)
 	window_mode = cfg.get_value("display", "window_mode", window_mode)
 	pixel_mode = cfg.get_value("display", "pixel_mode", pixel_mode)
+	colour_mode = cfg.get_value("display", "colour_mode", colour_mode)
 	master_volume = cfg.get_value("audio", "master", master_volume)
 	music_volume = cfg.get_value("audio", "music", music_volume)
 	sfx_volume = cfg.get_value("audio", "sfx", sfx_volume)
@@ -47,6 +49,7 @@ func save_settings() -> void:
 	cfg.set_value("display", "ui_scale", ui_scale)
 	cfg.set_value("display", "window_mode", window_mode)
 	cfg.set_value("display", "pixel_mode", pixel_mode)
+	cfg.set_value("display", "colour_mode", colour_mode)
 	cfg.set_value("audio", "master", master_volume)
 	cfg.set_value("audio", "music", music_volume)
 	cfg.set_value("audio", "sfx", sfx_volume)
@@ -71,6 +74,12 @@ func apply() -> void:
 		win.content_scale_stretch = Window.CONTENT_SCALE_STRETCH_FRACTIONAL
 	win.content_scale_aspect = Window.CONTENT_SCALE_ASPECT_EXPAND
 	win.content_scale_factor = clampf(ui_scale, 0.5, 3.0)
+	if UiPalette.colour_mode != colour_mode:
+		UiPalette.set_colour_mode(colour_mode)
+		# Session is loaded after Settings, so look it up rather than naming the autoload.
+		var session := get_tree().root.get_node_or_null("Session")
+		var side: String = session.human_side if session != null and session.has_game() else "usa"
+		UiTheme.apply(get_tree(), side)
 	if not DisplayServer.get_name() == "headless":
 		win.mode = Window.MODE_FULLSCREEN if window_mode == "fullscreen" else Window.MODE_WINDOWED
 	_set_bus("Master", master_volume)
