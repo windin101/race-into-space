@@ -50,7 +50,6 @@ func set_columns(cols: Array) -> void:
 		b.alignment = HORIZONTAL_ALIGNMENT_RIGHT if col.get("numeric", false) else HORIZONTAL_ALIGNMENT_LEFT
 		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		b.size_flags_stretch_ratio = float(col.get("stretch", 1.0))
-		b.focus_mode = Control.FOCUS_NONE
 		b.pressed.connect(_on_header_pressed.bind(col["key"]))
 		_header.add_child(b)
 	_refresh_header_titles()
@@ -126,7 +125,6 @@ func _rebuild() -> void:
 		var row: Dictionary = rows[i]
 		var line := Button.new()
 		line.theme_type_variation = "Flat"
-		line.focus_mode = Control.FOCUS_NONE
 		line.custom_minimum_size.y = ROW_MIN_HEIGHT
 		line.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 		line.pressed.connect(_on_row_pressed.bind(i))

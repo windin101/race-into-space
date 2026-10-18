@@ -15,11 +15,19 @@ const ROLE_ORDER := ["cap", "lm", "eva", "dock"]
 const ROLE_SKILLS := {"cap": "capsule", "lm": "lm", "eva": "eva", "dock": "docking"}
 const DEFAULT_HELP := "I020"
 const TRAINING := "res://scenes/astronauts/training.tscn"
-const STATUS_COLORS := {
-	SimAstronaut.Status.ACTIVE: UiPalette.TEXT, SimAstronaut.Status.BASIC_TRAINING: UiPalette.INFO,
-	SimAstronaut.Status.ADVANCED_TRAINING: UiPalette.INFO, SimAstronaut.Status.INJURED: UiPalette.WARN,
-	SimAstronaut.Status.RETIRED: UiPalette.TEXT_MUTED, SimAstronaut.Status.DEAD: UiPalette.DANGER,
-}
+## Status colour for the roster. A function, not a const: WARN and DANGER follow the
+## colour-blind setting.
+static func status_color(status: int) -> Color:
+	match status:
+		SimAstronaut.Status.BASIC_TRAINING, SimAstronaut.Status.ADVANCED_TRAINING:
+			return UiPalette.INFO
+		SimAstronaut.Status.INJURED:
+			return UiPalette.WARN
+		SimAstronaut.Status.RETIRED:
+			return UiPalette.TEXT_MUTED
+		SimAstronaut.Status.DEAD:
+			return UiPalette.DANGER
+	return UiPalette.TEXT
 
 var _filter := "all"
 var _filter_buttons: Dictionary = {}
@@ -94,7 +102,7 @@ func _build_roster_column() -> Control:
 	_table.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_table.tooltip_text = "Click a row to open the dossier; click a column heading to sort."
 	var cols: Array = [
-		{"key": "name", "title": "Name", "stretch": 1.5, "color": func(r): return STATUS_COLORS.get(r["_astronaut"].status, UiPalette.TEXT)},
+		{"key": "name", "title": "Name", "stretch": 1.5, "color": func(r): return status_color(r["_astronaut"].status)},
 		{"key": "status", "title": "Status", "stretch": 1.3},
 		{"key": "program", "title": "Program", "stretch": 1.2},
 		{"key": "mood", "title": "Mood", "numeric": true, "stretch": 0.6, "color": func(r): return UiPalette.mood_color(int(r["mood"]))},
@@ -189,7 +197,7 @@ func _draw_portrait() -> void:
 	var side := Session.human_side if Session.has_game() else "usa"
 	PortraitArt.paint(_portrait, Rect2(Vector2.ZERO, size), _selected.name, _selected.female, side, _selected.status_name())
 	# Status band along the bottom, coloured like the roster.
-	var col: Color = STATUS_COLORS.get(_selected.status, UiPalette.TEXT)
+	var col: Color = status_color(_selected.status)
 	_portrait.draw_rect(Rect2(0, size.y - 26, size.x, 26), Color(0, 0, 0, 0.55))
 	_portrait.draw_string(get_theme_default_font(), Vector2(0, size.y - 8), status_title(_selected).to_upper(), HORIZONTAL_ALIGNMENT_CENTER, size.x, UiTheme.SIZE_SMALL, col)
 

@@ -51,7 +51,6 @@ func _init() -> void:
 	_button.theme_type_variation = "Flat"
 	_button.flat = true
 	_button.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_button.focus_mode = Control.FOCUS_NONE
 	_button.pressed.connect(func(): pressed.emit(astronaut))
 	add_child(_button)
 

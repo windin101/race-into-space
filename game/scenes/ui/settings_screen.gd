@@ -37,6 +37,15 @@ func _ready() -> void:
 		Settings.apply()
 		Settings.save_settings())
 	_row(display, "Rendering", pixel, "Scale the canvas by whole steps only, for crisp pixel art")
+	var colours := OptionButton.new()
+	colours.add_item("Standard")
+	colours.add_item("Colour-blind friendly")
+	colours.selected = 1 if Settings.colour_mode == "colour_blind" else 0
+	colours.item_selected.connect(func(i):
+		Settings.colour_mode = "colour_blind" if i == 1 else "standard"
+		Settings.apply()
+		Settings.save_settings())
+	_row(display, "Status colours", colours, "Green, amber and red for good, caution and failure, or blue, yellow and orange, which stay distinct for colour-blind players. Applies to screens opened afterwards.")
 	_row(sound, "Master", _slider(0.0, 1.0, 0.05, Settings.master_volume, func(v):
 		Settings.master_volume = v
 		Settings.apply()

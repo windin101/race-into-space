@@ -53,7 +53,6 @@ func _init() -> void:
 	_button.theme_type_variation = "Flat"
 	_button.flat = true
 	_button.set_anchors_preset(Control.PRESET_FULL_RECT)
-	_button.focus_mode = Control.FOCUS_NONE
 	_button.pressed.connect(func(): pressed.emit(program))
 	_button.mouse_filter = Control.MOUSE_FILTER_PASS
 	add_child(_button)
