@@ -345,11 +345,11 @@
       "power_on": {
         "ok": [
           "A small spacecraft in orbit over a blue Earth, solar panels unfolding, an antenna extending",
-          "the panels unfold smoothly, a light blinks on, the craft turns gently to face the Sun"
+          "the solar panels unfold slowly to their full width and an antenna extends; the satellite keeps its shape; the Earth stays as drawn; no bright flashes"
         ],
         "fail": [
           "A small spacecraft in orbit over a blue Earth, one solar panel jammed half open, a puff of vapour from its side",
-          "the jammed panel shudders, sparks and vapour vent, the craft begins to tumble slowly and goes dark"
+          "one solar panel judders and stops half open, a puff of vapour escapes, the satellite starts a slow tumble; it keeps its shape; nothing new enters the frame"
         ]
       },
       "reentry": {
@@ -385,11 +385,11 @@
       "lunar_pass": {
         "ok": [
           "View from deep space: the curved grey cratered edge of the Moon fills only the bottom of the frame, and a small blunt cone-shaped capsule with a cylindrical service module floats high in the black starry sky above it, far from the surface, Earth small and blue in the distance",
-          "the capsule glides slowly across the black sky while the lunar horizon drifts beneath it, staying high above the surface"
+          "the spacecraft drifts slowly across the frame above the cratered surface; the Moon's surface, the stars and the small distant Earth stay exactly as drawn; nothing new enters the frame"
         ],
         "fail": [
           "A cone-shaped capsule near the Moon with its engine bell dark and a thin trail of vapour, drifting off course",
-          "the capsule drifts away from the Moon, slowly tumbling, as the Moon shrinks behind it"
+          "the spacecraft drifts slowly and begins a slow tumble, a thin vapour trail behind it; the Moon's surface and the stars stay exactly as drawn; nothing new enters the frame"
         ]
       },
       "eva": {
@@ -425,11 +425,11 @@
       "lm_ops": {
         "ok": [
           "A four-legged lunar module separating from a cone-shaped command module in orbit around the Moon, grey cratered surface below",
-          "the lunar module backs away slowly, its legs unfolding, the two craft drifting apart over the craters"
+          "the lander and the mother craft drift slowly apart; the Moon below and the stars stay exactly as drawn; nothing new enters the frame"
         ],
         "fail": [
           "A four-legged lunar module floating in orbit high above the Moon, black starry sky, the cratered surface far below, one landing leg bent and vapour leaking from its descent stage",
-          "the leg buckles, vapour streams out, the module wobbles and drifts away, tumbling slowly in space"
+          "the lander tumbles slowly, a thin vapour trail from its descent stage; the distant Moon and the stars stay exactly as drawn; no clouds, no smoke, nothing new enters the frame"
         ]
       },
       "lm_descent": {
@@ -465,17 +465,17 @@
       "lm_test": {
         "ok": [
           "A four-legged lunar module firing its descent engine in Earth orbit, blue Earth below, a command module nearby",
-          "the engine flame burns steady, the module moves smoothly away then back toward the command module"
+          "the lander's engine flame burns steadily and it moves slowly across the frame; the Earth below, the stars and the mother craft stay exactly as drawn; nothing new enters the frame"
         ],
         "fail": [
           "A four-legged lunar module in Earth orbit with an engine flame burning ragged and uneven, a panel shaking loose",
-          "the flame cuts out, the panel tears away, the module drifts and tumbles"
+          "the lander's flame flickers unevenly and a small panel shakes loose and drifts away; the lander keeps its shape; nothing new enters the frame"
         ]
       },
       "photo": {
         "ok": [
           "A cylindrical reconnaissance satellite over a blue Earth, a camera lens aimed down, a strip of coastline far below",
-          "the satellite glides across the frame, its lens tracking the coastline below"
+          "the satellite glides slowly over the Earth as the globe turns gently below; the satellite keeps its shape; nothing new enters the frame"
         ],
         "fail": [
           "A cylindrical reconnaissance satellite over Earth, its camera door jammed shut, a solar panel bent",
@@ -485,11 +485,11 @@
       "planetary": {
         "ok": [
           "A small space probe with a dish antenna cruising past a large planet, deep black space and stars",
-          "the probe sweeps past the planet in a slow arc, the planet rotating gently"
+          "the probe glides slowly past the planet; the planet rotates very slightly; nothing new enters the frame, the probe keeps its shape"
         ],
         "fail": [
           "A small space probe with a dish antenna drifting in deep space, its antenna pointing away from a distant planet",
-          "the probe drifts off course, slowly tumbling, the planet sliding out of frame"
+          "the probe tumbles slowly, its dish turning away; the distant planet stays small and far; nothing new enters the frame"
         ]
       },
       "duration": {
