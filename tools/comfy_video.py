@@ -113,9 +113,9 @@ KEYFRAMES = ROOT / "reference" / "vignette_keyframes"
 # spaceplane and the three-man capsule. --all-slots animates everything that has a keyframe.
 LANDER_PICK = "manned_5"
 def _wanted(fam: str, slot: str) -> bool:
-    if fam in ("lm_descent", "lm_landing", "lunar_eva"):
+    if fam in ("lm_descent", "lm_landing", "lunar_eva", "lm_ops", "lm_liftoff", "lm_test"):
         return slot == LANDER_PICK
-    if fam in ("docking", "orbit"):
+    if fam in ("docking", "orbit", "duration", "eva", "lunar_pass"):
         return slot in ("manned_0", "manned_1")
     return True
 

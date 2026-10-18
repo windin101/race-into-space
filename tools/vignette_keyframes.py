@@ -51,6 +51,33 @@ SCENES = {
  "lm_landing": ("lander", {
     "ok": "the lunar lander touching down on the grey lunar surface under a black starry sky, engine flame fading, dust spraying outward from under it",
     "fail": "the lunar lander hitting the lunar surface hard and tipping over, one leg crumpled, dust exploding outward"}),
+ "power_on": ("probe", {
+    "ok": "the satellite in orbit over the blue Earth, its solar panels just unfolded and an antenna extending, small status lights glowing",
+    "fail": "the satellite in orbit over the blue Earth with one solar panel jammed half open, a puff of vapour from its side, tumbling slowly"}),
+ "eva": ("capsule", {
+    "ok": "an astronaut in a white spacesuit floating on a tether outside the open hatch of the spacecraft, the blue Earth filling the background",
+    "fail": "an astronaut in a white spacesuit at the open hatch of the spacecraft, struggling to get back in, the suit stiff and ballooned, the tether tangled, Earth below"}),
+ "lunar_pass": ("capsule", {
+    "ok": "the spacecraft coasting past the Moon: the grey cratered lunar surface fills the bottom of the frame, black starry space above, the Earth small and blue in the distance",
+    "fail": "the spacecraft near the Moon drifting off course, its engine bell dark, a thin trail of vapour, the grey cratered surface filling the bottom of the frame"}),
+ "lm_ops": ("lander", {
+    "ok": "the lunar lander just separated from its mother spacecraft in orbit around the Moon, the two a short distance apart, the grey cratered surface far below",
+    "fail": "the lunar lander in orbit high above the Moon, one landing leg bent and vapour leaking from its descent stage, the cratered surface far below"}),
+ "lm_liftoff": ("lander", {
+    "ok": "the ascent stage of the lunar lander lifting off, leaving its four-legged descent stage standing on the grey lunar surface below, a sharp bright flame between them, a flag beside the descent stage, Earth in the black sky",
+    "fail": "the ascent stage of the lunar lander only just rising off its descent stage on the grey lunar surface, its flame weak and flickering, tilting to one side"}),
+ "lm_test": ("lander", {
+    "ok": "the lunar lander firing its descent engine in Earth orbit, a steady flame, the blue Earth below, its mother spacecraft nearby",
+    "fail": "the lunar lander in Earth orbit with its engine flame burning ragged and uneven, a panel shaking loose, the blue Earth below"}),
+ "photo": ("probe", {
+    "ok": "the reconnaissance satellite in orbit over the blue Earth, its camera aimed down at a coastline far below, no ground detail other than the distant globe",
+    "fail": "the reconnaissance satellite in orbit over the blue Earth, its camera door jammed shut and a solar panel bent, drifting"}),
+ "planetary": ("probe", {
+    "ok": "the space probe cruising past a huge banded gas-giant planet, deep black space and stars, the planet filling one side of the frame",
+    "fail": "the space probe drifting in deep space, its dish antenna pointing away from a distant small planet, tumbling slowly"}),
+ "duration": ("capsule", {
+    "ok": "the spacecraft in orbit over the blue Earth, the day-night terminator line crossing the globe below, the spacecraft lit from one side",
+    "fail": "the spacecraft in orbit over the blue Earth, frost crystals forming on its hull and windows, a vent leaking a thin stream of vapour, drifting"}),
  "lunar_eva": ("lander", {
     "ok": "an astronaut in a white spacesuit standing on the grey lunar surface beside the lander, planting {flag} on a pole, Earth in the black sky, no rover",
     "fail": "an astronaut in a white spacesuit stumbling and falling in the dust beside the lander on the grey lunar surface, the sky above pure black with stars, no rover"}),
@@ -70,15 +97,26 @@ SPACE = ("Setting: at the edge of space, very high altitude. The Earth far below
          "glowing blue atmosphere line on its limb and black starry space above; no buildings, no launch site, no roads, no fields, no ground detail "
          "of any kind, nothing on the surface is close")
 # slots per vehicle group per side
-SLOTS = {"rocket": ["rocket_0", "rocket_1", "rocket_2", "rocket_3"],
+SLOTS = {"rocket": ["rocket_0", "rocket_1", "rocket_2", "rocket_3"], "probe": ["probe_0", "probe_1", "probe_2"],
          "capsule": ["manned_0", "manned_1", "manned_2", "manned_3"],
          "lander": ["manned_4", "manned_5", "manned_6"]}
+
+# the trimmed matrix the animator uses (tools/comfy_video.py): one lander, two capsules
+# for orbit-type families; --all-slots makes every slot
+def wanted(fam: str, slot: str) -> bool:
+    group = SCENES[fam][0]
+    if group == "lander":
+        return slot == "manned_5"
+    if fam in ("docking", "orbit", "duration", "eva", "lunar_pass", "power_on"):
+        return slot in ("manned_0", "manned_1") if group == "capsule" else True
+    return True
+
 
 def flavour_for(fam: str, side: str) -> str:
     f = FLAVOUR[side]
     if fam in GROUND_FAMILIES:
         return f["markings"] + ", " + f["home"]
-    if fam.startswith("lm_") or fam == "lunar_eva":
+    if fam.startswith("lm_") or fam in ("lunar_eva", "lunar_pass", "planetary"):
         return f["markings"]
     return f["markings"] + ". " + SPACE
 
@@ -93,6 +131,7 @@ def jobs(args):
         for side in args.sides:
             for slot in (args.slots or SLOTS[group]):
                 if not (ICONS / side / f"{slot}.png").exists(): continue
+                if not args.slots and not args.all_slots and not wanted(fam, slot): continue
                 for outcome in args.outcomes:
                     yield fam, outcome, side, slot, scenes[outcome].format(**FLAVOUR[side]), flavour_for(fam, side)
 
@@ -105,6 +144,7 @@ def main():
     ap.add_argument("--slots", nargs="+", default=None); ap.add_argument("--outcomes", nargs="+", default=["ok", "fail"])
     ap.add_argument("--dry-run", action="store_true"); ap.add_argument("--force", action="store_true"); ap.add_argument("--limit", type=int, default=0)
     ap.add_argument("--redo", nargs="+", default=[], help="specific keyframes to regenerate, as <family>_<outcome>/<side>/<slot>")
+    ap.add_argument("--all-slots", action="store_true", help="every slot, not the trimmed matrix")
     a = ap.parse_args()
     todo = []
     if a.redo:
