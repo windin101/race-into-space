@@ -62,7 +62,7 @@ SCENES = {
     "fail": "the spacecraft near the Moon drifting off course, its engine bell dark, a thin trail of vapour, the grey cratered surface filling the bottom of the frame"}),
  "lm_ops": ("lander", {
     "ok": "the lunar lander just separated from its mother spacecraft in orbit around the Moon, the two a short distance apart, the grey cratered surface far below",
-    "fail": "the lunar lander in orbit high above the Moon, one landing leg bent and vapour leaking from its descent stage, the cratered surface far below"}),
+    "fail": "the lunar lander floating free in orbit, legs dangling in empty black space, nothing under it, one landing leg bent and vapour leaking from its descent stage; the grey cratered Moon is a distant curved globe far below in the lower part of the frame, the lander is not touching it"}),
  "lm_liftoff": ("lander", {
     "ok": "the ascent stage of the lunar lander lifting off, leaving its four-legged descent stage standing on the grey lunar surface below, a sharp bright flame between them, a flag beside the descent stage, Earth in the black sky",
     "fail": "the ascent stage of the lunar lander only just rising off its descent stage on the grey lunar surface, its flame weak and flickering, tilting to one side"}),
