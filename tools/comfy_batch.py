@@ -39,7 +39,7 @@ SOURCE = ROOT / "reference" / "art_source"
 STYLE = json.loads((ROOT / "tools" / "comfy_style.json").read_text())
 _FEAT = SOURCE / "portrait_features.json"
 FEATURES = json.loads(_FEAT.read_text()) if _FEAT.exists() else {}
-SERVER = __import__("os").environ.get("COMFY_SERVER", STYLE["server"])   # e.g. http://127.0.0.1:8189 for a second GPU
+SERVER = __import__("os").environ.get("COMFY_SERVER", STYLE["server"])   # e.g. http://127.0.0.1:8190 for a second instance on the compute GPU (8189 is taken)
 CLIENT = str(uuid.uuid4())
 
 _SIDES_REG = json.loads((ROOT / "game" / "data" / "sides.json").read_text())["sides"]
