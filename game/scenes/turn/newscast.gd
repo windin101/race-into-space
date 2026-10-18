@@ -114,7 +114,7 @@ func _refresh() -> void:
 	_anchor_side = p.side
 	_anchor_tile.queue_redraw()
 	var raw := str(news.get("text", ""))
-	_news.text = TurnLogic.resolve_placeholders(raw, news, p, state.year).capitalize() if raw != "" else "No news this season."
+	_news.text = TextCase.sentence(TurnLogic.resolve_placeholders(raw, news, p, state.year)) if raw != "" else "No news this season."
 	_news.add_theme_color_override("font_color", TurnLogic.news_colour(int(news.get("color", 0))))
 	var drift := int(news.get("budget_drift", 0))
 	_budget.text = "Budget revised to %d MB (%+d MB this season)" % [p.budget, drift]

@@ -129,7 +129,7 @@ func _refresh() -> void:
 		var ti := TurnLogic.endgame_text_index(state.year, winner_slot, Sides.text_slot(state.player(side_index).side))
 		var body := Label.new()
 		body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		body.text = str(lines[ti]).replace("\n", " ").capitalize() if ti >= 0 and ti < lines.size() else "(no ending text)"
+		body.text = TextCase.sentence(str(lines[ti]).replace("\n", " ")) if ti >= 0 and ti < lines.size() else "(no ending text)"
 		_story.add_child(body)
 
 	var rows: Array = []

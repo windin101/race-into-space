@@ -18,7 +18,7 @@ static func text_for(code: String) -> String:
 			continue
 		if line.is_empty():
 			continue
-		out.append(line.capitalize() if line == line.to_upper() else line)
+		out.append(TextCase.sentence(line))
 	return "\n".join(out)
 
 
