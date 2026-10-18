@@ -1,0 +1,105 @@
+# Exports Linux and Windows builds, smoke-tests both (the Windows one under Wine), and
+# uploads them. Runs on pushes to main, on version tags and by hand; a tag such as v1.0.0
+# also publishes the two archives as a GitHub Release.
+name: build
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  workflow_dispatch:
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    permissions:
+      contents: write   # to create the release on a tag
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot and export templates
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/godot
+            ~/.local/share/godot/export_templates
+          key: godot-export-${{ env.GODOT_VERSION }}-linux-windows
+
+      - name: Download Godot and the two export templates
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          set -e
+          base="https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable"
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip "$base/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+          curl -fsSL -o /tmp/tpl.tpz "$base/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          dest=~/.local/share/godot/export_templates/${GODOT_VERSION}.stable
+          mkdir -p "$dest"
+          # keep only what the presets use, so the cache stays small
+          unzip -q -j /tmp/tpl.tpz "templates/version.txt" "templates/linux_release.x86_64" \
+            "templates/windows_release_x86_64.exe" "templates/windows_release_x86_64_console.exe" -d "$dest"
+          rm /tmp/tpl.tpz
+
+      - name: Version
+        id: ver
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then v="${GITHUB_REF#refs/tags/}"; else v="dev-${GITHUB_SHA::8}"; fi
+          echo "version=$v" >> "$GITHUB_OUTPUT"
+
+      - name: Import
+        run: ~/godot/godot --headless --path game --import || true
+
+      - name: Export Linux and Windows
+        working-directory: game
+        run: |
+          mkdir -p ../build/linux ../build/windows
+          ~/godot/godot --headless --export-release "Linux" ../build/linux/race-into-space.x86_64
+          ~/godot/godot --headless --export-release "Windows" ../build/windows/race-into-space.exe
+          ls -la ../build/linux ../build/windows
+
+      - name: Self-check the Linux build
+        run: build/linux/race-into-space.x86_64 --headless -- --self-check
+
+      - name: Self-check the Windows build under Wine
+        run: |
+          sudo dpkg --add-architecture i386 >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq wine64 >/dev/null
+          WINE=$(command -v wine64 || command -v wine || echo /usr/lib/wine/wine64)
+          cd build/windows
+          WINEDEBUG=-all "$WINE" race-into-space.exe --headless -- --self-check
+
+      - name: Package
+        run: |
+          v="${{ steps.ver.outputs.version }}"
+          cp LICENSE README.md build/linux/ && cp LICENSE README.md build/windows/
+          (cd build && tar -czf "race-into-space-$v-linux-x86_64.tar.gz" -C linux . )
+          (cd build/windows && zip -q -r "../race-into-space-$v-windows-x86_64.zip" . )
+          ls -la build/*.tar.gz build/*.zip
+
+      - name: Upload builds
+        uses: actions/upload-artifact@v4
+        with:
+          name: race-into-space-${{ steps.ver.outputs.version }}
+          path: |
+            build/*.tar.gz
+            build/*.zip
+          retention-days: 14
+          compression-level: 0   # already compressed
+
+      - name: Publish release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            build/*.tar.gz
+            build/*.zip
+          generate_release_notes: true
