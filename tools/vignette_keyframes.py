@@ -52,14 +52,14 @@ SCENES = {
     "ok": "the lunar lander touching down on the grey lunar surface under a black starry sky, engine flame fading, dust spraying outward from under it",
     "fail": "the lunar lander hitting the lunar surface hard and tipping over, one leg crumpled, dust exploding outward"}),
  "power_on": ("probe", {
-    "ok": "the satellite in orbit over the blue Earth, its solar panels just unfolded and an antenna extending, small status lights glowing",
+    "ok": "the satellite large in the middle of the frame in orbit over the blue Earth, its solar panels fully unfolded and rigid, an antenna extended, small status lights glowing; the satellite keeps exactly the shape from the attached image",
     "fail": "the satellite in orbit over the blue Earth with one solar panel jammed half open, a puff of vapour from its side, tumbling slowly"}),
  "eva": ("capsule", {
     "ok": "an astronaut in a white spacesuit floating on a tether outside the open hatch of the spacecraft, the blue Earth filling the background",
     "fail": "an astronaut in a white spacesuit at the open hatch of the spacecraft, struggling to get back in, the suit stiff and ballooned, the tether tangled, Earth below"}),
  "lunar_pass": ("capsule", {
     "ok": "the spacecraft coasting past the Moon: the grey cratered lunar surface fills the bottom of the frame, black starry space above, the Earth small and blue in the distance",
-    "fail": "the spacecraft near the Moon drifting off course, its engine bell dark, a thin trail of vapour, the grey cratered surface filling the bottom of the frame"}),
+    "fail": "the spacecraft large in the middle of the frame, close to the camera, drifting off course near the Moon, its engine bell dark, a thin trail of vapour; the grey cratered lunar surface fills the whole lower half of the frame as a wide curved horizon; the upper half is pure black with a few stars, nothing else in it"}),
  "lm_ops": ("lander", {
     "ok": "the lunar lander just separated from its mother spacecraft in orbit around the Moon, the two a short distance apart, the grey cratered surface far below",
     "fail": "the lunar lander floating free in orbit, legs dangling in empty black space, nothing under it, one landing leg bent and vapour leaking from its descent stage; the grey cratered Moon is a distant curved globe far below in the lower part of the frame, the lander is not touching it"}),
