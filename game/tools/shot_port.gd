@@ -16,6 +16,7 @@ func _init() -> void:
 func _start(full: bool) -> void:
 	var lineup := ["usa", "ussr"] if side != "cwth" else ["cwth", "usa"]
 	root.get_node("Session").new_game(7, {"human_side": side, "sides": lineup})
+	UiTheme.apply(self, side)
 	var me = root.get_node("Session").me()
 	if full:
 		for group in me.programs:
