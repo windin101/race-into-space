@@ -38,7 +38,21 @@ D = {
                "runway, airstrip, road, aeroplane, aircraft, people"),
     "memorial": ("A single tall slender pale stone obelisk memorial standing completely alone on a low three-step square plinth on a small paved square, "
                  "a wreath at its base, no building anywhere, nothing else in the picture", "building, house, office, block, wall, roof, people"),
+    # launch-pad parts, assembled by tools/art_source/assemble_pads.py
+    "platform": ("A large flat square concrete launch platform lying on the ground, pale grey concrete, a dark square open flame trench in its centre, "
+                 "a low concrete lip around the edge, completely flat and empty, nothing standing on it, just the flat pad",
+                 "tower, gantry, mast, rocket, building, walls, house, crane, fire, flames, glow, people"),
+    "gantry": ("A single very tall slender steel lattice rocket service gantry tower standing alone on bare ground, white-painted girders with red bands, "
+               "platforms at several levels and a small crane arm at the top, nothing else in the picture, no building, no rocket",
+               "building, house, walls, rocket, missile, fire, flames, people, second tower"),
+    "gantry_wreck": ("A collapsed white steel lattice rocket service tower lying bent and broken on scorched black concrete, twisted girders, "
+                     "wisps of grey smoke, nothing else in the picture, no building, no rocket, no fire",
+                     "building, house, walls, rocket, fire, flames, orange glow, people"),
 }
+PARTS = {"platform", "gantry", "gantry_wreck"}
+PART_TEMPLATE = ("Flat vector illustration like a 1960s magazine plate, soft two-tone cel shading, clean geometric shapes, no outlines, "
+                 "limited muted palette. {desc}, {view}, the whole object visible and centred, "
+                 "isolated in front of a plain solid flat bright green chroma key background #00FF00.")
 ids = sys.argv[2:] or list(D)
 K0, K1 = int(os.environ.get("K0", 0)), int(os.environ.get("K1", 3))
 for bid in ids:
@@ -47,7 +61,8 @@ for bid in ids:
     if extra:
         neg += ", " + extra
     for k in range(K0, K1):
-        img = cb.run_workflow(cb.t2i_graph(TEMPLATE.format(desc=d, finish=FINISH, view=VIEW), cb.seed_for("woomera/" + PALETTE + "/" + bid) + k, 1024, 768, neg), timeout=1800)[0]
+        prompt = PART_TEMPLATE.format(desc=d, view=VIEW) if bid in PARTS else TEMPLATE.format(desc=d, finish=FINISH, view=VIEW)
+        img = cb.run_workflow(cb.t2i_graph(prompt, cb.seed_for("woomera/" + PALETTE + "/" + bid) + k, 1024, 768, neg), timeout=1800)[0]
         img = cb.chroma_key(img, tuple(cfg["chroma_key"]), tight=True)
         bb = img.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
         if bb:

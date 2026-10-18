@@ -13,6 +13,7 @@ const SEED_MAX := 2147483647
 var _count: OptionButton
 var _pick_box: HBoxContainer
 var _picks: Dictionary = {}         ## side -> Button (toggle)
+var _thumbs: Dictionary = {}        ## side -> Callable that re-dims its thumbnail
 var _pick_note: Label
 var _side: OptionButton
 var _emblem: TextureRect
@@ -70,7 +71,7 @@ func _ready() -> void:
 		b.custom_minimum_size = Vector2(230, 64)
 		b.tooltip_text = "%s, from %s" % [Sides.name(s), str(Sides.field(s, "site", ""))]
 		b.toggled.connect(func(_on): _on_pick_changed())
-		_pick_box.add_child(b)
+		_pick_box.add_child(_side_card(s, b))
 		_picks[s] = b
 	_pick_note = Label.new()
 	_pick_note.theme_type_variation = "Small"
@@ -162,6 +163,7 @@ func _ready() -> void:
 	var default := Sides.default_lineup()
 	for s in _picks:
 		_picks[s].set_pressed_no_signal(default.has(s))
+		if _thumbs.has(s): _thumbs[s].call()
 	_count.select(maxi(0, _count.get_item_index(default.size())))
 	_on_pick_changed()
 
@@ -178,7 +180,38 @@ func _on_count_changed() -> void:
 			chosen.append(s)
 	for s in _picks:
 		_picks[s].set_pressed_no_signal(chosen.has(s))
+		if _thumbs.has(s): _thumbs[s].call()
 	_on_pick_changed()
+
+
+## A side's pick button with its spaceport painting above it as a thumbnail. Clicking the
+## picture toggles the button; the picture is dimmed while the side is not picked.
+func _side_card(side: String, button: Button) -> Control:
+	var card := VBoxContainer.new()
+	card.add_theme_constant_override("separation", 4)
+	var tex := ArtAssets.texture("spaceport/%s/background_spring.png" % side)
+	if tex != null:
+		var frame := PanelContainer.new()
+		frame.theme_type_variation = "Card"
+		var pic := TextureRect.new()
+		pic.texture = tex
+		pic.custom_minimum_size = Vector2(230, 120)
+		pic.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		pic.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_COVERED
+		pic.clip_contents = true
+		pic.mouse_default_cursor_shape = Control.CURSOR_POINTING_HAND
+		pic.tooltip_text = button.tooltip_text
+		pic.gui_input.connect(func(e: InputEvent):
+			if e is InputEventMouseButton and e.pressed and e.button_index == MOUSE_BUTTON_LEFT:
+				button.button_pressed = not button.button_pressed)
+		var dim := func(): pic.modulate = Color.WHITE if button.button_pressed else Color(0.55, 0.55, 0.6)
+		button.toggled.connect(func(_on): dim.call())
+		frame.add_child(pic)
+		card.add_child(frame)
+		card.ready.connect(dim)
+		_thumbs[side] = dim
+	card.add_child(button)
+	return card
 
 
 func _chosen() -> Array:
