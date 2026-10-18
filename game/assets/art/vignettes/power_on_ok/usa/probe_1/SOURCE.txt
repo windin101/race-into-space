@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa probe_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 958645736
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the solar panels unfold slowly to their full width and an antenna extends; the satellite keeps its shape; the Earth stays as drawn; no bright flashes. No text.
+Licence: CC0 (AI output)

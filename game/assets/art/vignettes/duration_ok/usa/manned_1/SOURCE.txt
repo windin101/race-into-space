@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the usa manned_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 1586934974
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the capsule crosses from day into night as the Earth turns slowly below, lights glowing in the windows. No text.
+Licence: CC0 (AI output)

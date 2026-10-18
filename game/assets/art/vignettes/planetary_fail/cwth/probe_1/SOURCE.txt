@@ -1,0 +1,4 @@
+Keyframe by Gemini 2.5 Flash Image from the cwth probe_1 hardware icon (tools/vignette_keyframes.py), animated by Wan 2.2 image-to-video (Apache 2.0) via tools/comfy_video.py --keyframes.
+seed 391461930
+motion: Smooth cinematic animation of this illustration, same flat vector style, steady camera, the vehicle keeps exactly its drawn shape and outline throughout, the probe tumbles slowly, its dish turning away; the distant planet stays small and far; nothing new enters the frame. No text.
+Licence: CC0 (AI output)

@@ -1,4 +1,12 @@
-# Mission vignettes: rework plan (audit 2026-10-16)
+# Mission vignettes: rework plan (audit 2026-10-16; completed 2026-10-18)
+
+**Status:** done. All 18 families have per-side, per-vehicle clips (246 in total) under
+`vignettes/<family>_<outcome>/<side>/<slot>/`; the generic family clips remain as the fallback.
+Keyframes: `tools/vignette_keyframes.py` (Gemini, seeded with the hardware icon); motion:
+`tools/comfy_video.py --keyframes` (Wan 2.2 on the compute GPU, GPU VAE, bad-page canary).
+Lessons: Wan invents objects when the still is sparse, so stills put the craft large in frame
+and motion lines say what stays still; 'capsule' reads as a pill, so prompts say 'spacecraft'.
+
 
 ## What is there now
 
