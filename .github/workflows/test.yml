@@ -1,0 +1,47 @@
+# Runs the gdUnit4 suite and the simulation fingerprint gate headless on every push and
+# pull request. Godot is downloaded once per version and cached.
+name: tests
+
+on:
+  push:
+  pull_request:
+
+env:
+  GODOT_VERSION: 4.7.2
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Godot
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux
+
+      - name: Download Godot
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot
+          curl -fsSL -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -q /tmp/godot.zip -d ~/godot
+          mv ~/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64 ~/godot/godot
+          chmod +x ~/godot/godot
+
+      - name: Import assets
+        run: ~/godot/godot --headless --path game --import || true
+
+      - name: Unit tests
+        env:
+          GODOT_BIN: /home/runner/godot/godot
+        run: tools/run_tests.sh
+
+      - name: Simulation fingerprint
+        env:
+          GODOT_BIN: /home/runner/godot/godot
+        run: tools/check_fingerprint.sh
