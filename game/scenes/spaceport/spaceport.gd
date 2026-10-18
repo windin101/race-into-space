@@ -303,8 +303,7 @@ func _on_end_turn() -> void:
 		return
 	if await ConfirmBox.ask(self, "End the season?", "Lower the flag and let %s play out." % Session.state().date_string()):
 		Sound.sfx("flag")
-		var report := Session.end_turn()
-		TurnFlow.after_end_turn(report)
+		TurnFlow.end_season()
 
 
 ## The hub refreshes itself when a turn screen above it closes.

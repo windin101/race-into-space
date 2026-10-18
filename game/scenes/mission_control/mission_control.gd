@@ -395,6 +395,5 @@ func _on_lower_flag() -> void:
 	if not Session.has_game() or Session.state().ended:
 		return
 	if await ConfirmBox.ask(self, "End the season?", "Lower the flag and let %s play out." % Session.state().date_string()):
-		var report := Session.end_turn()
 		Screens.pop()
-		TurnFlow.after_end_turn(report)
+		TurnFlow.end_season()

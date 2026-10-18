@@ -13,6 +13,7 @@ const SEED_MAX := 2147483647
 var _count: OptionButton
 var _pick_box: HBoxContainer
 var _picks: Dictionary = {}         ## side -> Button (toggle)
+var _played: Dictionary = {}        ## side -> OptionButton: 0 computer, 1 human (several humans = hot-seat)
 var _thumbs: Dictionary = {}        ## side -> Callable that re-dims its thumbnail
 var _pick_note: Label
 var _side: OptionButton
@@ -101,7 +102,9 @@ func _ready() -> void:
 	_emblem.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_emblem.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	side_row.add_child(_emblem)
-	_side.item_selected.connect(func(_i): _refresh_emblem())
+	_side.item_selected.connect(func(_i):
+		_refresh_emblem()
+		_on_played_changed())
 	_row(top, "Your side", side_row)
 	_model = OptionButton.new()
 	_models = GameData.hardware.get("models", {}).keys()
@@ -251,6 +254,9 @@ func _build_sides_grid() -> void:
 	var old_names := {}
 	for s in _director:
 		old_names[s] = _director[s].text
+	var old_played := {}
+	for s in _played:
+		old_played[s] = _played[s].selected
 	for c in _sides_grid.get_children():
 		c.queue_free()
 	_director.clear()
@@ -263,6 +269,18 @@ func _build_sides_grid() -> void:
 		h.theme_type_variation = "CapsBright"
 		h.add_theme_color_override("font_color", UiPalette.accent(s).lightened(0.3))
 		_sides_grid.add_child(h)
+	_played.clear()
+	_sides_grid.add_child(_label("Played by"))
+	for s in _lineup:
+		var o := OptionButton.new()
+		o.add_item("Computer")
+		o.add_item("Human")
+		o.selected = int(old_played.get(s, 1 if s == human_side() else 0))
+		o.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		o.tooltip_text = "Who runs the %s programme. With more than one human side the game is hot-seat: each director takes their turn on this computer in line-up order, with a handover screen between." % Sides.name(s)
+		o.item_selected.connect(func(_i): _on_played_changed())
+		_sides_grid.add_child(o)
+		_played[s] = o
 	_sides_grid.add_child(_label("Director"))
 	for s in _lineup:
 		var e := LineEdit.new()
@@ -321,6 +339,23 @@ func _randomise_seed() -> void:
 	_seed.value = randi() % (SEED_MAX + 1)
 
 
+## The sides people will play: every side set to Human, always including "Your side".
+func humans() -> Array:
+	var out: Array = []
+	for s in _lineup:
+		if s == human_side() or (_played.has(s) and _played[s].selected == 1):
+			out.append(s)
+	return out
+
+
+func _on_played_changed() -> void:
+	# "Your side" is always played by a human; keep its row in step.
+	if _played.has(human_side()) and _played[human_side()].selected != 1:
+		_played[human_side()].selected = 1
+	var n := humans().size()
+	_pick_note.text = ("Hot-seat: %d directors share this computer (%s), taking turns in that order." % [n, ", ".join(humans().map(func(x): return Sides.name(x)))]) if n > 1 else ("%s." % " vs ".join(_lineup.map(func(x): return Sides.name(x))))
+
+
 func human_side() -> String:
 	if _side == null or _side.selected < 0 or _side.selected >= _lineup.size():
 		return _lineup[0] if not _lineup.is_empty() else ""
@@ -330,7 +365,7 @@ func human_side() -> String:
 ## The options dictionary Session.new_game receives.
 func game_options() -> Dictionary:
 	var ng: Dictionary = GameData.new_game
-	var opts := {"sides": _lineup.duplicate(), "human_side": human_side(),
+	var opts := {"sides": _lineup.duplicate(), "human_side": human_side(), "humans": humans(),
 			"model": _models[_model.selected] if not _models.is_empty() else "basic"}
 	for s in _lineup:
 		opts["level_%s" % s] = _level[s].selected

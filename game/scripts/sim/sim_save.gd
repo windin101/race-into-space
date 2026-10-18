@@ -180,7 +180,12 @@ static func slot_path(slot: String) -> String:
 
 
 ## The side the human plays: the first non-AI player, or USA when both are AI.
+## The side at the controls: in hot-seat play the one whose turn it is, else the human.
 static func human_side_of(game: SimGame) -> String:
+	var active := str(game.state.options.get("active_side", ""))
+	for p in game.state.players:
+		if not p.is_ai and p.side == active:
+			return active
 	for p in game.state.players:
 		if not p.is_ai:
 			return p.side

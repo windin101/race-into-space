@@ -9,9 +9,38 @@ const PLAYBACK := "res://scenes/playback/mission_playback.tscn"
 const NEWSCAST := "res://scenes/turn/newscast.tscn"
 const ANNUAL_REVIEW := "res://scenes/turn/annual_review.tscn"
 const END_GAME := "res://scenes/turn/end_game.tscn"
+const HANDOVER := "res://scenes/turn/handover.tscn"
+const SPACEPORT := "res://scenes/spaceport/spaceport.tscn"
 
 
 static var pending_cards: Array = []
+
+
+## What both "end the season" actions call. In hot-seat play a human who is not last only
+## passes the controls on: the next side's spaceport, news and review come up behind a
+## handover card. Otherwise the season plays out as before.
+static func end_season() -> void:
+	var report := Session.end_turn()
+	if report.has("handover"):
+		Screens.reset(load(SPACEPORT))
+		_push_chain(season_start_chain())
+		return
+	if Session.is_hot_seat():
+		Screens.reset(load(SPACEPORT))   # the first director's spaceport under the shared screens
+	await after_end_turn(report)
+
+
+## The screens a director sees at the start of their season: in hot-seat play the handover
+## card first, then their newscast and, at the turn of the year, their review.
+static func season_start_chain() -> Array:
+	var state := Session.state()
+	var chain: Array = []
+	if Session.is_hot_seat():
+		chain.append([HANDOVER, {}])
+	chain.append([NEWSCAST, {}])
+	if SimCalendar.is_review_time(state) and not Session.me().reviews.is_empty():
+		chain.append([ANNUAL_REVIEW, {"review": Session.me().reviews.back()}])
+	return chain
 
 
 static func after_end_turn(report: Dictionary) -> void:
@@ -52,12 +81,15 @@ static func after_end_turn_screens_only(report: Dictionary) -> void:
 	if state.ended:
 		chain.append([END_GAME, {"report": report}])
 	else:
-		chain.append([NEWSCAST, {}])
-		if SimCalendar.is_review_time(state) and not Session.me().reviews.is_empty():
-			chain.append([ANNUAL_REVIEW, {"review": Session.me().reviews.back()}])
-	# The stack shows its top first, so push the last-seen screen first.
-	chain.reverse()
-	for entry in chain:
+		chain.append_array(season_start_chain())
+	_push_chain(chain)
+
+
+## Push screens so that the first in `chain` is the first seen (the stack shows its top).
+static func _push_chain(chain: Array) -> void:
+	var rev := chain.duplicate()
+	rev.reverse()
+	for entry in rev:
 		_push_if_exists(entry[0], entry[1])
 
 
@@ -109,7 +141,7 @@ static func firsts_for(report: Dictionary, state: SimState, player: int, side: S
 
 ## Show the opening newscast when a new game starts.
 static func on_new_game() -> void:
-	_push_if_exists(NEWSCAST, {})
+	_push_chain(season_start_chain())
 
 
 static func _push_if_exists(path: String, args: Dictionary) -> void:

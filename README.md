@@ -8,7 +8,7 @@ You run a national space programme from Spring 1957 to Fall 1977. Buy rockets an
 
 This is a fan reimplementation of *Race Into Space* (Strategic Visions / Interplay, 1993). The rules and data come from the open-source GPL port of that game; the engine, interface and art are all new. See [Licence and sources](#licence-and-sources) for exactly what is and is not borrowed.
 
-> **Status: playable, pre-1.0.** The full 21-year campaign plays end to end against AI rivals that do reach the Moon. Art is complete; the music is still placeholder, and the 1.0 release work (hot-seat play, packaging, a player manual) is in progress. See [Roadmap](#roadmap).
+> **Status: playable, pre-1.0.** The full 21-year campaign plays end to end against AI rivals that do reach the Moon. Art is complete; the music is still placeholder, and the 1.0 release work (packaging, a player manual) is in progress. See [Roadmap](#roadmap).
 
 ---
 
@@ -44,7 +44,7 @@ The original game was a two-way race. This one adds a third: **the Commonwealth*
 | Intelligence | CIA | KGB | MI6 |
 | Reports to | The President | The Politburo | The Prime Minister |
 
-Play any side against one or two AI rivals, on separate difficulty and astronaut-quality settings per side. The Commonwealth's costs and safety were tuned over hundreds of seeded AI-versus-AI games per match-up so that the three-way race is even (289, 275 and 302 wins for the Commonwealth, United States and Soviet Union over 600 games); head to head the Soviet Union keeps an edge. The balance runs also turned up and fixed a seat-order bias in the original rules ([tuning notes](docs/specs/tuning-notes.md)). Factions are pure data and art, so a fourth is a matter of filling in [the faction guide](docs/adding-a-faction.md).
+Play any side against one or two AI rivals, or share one computer **hot-seat** with up to two friends: each director takes their turn in order, with a handover screen between so nobody sees anyone else's plans, and the launches play out together. Difficulty and astronaut quality are set per side. The Commonwealth's costs and safety were tuned over hundreds of seeded AI-versus-AI games per match-up so that the three-way race is even (289, 275 and 302 wins for the Commonwealth, United States and Soviet Union over 600 games); head to head the Soviet Union keeps an edge. The balance runs also turned up and fixed a seat-order bias in the original rules ([tuning notes](docs/specs/tuning-notes.md)). Factions are pure data and art, so a fourth is a matter of filling in [the faction guide](docs/adding-a-faction.md).
 
 ![New game setup](docs/readme/new_game.jpg)
 
@@ -185,7 +185,7 @@ The plan is in [`docs/plan.md`](docs/plan.md). Phases 0 to 7 (foundations, data,
 - [x] Linux and Windows exports, with a packaged-build self-check
 - [x] Colour-blind palette and keyboard navigation
 - [ ] Full play-test pass
-- [ ] Hot-seat play for two or three people
+- [x] Hot-seat play for two or three people
 - [ ] Original music to replace the placeholder loops
 - [ ] Flatpak package and a tested Windows build
 - [ ] A player manual
