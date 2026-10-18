@@ -146,7 +146,15 @@ godot --headless --export-release "Linux" ../build/linux/race-into-space.x86_64
 ../build/linux/race-into-space.x86_64 --headless -- --self-check   # smoke-tests the packed build
 ```
 
-Presets exist for Linux and Windows. The packed game is currently about 670 MB, almost all of it mission vignettes.
+Presets exist for Linux and Windows. The packed game is currently about 670 MB, almost all of it mission vignettes. Every push to `main` builds both, self-checks them (the Windows build under Wine) and uploads them to the [Actions](https://github.com/windin101/race-into-space/actions) page; a `v*` tag publishes them as a release.
+
+**Flatpak.** After exporting the Linux build:
+
+```sh
+flatpak install --user flathub org.flatpak.Builder org.freedesktop.Platform//26.08 org.freedesktop.Sdk//26.08
+flatpak run org.flatpak.Builder --user --install --force-clean build/flatpak packaging/flatpak/io.github.windin101.RaceIntoSpace.yml
+flatpak run io.github.windin101.RaceIntoSpace
+```
 
 **Screenshots** of every screen, for every side, at several window sizes:
 
@@ -187,7 +195,7 @@ The plan is in [`docs/plan.md`](docs/plan.md). Phases 0 to 7 (foundations, data,
 - [ ] Full play-test pass
 - [x] Hot-seat play for two or three people
 - [ ] Original music to replace the placeholder loops
-- [ ] Flatpak package and a tested Windows build
+- [x] Flatpak package and a tested Windows build (under Wine; not yet on real Windows)
 - [ ] A player manual
 - [ ] 1.0 release
 

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.windin101.RaceIntoSpace</id>
+  <name>Race Into Space</name>
+  <summary>Run a national space programme and race to land on the Moon</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>GPL-2.0-or-later</project_license>
+  <developer id="io.github.windin101">
+    <name>Lee Osborne</name>
+  </developer>
+  <description>
+    <p>
+      A remake of the 1993 space-race strategy game. Direct the United States, the Soviet
+      Union or a British-led Commonwealth programme from 1957 to 1977: buy rockets and
+      capsules, research them until they are safe to fly, recruit and train crews, plan
+      missions step by step and watch every launch play out. The first side to land a crew
+      on the Moon and bring them home wins.
+    </p>
+    <ul>
+      <li>Three space programmes with their own hardware, spaceports and politics</li>
+      <li>62 mission types, from the first satellite to the lunar landing</li>
+      <li>Every flight animated, showing the vehicle you are actually flying</li>
+      <li>Play against the computer or hot-seat with friends</li>
+      <li>Colour-blind friendly colours, keyboard play and a scalable interface</li>
+    </ul>
+  </description>
+  <launchable type="desktop-id">io.github.windin101.RaceIntoSpace.desktop</launchable>
+  <url type="homepage">https://github.com/windin101/race-into-space</url>
+  <url type="bugtracker">https://github.com/windin101/race-into-space/issues</url>
+  <screenshots>
+    <screenshot type="default">
+      <caption>The Cape Canaveral spaceport</caption>
+      <image>https://raw.githubusercontent.com/windin101/race-into-space/main/docs/readme/cape_canaveral.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>Planning a mission</caption>
+      <image>https://raw.githubusercontent.com/windin101/race-into-space/main/docs/readme/future_missions.jpg</image>
+    </screenshot>
+    <screenshot>
+      <caption>Mission control</caption>
+      <image>https://raw.githubusercontent.com/windin101/race-into-space/main/docs/readme/mission_control.jpg</image>
+    </screenshot>
+  </screenshots>
+  <content_rating type="oars-1.1"/>
+  <categories>
+    <category>Game</category>
+    <category>StrategyGame</category>
+  </categories>
+  <releases>
+    <release version="0.9.0" date="2026-10-18">
+      <description><p>First packaged build: three programmes, hot-seat play, full art.</p></description>
+    </release>
+  </releases>
+</component>

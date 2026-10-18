@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Race Into Space
+GenericName=Space race strategy game
+Comment=Run a national space programme and race to land on the Moon
+Exec=race-into-space
+Icon=io.github.windin101.RaceIntoSpace
+Terminal=false
+Categories=Game;StrategyGame;
+Keywords=space;moon;apollo;strategy;history;

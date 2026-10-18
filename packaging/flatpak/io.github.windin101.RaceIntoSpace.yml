@@ -1,0 +1,57 @@
+# Flatpak manifest. Packages the exported Linux build (Godot release template + .pck).
+#
+# Local build, from the repository root, after exporting build/linux/:
+#   flatpak run org.flatpak.Builder --user --install --force-clean \
+#     build/flatpak packaging/flatpak/io.github.windin101.RaceIntoSpace.yml
+#   flatpak run io.github.windin101.RaceIntoSpace
+#
+# For a Flathub submission, replace the `dir` source with the release archive
+# (type: archive, url: the GitHub release .tar.gz, sha256: its checksum).
+app-id: io.github.windin101.RaceIntoSpace
+runtime: org.freedesktop.Platform
+runtime-version: '26.08'
+sdk: org.freedesktop.Sdk
+command: race-into-space
+finish-args:
+  - --share=ipc
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --socket=pulseaudio
+  - --device=dri
+  # read-only access to the Music folder, for players who point the game at their own
+  # copy of the original soundtrack
+  - --filesystem=xdg-music:ro
+
+modules:
+  - name: race-into-space
+    buildsystem: simple
+    build-commands:
+      - install -Dm755 race-into-space.x86_64 /app/lib/race-into-space/race-into-space.x86_64
+      - install -Dm644 race-into-space.pck /app/lib/race-into-space/race-into-space.pck
+      - install -Dm755 race-into-space.sh /app/bin/race-into-space
+      - install -Dm644 io.github.windin101.RaceIntoSpace.desktop /app/share/applications/io.github.windin101.RaceIntoSpace.desktop
+      - install -Dm644 io.github.windin101.RaceIntoSpace.metainfo.xml /app/share/metainfo/io.github.windin101.RaceIntoSpace.metainfo.xml
+      - for s in 128 256 512; do install -Dm644 icon-$s.png /app/share/icons/hicolor/${s}x${s}/apps/io.github.windin101.RaceIntoSpace.png; done
+    sources:
+      - type: file
+        path: ../../build/linux/race-into-space.x86_64
+      - type: file
+        path: ../../build/linux/race-into-space.pck
+      - type: file
+        path: io.github.windin101.RaceIntoSpace.desktop
+      - type: file
+        path: io.github.windin101.RaceIntoSpace.metainfo.xml
+      - type: file
+        path: icon-128.png
+      - type: file
+        path: icon-256.png
+      - type: file
+        path: icon-512.png
+      - type: script
+        dest-filename: race-into-space.sh
+        commands:
+          # release builds load race-into-space.pck from beside the binary (they refuse --main-pack)
+          # the sandbox hides X11 when Wayland is available (fallback-x11), so ask for Wayland
+          # directly rather than letting Godot try X11 first and log an error
+          - if [ -n "$WAYLAND_DISPLAY" ]; then set -- --display-driver wayland "$@"; fi
+          - exec /app/lib/race-into-space/race-into-space.x86_64 "$@"
