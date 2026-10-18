@@ -82,6 +82,9 @@ def write_sequence(frames: list, folder: Path, fps_out: int, note: str) -> int:
     picked = [frames[min(len(frames) - 1, round(i * step))] for i in range(int(len(frames) / step))]
     for i, fr in enumerate(picked, 1):
         to_stage(fr).save(folder / f"frame_{i:04d}.webp", "WEBP", quality=85, method=4)
+        # lossy import: Godot's default (lossless) makes each frame ~390 KB in the export
+        (folder / f"frame_{i:04d}.webp.import").write_text(
+            '[remap]\n\nimporter="texture"\ntype="CompressedTexture2D"\n\n[params]\n\ncompress/mode=1\ncompress/lossy_quality=0.8\nmipmaps/generate=false\n')
     (folder / "SOURCE.txt").write_text(note)
     return len(picked)
 

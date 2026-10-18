@@ -104,3 +104,16 @@ func _files(dir_path: String) -> Array:
 			out.append(full)
 		entry = dir.get_next()
 	return out
+
+
+## Vignette frames must import lossy: lossless re-encodes each 1080p WebP to ~390 KB and
+## took the exported pack from ~0.8 GB to 5.2 GB. New frames get Godot's lossless default,
+## so set compress/mode=1 in their .import files (see docs/plan-vignettes-rework.md).
+func test_vignette_frames_import_lossy() -> void:
+	var lossless: Array = []
+	for path: String in _files("res://assets/art/vignettes"):
+		if path.ends_with(".webp.import"):
+			var text := FileAccess.get_file_as_string(path)
+			if text.contains("compress/mode=0"):
+				lossless.append(path)
+	assert_array(lossless).override_failure_message("vignette frames importing lossless (%d), e.g. %s" % [lossless.size(), str(lossless.slice(0, 3))]).is_empty()

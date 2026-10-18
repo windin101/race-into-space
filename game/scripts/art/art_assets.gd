@@ -81,8 +81,11 @@ static func _frames_in(rel: String) -> Array:
 		dir.list_dir_begin()
 		var entry := dir.get_next()
 		while entry != "":
-			if not dir.current_is_dir() and entry.begins_with("frame_") and (entry.ends_with(".png") or entry.ends_with(".webp") or entry.ends_with(".jpg")):
-				names.append(entry)
+			# An exported game lists imported images as "<name>.import" (the source file is not
+			# packed), so accept either form and load by the source name.
+			var name := entry.trim_suffix(".import")
+			if not dir.current_is_dir() and name.begins_with("frame_") and (name.ends_with(".png") or name.ends_with(".webp") or name.ends_with(".jpg")) and not names.has(name):
+				names.append(name)
 			entry = dir.get_next()
 		names.sort()
 		for n in names:
