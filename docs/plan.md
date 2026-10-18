@@ -176,6 +176,15 @@ and sheets are in `docs/screens/phase7/` (`tools/art_capture.tscn`). Hand-painte
 recorded music can replace each painter or file without touching callers; that is the open
 item, not a blocker.
 
+Art completed 2026-10-18: every screen now draws real art. Spaceports are single
+locked-angle scenes per side on the player's road plans (Cape, Baikonur, Woomera, each with
+its own pads, runway, hangar, Moon and capital on the horizon); 63 hardware icons drawn to
+the real vehicles; 246 per-side, per-vehicle mission vignettes; portraits, backdrops,
+patches, emblems, flags and the side picker's spaceport thumbnails. The procedural painters
+remain only as fallbacks. Still open, deferred to the end by decision: music (the three
+synthesised loops; ACE-Step 1.5 is available locally) and the repository size (~900 MB of
+history, mostly vignette frames; see the note in docs/plan-vignettes-rework.md).
+
 ## Phase 8: Polish and release
 
 - Hot-seat two-player, options, accessibility (font scale, colour-blind palettes,

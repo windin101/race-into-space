@@ -123,8 +123,11 @@ MANUAL = {
         "pad_1": (0.4792, 0.0509, 0.0729, 0.1343),
         "flag": (0.7385, 0.7685, 0.0187, 0.0324),
         "runway": (0.2109, 0.2093, 0.0714, 0.0713),
-        "capital": (0.8896, 0.1105, 0.0281, 0.0950),
-        "moon": (0.6198, 0.0352, 0.0437, 0.0778),
+        # Baikonur's domed horizon leaves only a thin band of sky on screen, deepest at the
+        # edges: the Kremlin stands small on the far-left horizon, the Moon in the top-right sky,
+        # both starting below the top bar (which overlays the painting's first 48 px).
+        "capital": (0.0120, 0.0500, 0.0165, 0.0540),
+        "moon": (0.9600, 0.0490, 0.0260, 0.0460),
     },
     "cwth": {
         "vab": (0.4578, 0.1398, 0.1219, 0.1389),

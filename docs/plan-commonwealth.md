@@ -175,7 +175,7 @@ when a lunar-orbit probe mission flies.
 The vignettes and diagram bodies are shared by all sides. Roughly four hours of GPU time
 in total, run in the background.
 
-### Phase D: interface for three sides — done 2026-10-13, except the side picker's spaceport thumbnails
+### Phase D: interface for three sides — done 2026-10-13 (side-picker thumbnails 2026-10-18)
 
 - New Game styling for the side picker: flags, emblems and each side's spaceport as a thumbnail.
 - Top bar: prestige for every rival on race screens. Budget graphs: one line per side.
