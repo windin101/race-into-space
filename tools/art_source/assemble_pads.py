@@ -16,7 +16,8 @@ from PIL import Image, ImageEnhance
 ap = argparse.ArgumentParser()
 ap.add_argument("parts"); ap.add_argument("out")
 ap.add_argument("--platform", type=int, required=True); ap.add_argument("--gantry", type=int, required=True)
-ap.add_argument("--wreck", type=int, required=True)
+ap.add_argument("--wreck", type=int, default=-1, help="-1: topple the gantry across the scorched platform instead")
+ap.add_argument("--unslab", action="store_true", help="key out a sand slab under the gantry")
 ap.add_argument("--gantry-scale", type=float, default=0.95)
 ap.add_argument("--gantry-dx", type=int, default=70, help="gantry foot offset from the platform centre, px")
 ap.add_argument("--gantry-dy", type=int, default=-40, help="gantry foot offset from the platform centre, px")
@@ -27,9 +28,38 @@ def tight(im):
     bb = im.getchannel("A").point(lambda v: 255 if v > 40 else 0).getbbox()
     return im.crop(bb) if bb else im
 
-site = tight(Image.open(P / f"platform_{a.platform}.png").convert("RGBA"))
+def defire(im):
+    """The generator lights every flame pit: repaint the fire and its outline as the pit's dark grey."""
+    import cv2
+    arr = np.asarray(im).astype(int); r, g, b = arr[..., 0], arr[..., 1], arr[..., 2]
+    fire = ((r > 150) & (r - b > 90) & (arr[..., 3] > 0)).astype(np.uint8)
+    near = cv2.dilate(fire, np.ones((9, 9), np.uint8)) > 0
+    dark = arr[..., :3].max(-1) < 200
+    arr[(fire > 0) | (near & dark), :3] = (52, 54, 60)
+    return Image.fromarray(arr.astype(np.uint8), "RGBA")
+
+def unslab(im):
+    """Keep only the tower: white and grey girders (neutral or cool) and red bands. Drops the sand
+    slab, its outline and the warm shadow the generator stands every tower on."""
+    import cv2
+    arr = np.asarray(im).copy(); c = arr[..., :3].astype(int); r, g, b = c[..., 0], c[..., 1], c[..., 2]
+    mx, mn = c.max(-1), c.min(-1)
+    girder = ((mx - mn < 40) & (b >= g - 8) & (mx > 110)) | ((mn > 195) & (mx - mn < 45))   # grey steel, lit white paint
+    red = (r > 140) & (r - g > 60)
+    keep = ((girder | red) & (arr[..., 3] > 40)).astype(np.uint8)
+    keep = cv2.morphologyEx(keep, cv2.MORPH_CLOSE, np.ones((5, 5), np.uint8))
+    n, lab, st, _ = cv2.connectedComponentsWithStats(keep)
+    if n > 1:
+        keep = (lab == 1 + int(np.argmax(st[1:, 4]))).astype(np.uint8)
+    alpha = cv2.GaussianBlur(cv2.dilate(keep, np.ones((3, 3), np.uint8)).astype(np.float32), (3, 3), 0)
+    arr[..., 3] = (np.minimum(arr[..., 3], alpha * 255)).astype(np.uint8)
+    return Image.fromarray(arr, "RGBA")
+
+site = defire(tight(Image.open(P / f"platform_{a.platform}.png").convert("RGBA")))
 gantry = tight(Image.open(P / f"gantry_{a.gantry}.png").convert("RGBA"))
-wreck = tight(Image.open(P / f"gantry_wreck_{a.wreck}.png").convert("RGBA"))
+if a.unslab:
+    gantry = tight(unslab(gantry))
+wreck = None if a.wreck < 0 else tight(Image.open(P / f"gantry_wreck_{a.wreck}.png").convert("RGBA"))
 site.save(O / "pad_site.png")
 
 def stand_on(base, part, scale, dx, dy):
@@ -52,7 +82,15 @@ r = np.hypot((xx - site.width / 2) / (site.width / 2), (yy - site.height / 2) / 
 dark = np.clip(1 - r, 0, 1)[..., None] * 0.55
 arr[..., :3] = arr[..., :3] * (1 - dark) + np.array([30, 26, 24.0]) * dark
 scorched = Image.fromarray(arr.clip(0, 255).astype(np.uint8), "RGBA")
-w = wreck.resize((round(site.width * 0.85), round(wreck.height * site.width * 0.85 / wreck.width)), Image.LANCZOS)
+if wreck is None:
+    # the tower fallen across the pad: rotated nearly flat, darkened, laid along the diagonal
+    fallen = gantry.resize((round(gantry.width * a.gantry_scale), round(gantry.height * a.gantry_scale)), Image.LANCZOS)
+    fallen = fallen.rotate(-72, resample=Image.BICUBIC, expand=True)
+    fallen = ImageEnhance.Brightness(fallen).enhance(0.62)
+    sc = min(1.0, site.width * 1.05 / fallen.width); fallen = fallen.resize((round(fallen.width * sc), round(fallen.height * sc)), Image.LANCZOS)
+    w = fallen
+else:
+    w = wreck.resize((round(site.width * 0.85), round(wreck.height * site.width * 0.85 / wreck.width)), Image.LANCZOS)
 dmg = scorched.copy(); dmg.alpha_composite(w, ((site.width - w.width) // 2, max(0, site.height // 2 - w.height // 2)))
 dmg.save(O / "pad_damaged.png")
 print("wrote", *(f.name for f in sorted(O.glob("pad_*.png"))))
